@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
 import Data.Char
@@ -18,7 +19,10 @@ import Control.Concurrent
 import Control.Concurrent.Async
 import Control.Monad
 import Control.Monad.Reader
-import Control.Exception hiding (catch)
+--import Control.Monad.Except
+import Control.Monad.Catch
+import Control.Exception hiding (catch, bracket, finally, mask)
+--import Control.Exception hiding (catch)
 import Control.Monad.Trans.Control
 import Control.DeepSeq
 import System.Exit
@@ -80,6 +84,12 @@ timeOut dt d m =
       <$> liftIO getCurrentTime
       <*> m
       <*> liftIO getCurrentTime
+
+catchErr :: (MonadCatch m, NFData a, MonadIO m) => (String -> m a) -> m a -> m a
+catchErr er m = (force <$> m >>= liftIO . evaluate) `catch` getErr `catch` getPMatchFail
+  where
+    getErr (e :: ErrorCall) = catchErr er $ er $ show e
+    getPMatchFail (e :: PatternMatchFail) = catchErr er $ er $ show e
 
 ------------------------------------------
 

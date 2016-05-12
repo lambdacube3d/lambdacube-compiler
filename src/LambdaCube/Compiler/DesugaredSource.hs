@@ -22,7 +22,6 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.IntMap as IM
 import Control.Arrow hiding ((<+>))
-import Control.DeepSeq
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
@@ -88,9 +87,6 @@ showPos n p = pShow n <> ":" <> pShow p
 data Range = Range !FileInfo !SPos !SPos
     deriving (Eq, Ord)
 
-instance NFData Range where
-    rnf Range{} = ()
-
 instance Show Range where show = ppShow
 instance PShow Range
   where
@@ -110,11 +106,6 @@ data SI
 
 getRange (RangeSI r) = Just r
 getRange _ = Nothing
-
-instance NFData SI where
-    rnf = \case
-        NoSI x -> rnf x
-        RangeSI r -> rnf r
 
 --instance Show SI where show _ = "SI"
 instance Eq SI where _ == _ = True
@@ -202,11 +193,16 @@ data FNameTag
                     | FRecordCons
                     | FRecItem
                     | FSx | FSy | FSz | FSw
-    -- type constructors
-    | F'Int | F'Word | F'Float | F'String | F'Char | F'Output
+    | F'Int
+    | F'Word
+    | F'Float
+    | F'String
+    | F'Char
+    | F'Output
+    -- type functions
+    | F'T2 | F'EqCT | F'CW | F'Split | F'VecScalar
     -- functions
     | Fcoe | FparEval | Ft2C | FprimFix
-    | F'T2 | F'EqCT | F'CW | F'Split | F'VecScalar
     | Fparens | FtypeAnn | Fundefined | Fotherwise | FprimIfThenElse | FfromTo | FconcatMap | FfromInt | Fproject | Fswizzscalar | Fswizzvector
     -- other
     | F_rhs | F_section

@@ -27,7 +27,6 @@ import Control.Monad.Writer
 import Control.Monad.RWS
 import Control.Arrow hiding ((<+>))
 import Control.Applicative
-import Control.DeepSeq
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
@@ -55,12 +54,6 @@ data LCParseError
 data ParseWarning
     = Unreachable Range
     | Uncovered SIName [PatList]
-
-instance NFData ParseWarning
- where
-    rnf = \case
-        Unreachable r -> rnf r
-        Uncovered si r -> () --rnf si -- TODO --rnf r
 
 instance PShow LCParseError where
     pShow = \case

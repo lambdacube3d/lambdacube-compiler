@@ -14,7 +14,6 @@ module LambdaCube.Compiler
 
     , MMT, runMMT, mapMMT
     , MM, runMM
-    , catchErr
     , ioFetch, decideFilePath
     , loadModule, getDef, compileMain, parseModule, preCompile
     , removeFromCache
@@ -35,9 +34,7 @@ import Control.Monad.State.Strict
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Monad.Except
-import Control.DeepSeq
 import Control.Monad.Catch
-import Control.Exception hiding (catch, bracket, finally, mask)
 import Control.Arrow hiding ((<+>))
 import System.FilePath
 --import Debug.Trace
@@ -116,12 +113,6 @@ runMM fetcher
     = flip evalStateT (Modules mempty mempty 1)
     . flip runReaderT fetcher
     . runMMT
-
-catchErr :: (MonadCatch m, NFData a, MonadIO m) => (String -> m a) -> m a -> m a
-catchErr er m = (force <$> m >>= liftIO . evaluate) `catch` getErr `catch` getPMatchFail
-  where
-    getErr (e :: ErrorCall) = catchErr er $ er $ show e
-    getPMatchFail (e :: PatternMatchFail) = catchErr er $ er $ show e
 
 -- TODO: remove dependent modules from cache too?
 removeFromCache :: Monad m => FilePath -> MMT m x ()

@@ -79,7 +79,6 @@ library
     aeson >= 0.9 && <1,
     base >=4.7 && <4.9,
     containers >=0.5 && <0.6,
-    deepseq,
     directory,
     exceptions >= 0.8 && <0.9,
     filepath,

@@ -24,7 +24,6 @@ import Control.Monad.Identity
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Arrow hiding ((<+>))
-import Control.DeepSeq
 import Debug.Trace
 
 import qualified Text.PrettyPrint.ANSI.Leijen as P
@@ -95,9 +94,6 @@ pattern DText s = DAtom (SimpleAtom s)
 instance Monoid Doc where
     mempty = text ""
     mappend = dTwo mappend
-
-instance NFData Doc where
-    rnf x = rnf $ show x    -- TODO
 
 instance Show Doc where
     show = ($ "") . P.displayS . P.renderPretty 0.4 200 . renderDoc

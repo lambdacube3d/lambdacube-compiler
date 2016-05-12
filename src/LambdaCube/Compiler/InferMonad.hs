@@ -24,7 +24,6 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Control.Arrow hiding ((<+>))
-import Control.DeepSeq
 
 --import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
@@ -41,14 +40,6 @@ data ErrorMsg
     | ETypeError Doc SI
     | ERedefined SName SI SI
 
-instance NFData ErrorMsg where rnf = rnf . ppShow
-{-
-    rnf = \case
-        ErrorMsg m -> rnf m
-        ECantFind a b -> rnf (a, b)
-        ETypeError a b -> rnf (a, b)
-        ERedefined a b c -> rnf (a, b, c)
--}
 errorRange_ = \case
     ErrorMsg s -> []
     ECantFind s si -> [si]
@@ -72,16 +63,6 @@ data Info
     | IError ErrorMsg
     | ParseWarning ParseWarning
 
-instance NFData Info where rnf = rnf . ppShow
-{-
- where
-    rnf = \case
-        Info r s -> rnf (r, s)
-        IType a b -> rnf (a, b)
-        ITrace i s -> rnf (i, s)
-        IError x -> rnf x
-        ParseWarning w -> rnf w
--}
 instance PShow Info where
     pShow = \case
         Info r s -> nest 4 $ shortForm (pShow r) <$$> s

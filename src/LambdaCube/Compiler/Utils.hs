@@ -10,7 +10,7 @@ module LambdaCube.Compiler.Utils where
 import qualified Data.IntSet as IS
 import qualified Data.Text as T
 import qualified Text.Show.Pretty as PP
-import Control.Monad.Catch
+--import Control.Monad.Catch
 import Control.Monad.Except
 import Control.Monad.RWS
 import System.Directory
@@ -110,11 +110,11 @@ readFileIfExists fname = do
     return $ if b then Just $ readFileStrict fname else Nothing
 
 ------------------------------------------------------- missing instances
-
+{-
 instance MonadMask m => MonadMask (ExceptT e m) where
     mask f = ExceptT $ mask $ \u -> runExceptT $ f (mapExceptT u)
     uninterruptibleMask = error "not implemented: uninterruptibleMask for ExcpetT"
-
+-}
 instance (Monoid w, P.MonadParsec st m t) => P.MonadParsec st (RWST r w s m) t where
     failure                     = lift . P.failure
     label                       = mapRWST . P.label
