@@ -314,9 +314,6 @@ infixl 2 `SAppV`, `SAppH`
 
 pattern SBuiltin s = SGlobal (Tag s)
 
-pattern ConsName <- SIName _ ":"
-  where ConsName =  SIName_ mempty (Just $ InfixR 5) ":"
-
 pattern SRHS a      = SBuiltin F_rhs     `SAppV` a
 pattern Section e   = SBuiltin F_section `SAppV` e
 pattern SType       = SBuiltin F'Type
@@ -333,7 +330,7 @@ pattern HNil      = SBuiltin FHNil
 
 -- builtin list
 pattern BList a   = SBuiltin F'List `SAppV` a
-pattern BCons a b = SGlobal ConsName `SAppV` a `SAppV` b
+pattern BCons a b = SBuiltin FCons `SAppV` a `SAppV` b
 pattern BNil      = SBuiltin FNil
 
 getTTuple (HList (getList -> Just xs)) = xs

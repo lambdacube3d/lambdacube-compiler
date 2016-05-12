@@ -84,20 +84,17 @@ pattern PConSimp    n ps = ParPat [PCon    n ps]
 pattern ViewPatSimp e p  = ParPat [ViewPat e p]
 pattern PatTypeSimp p t  = ParPat [PatType p t]
 
-pBuiltin_ n ci ps = PConSimp (n, ci) ps
-pBuiltin n = pBuiltin_ (consName n)
+pBuiltin n ci ps = PConSimp (Tag n, left (second $ map $ first Tag) ci) ps
 
-consName n = SIName (debugSI $ "Constructor_" ++ n) n
-
-cTrue = pBuiltin "True" (Left ((CaseName "'Bool", 0), [(consName "False", 0), (consName "True", 0)])) []
-cZero = pBuiltin "Zero" (Left ((CaseName "'Nat", 0), [(consName "Zero", 0), (consName "Succ", 1)])) []
-cNil  = pBuiltin "Nil"  (Left ((CaseName "'List", 0), [(consName "Nil", 0), (ConsName, 2)])) []
-cHNil = pBuiltin "HNil" (Left (("hlistNilCase", -1), [(consName "HNil", 0)])) []
-cList  a = pBuiltin "'List" (Right 1) [a]
-cHList a = pBuiltin "'HList" (Right 1) [a]
-cSucc  a = pBuiltin "Succ" (Left ((CaseName "'Nat", 0), [(consName "Zero", 0), (consName "Succ", 1)])) [a]
-cCons  a b = pBuiltin_ ConsName (Left ((CaseName "'List", 0), [(consName "Nil", 0), (ConsName, 2)])) [a, b]
-cHCons a b = pBuiltin "HCons" (Left (("hlistConsCase", -1), [(consName "HCons", 2)])) [a, b]
+cTrue = pBuiltin FTrue (Left ((CaseName "'Bool", 0), [(FFalse, 0), (FTrue, 0)])) []
+cZero = pBuiltin FZero (Left ((CaseName "'Nat", 0), [(FZero, 0), (FSucc, 1)])) []
+cNil  = pBuiltin FNil  (Left ((CaseName "'List", 0), [(FNil, 0), (FCons, 2)])) []
+cHNil = pBuiltin FHNil (Left (("hlistNilCase", -1), [(FHNil, 0)])) []
+cList  a = pBuiltin F'List (Right 1) [a]
+cHList a = pBuiltin F'HList (Right 1) [a]
+cSucc  a = pBuiltin FSucc (Left ((CaseName "'Nat", 0), [(FZero, 0), (FSucc, 1)])) [a]
+cCons  a b = pBuiltin FCons (Left ((CaseName "'List", 0), [(FNil, 0), (FCons, 2)])) [a, b]
+cHCons a b = pBuiltin FHCons (Left (("hlistConsCase", -1), [(FHCons, 2)])) [a, b]
 
 pattern PParens p = ViewPatSimp (SBuiltin Fparens) p
 
