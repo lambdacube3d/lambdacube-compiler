@@ -729,7 +729,6 @@ genGLSL dns e = case e of
         "RoundEven"         -> "roundEven"
         "ModF"              -> error "PrimModF is not implemented yet!" -- TODO
         "MixB"              -> "mix"
-
         n | n `elem`
             -- Logic Functions
             [ "Any", "All"
@@ -738,7 +737,7 @@ genGLSL dns e = case e of
             -- Exponential Functions
             , "Pow", "Exp", "Exp2", "Log2", "Sqrt"
             -- Common Functions
-            , "IsNan", "IsInf", "Abs", "Sign", "Floor", "Trunc", "Round", "Ceil", "Fract", "Min", "Max", "Mix", "Step", "SmoothStep"
+            , "IsNan", "IsInf", "Abs", "Sign", "Floor", "Trunc", "Round", "Ceil", "Fract", "Min", "Max", "Mix", "Clamp", "Step", "SmoothStep"
             -- Geometric Functions
             , "Length", "Distance", "Dot", "Cross", "Normalize", "FaceForward", "Reflect", "Refract"
             -- Matrix Functions
