@@ -862,8 +862,8 @@ mkPi _ = Nothing
 mkLam (ExpTV (I.Lam y) (I.Pi b x yt) vs) = Just (b, x .@ vs, ExpTV y yt $ addToEnv x vs)
 mkLam _ = Nothing
 
-mkCon (ExpTV (I.Con s n xs) et vs) = Just (untick $ show s, chain vs (I.conType et s) $ I.mkConPars n et ++ xs)
-mkCon (ExpTV (I.TyCon s xs) et vs) = Just (untick $ show s, chain vs (nType s) xs)
+mkCon (ExpTV (I.Con s n (reverse -> xs)) et vs) = Just (untick $ show s, chain vs (I.conType et s) $ I.mkConPars n et ++ xs)
+mkCon (ExpTV (I.TyCon s (reverse -> xs)) et vs) = Just (untick $ show s, chain vs (nType s) xs)
 mkCon (ExpTV (I.Neut (I.Fun s@(I.FunName _ loc _{-I.DeltaDef{}-} _) (reverse -> xs) def)) et vs) = Just (untick $ show s, drop loc $ chain vs (nType s) xs)
 mkCon (ExpTV (I.CaseFun s xs n) et vs) = Just (untick $ show s, chain vs (nType s) $ makeCaseFunPars' (mkEnv vs) n ++ xs ++ [I.Neut n])
 mkCon (ExpTV (I.TyCaseFun s [m, t, f] n) et vs) = Just (untick $ show s, chain vs (nType s) [m, t, I.Neut n, f])

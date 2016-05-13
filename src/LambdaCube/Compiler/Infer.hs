@@ -201,11 +201,11 @@ neutType' te = \case
     Fun s a _      -> foldlrev appTy (nType s) a
 
 makeCaseFunPars te n = case neutType te n of
-    (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
+    (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars $ reverse xs
     x -> error $ "makeCaseFunPars: " ++ ppShow x
 
 makeCaseFunPars' te n = case neutType' te n of
-    (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars xs
+    (hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) -> take pars $ reverse xs
 
 -------------------------------------------------------------------------------- inference
 
@@ -261,7 +261,7 @@ inferN_ tellTrace = infer  where
             = infer te $ x `SAppV` SLamV (STyped (ET (substTo (v+1) (Var 0) $ up 1 t) TType)) `SAppV` a `SAppV` b `SAppV` SVar siv v
             -- temporal hack
         | x@(SGlobal (sName -> CaseName "'VecS")) `SAppV` SLamV (SLamV (Wildcard _)) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v <- e
-        , TyConN (FTag F'VecS) [_, Var n'] <- snd $ varType "xx" v te
+        , TyConN (FTag F'VecS) [Var n', _] <- snd $ varType "xx" v te
             = infer te $ x `SAppV` SLamV (SLamV (STyped (ET (substTo (n'+2) (Var 1) $ up 2 t) TType))) `SAppV` a `SAppV` b `SAppV` c `SAppV` SVar siv v
 
 {-
@@ -471,8 +471,8 @@ recheck' sn e (ET x xt) = ET (recheck_ "main" (checkEnv e) (ET x xt)) xt
         ET (Neut (App__ md a b)) zt
             | ET (Neut a') at <- recheck'' "app1" te $ ET (Neut a) (neutType te a)
             -> checkApps "a" [] zt (Neut . App__ md a' . head) te at [b]
-        ET (Con_ md s n as) zt      -> checkApps (ppShow s) [] zt (Con_ md s n . drop (conParams s)) te (conType zt s) $ mkConPars n zt ++ as
-        ET (TyCon_ md s as) zt      -> checkApps (ppShow s) [] zt (TyCon_ md s) te (nType s) as
+        ET (Con_ md s n as) zt      -> checkApps (ppShow s) [] zt (Con_ md s n . reverse . drop (conParams s)) te (conType zt s) $ mkConPars n zt ++ reverse as
+        ET (TyCon_ md s as) zt      -> checkApps (ppShow s) [] zt (TyCon_ md s . reverse) te (nType s) $ reverse as
         ET (Neut (CaseFun__ fs s@(CaseFunName _ t pars) as n)) zt -> checkApps (ppShow s) [] zt (\xs -> evalCaseFun fs s (init $ drop pars xs) (last xs)) te (nType s) (makeCaseFunPars te n ++ as ++ [Neut n])
         ET (Neut (TyCaseFun__ fs s [m, t, f] n)) zt  -> checkApps (ppShow s) [] zt (\[m, t, n, f] -> evalTyCaseFun_ fs s [m, t, f] n) te (nType s) [m, t, Neut n, f]
         ET (Neut (Fun_ md f a x)) zt -> checkApps ("lab-" ++ show f ++ ppShow a ++ "\n" ++ ppShow (nType f)) [] zt (\xs -> Neut $ Fun_ md f (reverse xs) x) te (nType f) $ reverse a   -- TODO: recheck x
@@ -564,7 +564,7 @@ handleStmt = \case
     e2 <- addToEnv (SIName (sourceInfo s) $ CaseName (sName s)) $ ET (lamify ct $ \xs -> evalCaseFun' cfn (init $ drop (length ps) xs) (last xs)) ct
     let ps' = fst $ getParams vty
         t =   (TType :~> TType)
-          :~> addParams ps' (Var (length ps') `app_` TyCon tcn (downTo 0 $ length ps'))
+          :~> addParams ps' (Var (length ps') `app_` TyCon tcn (downTo' 0 $ length ps'))
           :~>  TType
           :~> Var 2 `app_` Var 0
           :~> Var 3 `app_` Var 1

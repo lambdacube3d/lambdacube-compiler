@@ -73,8 +73,8 @@ data Exp
     = ELit   Lit
     | TType_ Freq
     | Lam_   FreeVars Exp
-    | Con_   FreeVars ConName !Int{-number of ereased arguments applied-} [Exp]
-    | TyCon_ FreeVars TyConName [Exp]
+    | Con_   FreeVars ConName !Int{-number of ereased arguments applied-} [Exp]{-args reversed-}
+    | TyCon_ FreeVars TyConName [Exp]{-args reversed-}
     | Pi_    FreeVars Visibility Exp Exp
     | Neut   Neutral
     | RHS    Exp{-always in hnf-}
@@ -160,8 +160,7 @@ pattern DFunN_ a t xs <- Fun (FunName' a t) xs _
   where DFunN_ a t xs =  Fun (FunName' a t) xs delta
 
 conParams (conTypeName -> TyConName _ _ _ _ (CaseFunName _ _ pars)) = pars
-mkConPars n (snd . getParams . hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) xs
---mkConPars 0 TType = []  -- ?
+mkConPars n (snd . getParams . hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) $ reverse xs
 mkConPars n x@Neut{} = error $ "mkConPars!: " ++ ppShow x
 mkConPars n x = error $ "mkConPars: " ++ ppShow (n, x)
 
@@ -169,11 +168,8 @@ pattern ConN s a   <- Con (ConName (FTag s) _ _) _ a
 tCon s i t a        = Con (ConName (FTag s) i t) 0 a
 tCon_ k s i t a     = Con (ConName (FTag s) i t) k a
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
-pattern TTyCon s t a <- TyCon (TyConName s _ t _ _) a
 
 pattern TTyCon0 s  <- TyCon (TyConName (FTag s) _ _ _ _) []
-
-tTyCon s t a cs = TyCon (TyConName s (error "todo: inum") t (map ((,) (error "tTyCon")) cs) $ CaseFunName (error "TTyCon-A") (error "TTyCon-B") $ length a) a
 tTyCon0 s cs = TyCon (TyConName (FTag s) 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
 
 pattern a :~> b = Pi Visible a b
@@ -189,9 +185,9 @@ pattern TFloat      <- TTyCon0 F'Float     where TFloat      = tTyCon0 F'Float $
 pattern TString     <- TTyCon0 F'String    where TString     = tTyCon0 F'String $ error "cs 6"
 pattern TChar       <- TTyCon0 F'Char      where TChar       = tTyCon0 F'Char $ error "cs 7"
 pattern TOrdering   <- TTyCon0 F'Ordering  where TOrdering   = tTyCon0 F'Ordering $ error "cs 8"
-pattern TVec a b    <- TyConN (FTag F'VecS) [b, a]
+pattern TVec a b    <- TyConN (FTag F'VecS) [a, b]
 
-pattern Empty s    <- TyCon (TyConName (FTag F'Empty) _ _ _ _) [HString{-hnf?-} s]
+pattern Empty s    <- TyCon (TyConName (FTag F'Empty) _ _ _ _) (HString{-hnf?-} s: _)
   where Empty s     = TyCon (TyConName (FTag F'Empty) (error "todo: inum2_") (TString :~> TType) (error "todo: tcn cons 3_") $ error "Empty") [HString s]
 
 pattern TT          <- Con _ _ _
@@ -232,7 +228,7 @@ pattern ENat n <- (fromNatE -> Just n)
 
 fromNatE :: Exp -> Maybe Int
 fromNatE (hnf -> ConN FZero _) = Just 0
-fromNatE (hnf -> ConN FSucc (n:_)) = succ <$> fromNatE n
+fromNatE (hnf -> ConN FSucc (n: _)) = succ <$> fromNatE n
 fromNatE _ = Nothing
 
 mkOrdering x = case x of
@@ -404,12 +400,12 @@ instance MkDoc Exp where
         Pi h TType b    -> shLam_ (usedVar 0 b) (BPi h) Nothing (mkDoc pr b)
         Pi h a b        -> shLam (usedVar 0 b) (BPi h) (mkDoc pr a) (mkDoc pr b)
         ENat n          -> pShow n
-        Con s@(ConName _ i _) _ xs | body -> text $ "<<" ++ showNth i ++ " constructor of " ++ show (conTypeName s) ++ ">>"
-        ConN FHCons [_, _, x, xs] -> foldl DApp (text "HCons") (mkDoc pr <$> [x, xs])
-        Con s _ xs      -> foldl DApp (pShow s) (mkDoc pr <$> xs)
-        TyCon s@(TyConName _ i _ cs _) xs | body
+        Con s@(ConName _ i _) _ _ | body -> text $ "<<" ++ showNth i ++ " constructor of " ++ show (conTypeName s) ++ ">>"
+        ConN FHCons (xs: x: _{-2-}) -> foldl DApp (text "HCons") (mkDoc pr <$> [x, xs])
+        Con s _ xs      -> foldlrev DApp (pShow s) (mkDoc pr <$> xs)
+        TyCon s@(TyConName _ i _ cs _) _ | body
             -> text $ "<<type constructor with " ++ show i ++ " indices; constructors: " ++ intercalate ", " (show . fst <$> cs) ++ ">>"
-        TyConN s xs     -> foldl DApp (pShow s) (mkDoc pr <$> xs)
+        TyConN s xs     -> foldlrev DApp (pShow s) (mkDoc pr <$> xs)
         TType           -> text "Type"
         ELit l          -> pShow l
         Neut x          -> mkDoc pr x
@@ -446,7 +442,7 @@ instance MkDoc Neutral where
           where (_h, v) = splitAt loc $ mkDoc pr <$> reverse xs
         Var_ k              -> shVar k
         App_ a b            -> mkDoc pr a `DApp` mkDoc pr b
-        CaseFun_ s@(CaseFunName _ _ p) xs n | body -> text $ "<<case function of a type with " ++ show p ++ " parameters>>"
+        CaseFun_ s@(CaseFunName _ _ p) _ n | body -> text $ "<<case function of a type with " ++ show p ++ " parameters>>"
         CaseFun_ s xs n     -> foldl DApp (pShow s) (map (mkDoc pr) $ xs ++ [Neut n])
         TyCaseFun_ _ _ _ | body -> text "<<type case function>>"
         TyCaseFun_ s [m, t, f] n  -> foldl DApp (pShow s) (mkDoc pr <$> [m, t, Neut n, f])
@@ -494,8 +490,8 @@ getFunDef t s f = case show s of
 
     "unsafeCoerce"      -> Just $ \case xs@(x@(hnf -> NonNeut): _{-2-}) -> x; xs -> f xs
     "reflCstr"          -> Just $ \case _ -> TT
-    "hlistNilCase"      -> Just $ \case ((hnf -> Con n@(ConName _ 0 _) _ _): x: _{-1-}) -> x; xs -> f xs
-    "hlistConsCase"     -> Just $ \case ((hnf -> Con n@(ConName _ 1 _) _ (_: _: a: b: _)): x: _{-3-}) -> x `app_` a `app_` b; xs -> f xs
+    "hlistNilCase"      -> Just $ \case ((hnf -> ConN FHCons _): x: _{-1-}) -> x; xs -> f xs
+    "hlistConsCase"     -> Just $ \case ((hnf -> ConN FHNil (b: a: _{-2-})): x: _{-3-}) -> x `app_` a `app_` b; xs -> f xs
 
     -- general compiler primitives
     "primAddInt"        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i + j); xs -> f xs
@@ -564,7 +560,7 @@ getFunDef t s f = case show s of
     modF x y = x - fromIntegral (floor (x / y)) * y
 
 evalCaseFun _ a ps (Con n@(ConName _ i _) _ vs)
-    | i /= (-1) = foldl app_ (ps !!! (i + 1)) vs
+    | i /= (-1) = foldlrev app_ (ps !!! (i + 1)) vs
     | otherwise = error "evcf"
   where
     xs !!! i | i >= length xs = error $ "!!! " ++ ppShow a ++ " " ++ show i ++ " " ++ ppShow n ++ "\n" ++ ppShow ps
@@ -580,7 +576,7 @@ evalTyCaseFun a b c = evalTyCaseFun_ (foldMap getFreeVars b <> getFreeVars c) a 
 evalTyCaseFun_ s a b (Reduced c) = evalTyCaseFun_ s a b c
 evalTyCaseFun_ s a b (Neut c) = Neut $ TyCaseFun__ s a b c
 evalTyCaseFun_ _ (TyCaseFunName (FTag F'Type) ty) (_: t: f: _) TType = t
-evalTyCaseFun_ _ (TyCaseFunName n ty) (_: t: f: _) (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldl app_ t vs
+evalTyCaseFun_ _ (TyCaseFunName n ty) (_: t: f: _) (TyCon (TyConName n' _ _ _ _) vs) | n == n' = foldlrev app_ t vs
 --evalTyCaseFun (TyCaseFunName n ty) [_, t, f] (DFun (FunName n' _) vs) | n == n' = foldl app_ t vs  -- hack
 evalTyCaseFun_ _ (TyCaseFunName n ty) (_: t: f: _) _ = f
 
@@ -597,9 +593,9 @@ cstr = f []
     f_ _ _ a a' | a == a' = CUnit
     f_ ns typ (RHS a) (RHS a') = f ns typ a a'
     f_ ns typ (Con a n xs) (Con a' n' xs') | a == a' && n == n' && length xs == length xs' = 
-        ff ns (foldl appTy (conType typ a) $ mkConPars n typ) $ zip xs xs'
+        ff ns (foldl appTy (conType typ a) $ mkConPars n typ) $ reverse $ zip xs xs'
     f_ ns typ (TyCon a xs) (TyCon a' xs') | a == a' && length xs == length xs' = 
-        ff ns (nType a) $ zip xs xs'
+        ff ns (nType a) $ reverse $ zip xs xs'
     f_ (_: ns) typ{-down?-} (down 0 -> Just a) (down 0 -> Just a') = f ns typ a a'
     f_ ns TType (Pi h a b) (Pi h' a' b') | h == h' = t2 (f ns TType a a') (f ((a, a'): ns) TType b b')
 
@@ -640,8 +636,8 @@ app_ :: Exp -> Exp -> Exp
 app_ a b = app__ (getFreeVars a <> getFreeVars b) a b
 
 app__ _ (Lam x) a = subst 0 a x
-app__ _ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (xs ++ [a])
-app__ _ (TyCon s xs) a = TyCon s (xs ++ [a])
+app__ _ (Con s n xs) a = if n < conParams s then Con s (n+1) xs else Con s n (a: xs)
+app__ _ (TyCon s xs) a = TyCon s (a: xs)
 app__ _ (SubstLet f) a = app_ f a
 app__ s (Neut f) a = neutApp f a
   where
