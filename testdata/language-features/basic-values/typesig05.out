@@ -32,67 +32,67 @@ value3 = _rhs 'a'
 value4 :: String
 value4 = _rhs "b"
 ------------ tooltips
-typesig05.lc 1:1-1:5
+1:1-1:5
     forall a b . a -> b -> a
-typesig05.lc 1:12-1:13
+1:12-1:13
     _d
-typesig05.lc 2:1-2:5
+2:1-2:5
     forall a b . a -> b -> b
-typesig05.lc 2:12-2:13
+2:12-2:13
     _b
-typesig05.lc 4:1-4:7
+4:1-4:7
     Char
-typesig05.lc 4:10-4:14
+4:10-4:14
     forall a b . a -> b -> a
-typesig05.lc 4:10-4:18
+4:10-4:18
     _a -> Char
-typesig05.lc 4:10-4:22
+4:10-4:22
     Char
-typesig05.lc 4:15-4:18
+4:15-4:18
     Char
-typesig05.lc 4:19-4:22
+4:19-4:22
     String
-typesig05.lc 4:26-4:30
+4:26-4:30
     Type
-typesig05.lc 5:1-5:7
+5:1-5:7
     String
-typesig05.lc 5:10-5:14
+5:10-5:14
     forall a b . a -> b -> b
-typesig05.lc 5:10-5:18
+5:10-5:18
     _a -> _a
-typesig05.lc 5:10-5:22
+5:10-5:22
     String
-typesig05.lc 5:15-5:18
+5:15-5:18
     Char
-typesig05.lc 5:19-5:22
+5:19-5:22
     String
-typesig05.lc 5:26-5:32
+5:26-5:32
     Type
-typesig05.lc 7:11-7:15
+7:11-7:15
     Type
-typesig05.lc 8:1-8:7
+8:1-8:7
     Char
-typesig05.lc 8:10-8:14
+8:10-8:14
     forall a b . a -> b -> a
-typesig05.lc 8:10-8:18
+8:10-8:18
     _a -> Char
-typesig05.lc 8:10-8:22
+8:10-8:22
     Char
-typesig05.lc 8:15-8:18
+8:15-8:18
     Char
-typesig05.lc 8:19-8:22
+8:19-8:22
     String
-typesig05.lc 10:11-10:17
+10:11-10:17
     Type
-typesig05.lc 11:1-11:7
+11:1-11:7
     String
-typesig05.lc 11:10-11:14
+11:10-11:14
     forall a b . a -> b -> b
-typesig05.lc 11:10-11:18
+11:10-11:18
     _a -> _a
-typesig05.lc 11:10-11:22
+11:10-11:22
     String
-typesig05.lc 11:15-11:18
+11:15-11:18
     Char
-typesig05.lc 11:19-11:22
+11:19-11:22
     String

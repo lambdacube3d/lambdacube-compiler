@@ -1,3 +1,3 @@
-testdata/language-features/basic-values/indentation03.reject.lc:2:10:
+./testdata/language-features/basic-values/indentation03.reject.lc:2:10:
 unexpected '='
 expecting "->", "::", "=>", "let", "where", ''', '(', '@', '[', '_', '{', end of input, expression, lambda, literal, lowercase ident, rest of expression, swizzling, symbols, or uppercase ident

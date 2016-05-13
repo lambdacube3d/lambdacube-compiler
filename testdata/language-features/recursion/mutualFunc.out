@@ -67,41 +67,41 @@ g = \a -> case'Bool (\_ -> 'Bool) (_rhs (f a)) (_rhs True) a
 main :: Bool
 main = _rhs True
 ------------ tooltips
-mutualFunc.lc 4:1-4:2
+4:1-4:2
     _f | _c | _c | _f | _c | _c | Bool -> Bool
-mutualFunc.lc 4:1-7:2
+4:1-7:2
     _b | _e | (_e, _d) | (Bool -> Bool, Bool -> Bool) | (Bool -> Bool
     , Bool -> Bool) | (Bool -> Bool, Bool -> Bool) | (Bool -> Bool
     , Bool -> Bool) | (Bool -> Bool, Bool -> Bool)
-mutualFunc.lc 4:10-4:11
+4:10-4:11
     Bool -> _a
-mutualFunc.lc 4:10-4:17
+4:10-4:17
     _a
-mutualFunc.lc 4:10-5:17
+4:10-5:17
     Bool -> _a | ((Bool -> _a))
-mutualFunc.lc 4:10-8:10
+4:10-8:10
     (Bool -> Bool, Bool -> _a)
-mutualFunc.lc 4:12-4:17
+4:12-4:17
     Bool
-mutualFunc.lc 5:11-5:12
+5:11-5:12
     _i
-mutualFunc.lc 5:13-5:17
+5:13-5:17
     Bool
-mutualFunc.lc 7:1-7:2
+7:1-7:2
     _k | _h | _d | _k | _h | _d | Bool -> Bool
-mutualFunc.lc 7:10-7:14
+7:10-7:14
     Bool
-mutualFunc.lc 7:10-8:10
+7:10-8:10
     Bool -> Bool
-mutualFunc.lc 8:7-8:8
+8:7-8:8
     _h
-mutualFunc.lc 8:9-8:10
+8:9-8:10
     _f
-mutualFunc.lc 10:1-10:5
+10:1-10:5
     Bool
-mutualFunc.lc 10:8-10:9
+10:8-10:9
     Bool -> Bool
-mutualFunc.lc 10:8-10:14
+10:8-10:14
     Bool
-mutualFunc.lc 10:10-10:14
+10:10-10:14
     Bool

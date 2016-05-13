@@ -1,8 +1,8 @@
-testdata/language-features/basic-values/where06.reject.lc:7:1:
+./testdata/language-features/basic-values/where06.reject.lc:7:1:
 redefined x:
-where06.reject.lc:3:1:
+./testdata/language-features/basic-values/where06.reject.lc:3:1:
 x = y where
 ^
-where06.reject.lc:5:1:
+./testdata/language-features/basic-values/where06.reject.lc:5:1:
 x = 'c'
 ^

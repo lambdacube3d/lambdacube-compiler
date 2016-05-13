@@ -40,59 +40,59 @@ main
   = \a b c d e -> _rhs
     ((a == b) (g (fromInt a e 3) (fromInt a e 1)) (fromInt a e 5))
 ------------ tooltips
-as-pattern01.lc 1:1-1:2
+1:1-1:2
     forall a . [a] -> [a]
-as-pattern01.lc 1:14-1:15
+1:14-1:15
     _e
-as-pattern01.lc 1:14-1:16
+1:14-1:16
     [_d] -> [_d]
-as-pattern01.lc 1:14-1:17
+1:14-1:17
     [_c]
-as-pattern01.lc 1:15-1:16
+1:15-1:16
     forall a . a -> [a] -> [a]
-as-pattern01.lc 1:16-1:17
+1:16-1:17
     _e
-as-pattern01.lc 3:1-3:2
+3:1-3:2
     forall a . (Num (MatVecScalarElem a), Eq a, Num a) => a -> a -> a
-as-pattern01.lc 3:11-3:12
+3:11-3:12
     _g
-as-pattern01.lc 3:11-3:14
+3:11-3:14
     _f -> _f
-as-pattern01.lc 3:11-3:16
+3:11-3:16
     _d
-as-pattern01.lc 3:13-3:14
+3:13-3:14
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-as-pattern01.lc 3:15-3:16
+3:15-3:16
     _c
-as-pattern01.lc 7:9-7:13
+7:9-7:13
     Type
-as-pattern01.lc 8:1-8:5
+8:1-8:5
     forall a . (Eq a, Num (MatVecScalarElem a), Eq a, Num a) => Bool
-as-pattern01.lc 8:8-8:9
+8:8-8:9
     forall a . (Num (MatVecScalarElem a), Eq a, Num a) => a -> a -> a
-as-pattern01.lc 8:8-8:11
+8:8-8:11
     _e -> _e
-as-pattern01.lc 8:8-8:13
+8:8-8:13
     _f
-as-pattern01.lc 8:8-8:16
+8:8-8:16
     _e -> Bool
-as-pattern01.lc 8:8-8:18
+8:8-8:18
     Bool
-as-pattern01.lc 8:10-8:11
+8:10-8:11
     _b
-as-pattern01.lc 8:12-8:13
+8:12-8:13
     _b
-as-pattern01.lc 8:14-8:16
+8:14-8:16
     forall a . Eq a => a -> a -> Bool
-as-pattern01.lc 8:17-8:18
+8:17-8:18
     _b
 ------------ warnings
-Uncovered pattern(s) at as-pattern01.lc:1:1:
+Uncovered pattern(s) at ./testdata/language-features/as-pattern/as-pattern01.lc:1:1:
 f y@(x:xs) = x:y
 ^
 Missing case(s):
     f _ | [] <- _a
-Uncovered pattern(s) at as-pattern01.lc:3:1:
+Uncovered pattern(s) at ./testdata/language-features/as-pattern/as-pattern01.lc:3:1:
 g x@3 y = x + y
 ^
 Missing case(s):

@@ -49,7 +49,7 @@ mkLets_ mkLet = mkLets' mkLet . concatMap desugarMutual . sortDefs
 
 mkLets' mkLet = f where
     f [] e = e
-    f (StLet n mt x: ds) e = mkLet n (maybe id (flip SAnn) mt x) (deBruijnify [n] $ f ds e)
+    f (StmtLet n x: ds) e = mkLet n x (deBruijnify [n] $ f ds e)
     f (PrecDef{}: ds) e = f ds e
     f (x: ds) e = error $ "mkLets: " ++ ppShow x
 
@@ -106,7 +106,7 @@ compileStmt lhs compilegt ds = \case
           | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
           | otherwise -> do
             cf <- compilegt (SIName_ (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) (nameFixity n) $ sName n) vs [gt | FunAlt _ _ gt <- fs]
-            return [StLet n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]) $ lhs n cf]
+            return [StLet n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]{-TODO: fail if more-}) $ lhs n cf]
         fs -> fail $ "different number of arguments of " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd . head <$> fs)
     [Stmt x] -> return [x]
   where
@@ -127,6 +127,7 @@ desugarValueDef p e = sequence
     dns = reverse $ getPVars p
     n = mangleNames dns
 
+--getLet (StmtLet x dx) = Just (x, dx)
 getLet (StLet x mt dx) = Just (x, mt, dx)
 getLet _ = Nothing
 
@@ -137,10 +138,14 @@ desugarMutual [x@Primitive{}] = [x]
 desugarMutual [x@Data{}] = [x]
 desugarMutual [x@PrecDef{}] = [x]
 desugarMutual [StLet n nt nd] = [StLet n nt $ addFix n nt nd]
+--desugarMutual [StmtLet n nd] = [StmtLet n $ addFix n nd]
 desugarMutual (traverse getLet -> Just (unzip3 -> (ns, ts, ds))) = fst' $ runWriter $ do
+--desugarMutual (traverse getLet -> Just (unzip -> (ns, ds))) = fst' $ runWriter $ do
     ss <- compileStmt'_ sLHS SRHS SRHS =<< desugarValueDef (foldr cHCons cHNil $ PVarSimp <$> ns) (SGlobal xy)
     return $
+--        StLet xy ty (addFix xy $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
         StLet xy ty (addFix xy ty $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
+
   where
     ty = Nothing -- TODO:  Just $ HList $ foldr BCons BNil $ const (Wildcard SType) <$> ts
     xy = mangleNames ns
@@ -148,6 +153,11 @@ desugarMutual xs = error "desugarMutual"
 
 addFix n nt x
     | usedS n x = SBuiltin FprimFix `SAppV` SLam Visible (maybe (Wildcard SType) id nt) (deBruijnify [n] x)
+
+{-
+addFix n x
+    | usedS n x = SBuiltin FprimFix `SAppV` SLamV (deBruijnify [n] x)
+-}
     | otherwise = x
 
 mangleNames xs = SIName (foldMap sourceInfo xs) $ "_" ++ intercalate "_" (sName <$> xs)

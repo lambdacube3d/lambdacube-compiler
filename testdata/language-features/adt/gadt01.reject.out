@@ -3,9 +3,9 @@ illegal data definition (parameters are not uniform)
 'M3 :: Type -> String -> Type
 !illegal data definition (parameters are not uniform)
 ------------ tooltips
-gadt01.reject.lc 5:6-5:8
+5:6-5:8
     Type -> String -> Type
-gadt01.reject.lc 5:15-5:19
+5:15-5:19
     Type
-gadt01.reject.lc 5:27-5:33
+5:27-5:33
     Type | Type

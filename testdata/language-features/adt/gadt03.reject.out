@@ -13,46 +13,46 @@ match'M2
 'M3 :: Type -> String -> Type
 !illegal data definition (parameters are not uniform)
 ------------ tooltips
-gadt03.reject.lc 2:6-2:8
+2:6-2:8
     Type -> String -> Type | Type -> String -> Type | Type | Type
       -> String -> Type | Type | Type
-gadt03.reject.lc 2:6-3:35
+2:6-3:35
     Type | Type
-gadt03.reject.lc 2:15-2:19
+2:15-2:19
     Type | Type | Type
-gadt03.reject.lc 2:24-2:30
+2:24-2:30
     Type
-gadt03.reject.lc 2:24-2:38
+2:24-2:38
     Type
-gadt03.reject.lc 2:34-2:38
+2:34-2:38
     Type | Type
-gadt03.reject.lc 3:3-3:9
+3:3-3:9
     forall a . a -> forall (b :: String) . M2 a b | M2 _d _a
-gadt03.reject.lc 3:3-3:35
+3:3-3:35
     Type | Type | Type
-gadt03.reject.lc 3:13-3:14
+3:13-3:14
     Type
-gadt03.reject.lc 3:13-3:35
+3:13-3:35
     Type
-gadt03.reject.lc 3:18-3:35
+3:18-3:35
     Type
-gadt03.reject.lc 3:29-3:31
+3:29-3:31
     Type -> String -> Type
-gadt03.reject.lc 3:29-3:33
+3:29-3:33
     String -> Type
-gadt03.reject.lc 3:29-3:35
+3:29-3:35
     Type | Type
-gadt03.reject.lc 3:32-3:33
+3:32-3:33
     Type
-gadt03.reject.lc 3:34-3:35
+3:34-3:35
     _b | String
-gadt03.reject.lc 5:6-5:8
+5:6-5:8
     Type -> String -> Type
-gadt03.reject.lc 5:15-5:19
+5:15-5:19
     Type
-gadt03.reject.lc 5:24-5:30
+5:24-5:30
     Type
-gadt03.reject.lc 5:24-5:38
+5:24-5:38
     Type
-gadt03.reject.lc 5:34-5:38
+5:34-5:38
     Type | Type

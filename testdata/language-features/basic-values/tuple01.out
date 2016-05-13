@@ -5,7 +5,7 @@ unit = _lhs unit (_rhs ())
 unit :: ()
 unit = _rhs ()
 ------------ tooltips
-tuple01.lc 1:1-1:5
+1:1-1:5
     ()
-tuple01.lc 1:8-1:10
+1:8-1:10
     ()

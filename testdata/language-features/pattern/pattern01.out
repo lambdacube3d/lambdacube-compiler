@@ -44,35 +44,35 @@ fun3
 fun4 :: () -> Char
 fun4 = \a -> hlistNilCase 'Char (_rhs '0') a
 ------------ tooltips
-pattern01.lc 1:1-1:5
+1:1-1:5
     forall a . (Eq a, Num a) => a -> Char
-pattern01.lc 1:10-1:13
+1:10-1:13
     Char
-pattern01.lc 1:10-2:13
+1:10-2:13
     Bool -> Char
-pattern01.lc 2:10-2:13
+2:10-2:13
     Char
-pattern01.lc 4:1-4:5
+4:1-4:5
     String -> Char
-pattern01.lc 4:12-4:15
+4:12-4:15
     Char
-pattern01.lc 4:12-5:13
+4:12-5:13
     Bool -> Char
-pattern01.lc 5:10-5:13
+5:10-5:13
     Char
-pattern01.lc 7:1-7:5
+7:1-7:5
     Char -> Char
-pattern01.lc 7:12-7:15
+7:12-7:15
     Char
-pattern01.lc 7:12-8:13
+7:12-8:13
     Bool -> Char
-pattern01.lc 8:10-8:13
+8:10-8:13
     Char
-pattern01.lc 10:1-10:5
+10:1-10:5
     () -> Char
-pattern01.lc 10:11-10:14
+10:11-10:14
     Char
 ------------ warnings
-Source code is not reachable: pattern01.lc:11:10:
+Source code is not reachable: ./testdata/language-features/pattern/pattern01.lc:11:10:
 fun4 _ = '_'
          ^^^

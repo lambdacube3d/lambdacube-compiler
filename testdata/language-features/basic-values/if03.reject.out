@@ -1,22 +1,22 @@
 type error: can not unify
-  'Internals.lc:63:6:
+  <<installed-prelude-path>>/Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
   ()
-in if03.reject.lc:1:13:
+in ./testdata/language-features/basic-values/if03.reject.lc:1:13:
 value1 = if () then () else ()
             ^^
 ------------ trace
 !type error: can not unify
-  'Internals.lc:63:6:
+  <<installed-prelude-path>>/Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
   ()
-in if03.reject.lc:1:13:
+in ./testdata/language-features/basic-values/if03.reject.lc:1:13:
 value1 = if () then () else ()
             ^^
 ------------ tooltips
-if03.reject.lc 1:13-1:15
+1:13-1:15
     ()

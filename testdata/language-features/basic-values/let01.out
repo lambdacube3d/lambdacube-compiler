@@ -25,37 +25,37 @@ value4 = \a b -> _rhs (fromInt a b 1)
 value5 :: forall a . Num a => a
 value5 = \a b -> _rhs (fromInt a b 1)
 ------------ tooltips
-let01.lc 1:1-1:7
+1:1-1:7
     forall a . Num a => a
-let01.lc 1:18-1:19
+1:18-1:19
     _b
-let01.lc 1:23-1:24
+1:23-1:24
     _b
-let01.lc 3:1-3:7
+3:1-3:7
     forall a . Num a => a
-let01.lc 4:11-4:12
+4:11-4:12
     _b
-let01.lc 5:6-5:7
+5:6-5:7
     _b
-let01.lc 7:1-7:7
+7:1-7:7
     forall a . Num a => a
-let01.lc 8:11-8:12
+8:11-8:12
     _b
-let01.lc 9:11-9:14
+9:11-9:14
     Char
-let01.lc 10:6-10:7
+10:6-10:7
     _b
-let01.lc 12:1-12:7
+12:1-12:7
     forall a . Num a => a
-let01.lc 12:18-12:19
+12:18-12:19
     _b
-let01.lc 13:13-13:14
+13:13-13:14
     _b
-let01.lc 15:1-15:7
+15:1-15:7
     forall a . Num a => a
-let01.lc 15:18-15:19
+15:18-15:19
     _b
-let01.lc 16:18-16:19
+16:18-16:19
     _b
-let01.lc 17:13-17:14
+17:13-17:14
     _b

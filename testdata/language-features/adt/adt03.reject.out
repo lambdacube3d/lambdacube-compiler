@@ -1,11 +1,11 @@
-can't find: a in adt03.reject.lc:2:20:
+can't find: a in ./testdata/language-features/adt/adt03.reject.lc:2:20:
 data Data3 = Data3 a b c
                    ^
 ------------ trace
 'Data3 :: Type
-!can't find: a in adt03.reject.lc:2:20:
+!can't find: a in ./testdata/language-features/adt/adt03.reject.lc:2:20:
 data Data3 = Data3 a b c
                    ^
 ------------ tooltips
-adt03.reject.lc 2:6-2:11
+2:6-2:11
     Type

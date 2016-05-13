@@ -78,14 +78,18 @@ data FileInfo = FileInfo
 instance Eq FileInfo where (==) = (==) `on` fileId
 instance Ord FileInfo where compare = compare `on` fileId
 
-instance PShow FileInfo where pShow = text . (++ ".lc") . fileModule
+instance PShow FileInfo where pShow = text . filePath --(++ ".lc") . fileModule
 
 showPos :: FileInfo -> SPos -> Doc
 showPos n p = pShow n <> ":" <> pShow p
 
 -------------------------------------------------------------------------------- range
 
-data Range = Range !FileInfo !SPos !SPos
+data Range = Range
+    { rangeFile  :: !FileInfo
+    , rangeStart :: !SPos
+    , rangeStop  :: !SPos
+    }
     deriving (Eq, Ord)
 
 instance Show Range where show = ppShow
@@ -95,6 +99,8 @@ instance PShow Range
       $ vcat $ (showPos n b <> ":")
              : map text (drop (r - 1) $ take r' $ lines $ fileContent n)
             ++ [text $ replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
+
+showRangeWithoutFileName (Range _ b e) = pShow b <> "-" <> pShow e
 
 joinRange :: Range -> Range -> Range
 joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
@@ -553,7 +559,7 @@ instance PShow Stmt where
 
 instance DeBruijnify SIName Stmt where
     deBruijnify_ k v = \case
-        StLet sn mt e -> StLet sn (deBruijnify_ k v <$> mt) (deBruijnify_ k v e)
+        StmtLet sn e -> StmtLet sn (deBruijnify_ k v e)
         x@PrecDef{} -> x
         x -> error $ "deBruijnify @ " ++ ppShow x
 

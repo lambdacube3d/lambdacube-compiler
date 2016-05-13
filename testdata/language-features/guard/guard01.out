@@ -5,11 +5,11 @@ value = _lhs value (case'Bool (\(_ :: _) -> _) (_rhs undefined) (_rhs ()) True)
 value :: ()
 value = _rhs ()
 ------------ tooltips
-guard01.lc 1:1-1:6
+1:1-1:6
     ()
-guard01.lc 1:9-1:13
+1:9-1:13
     Bool
-guard01.lc 1:9-1:18
+1:9-1:18
     ()
-guard01.lc 1:16-1:18
+1:16-1:18
     ()

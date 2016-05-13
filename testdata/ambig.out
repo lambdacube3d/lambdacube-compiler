@@ -26,19 +26,19 @@ h
       (\g h -> hlistConsCase d [] c (\i j -> hlistNilCase c (e g i) j) h)
       f)
 ------------ tooltips
-ambig.lc 4:1-4:2
+4:1-4:2
     forall a b c d . (b -> d -> c) -> (b, d) -> a -> c
-ambig.lc 4:11-4:12
+4:11-4:12
     _c
-ambig.lc 7:9-7:29
+7:9-7:29
     _b
-ambig.lc 7:21-7:22
+7:21-7:22
     _s
-ambig.lc 7:21-7:26
+7:21-7:26
     _c | _d
-ambig.lc 7:23-7:24
+7:23-7:24
     _n
-ambig.lc 7:25-7:26
+7:25-7:26
     _j
-ambig.lc 7:28-7:29
+7:28-7:29
     _g

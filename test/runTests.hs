@@ -219,9 +219,9 @@ doTest Config{..} (i, fn) = do
 
     getMain = do
         res <- local (const $ ioFetch [pa]) $ loadModule id Nothing (Left $ mn' ++ concat exts ++ ".lc") <&> \case
-            Left err -> (mempty, Left err)
-            Right (fname, (src, Left err)) -> (mempty, Left err)
-            Right (fname, (src, Right (pm, infos, Left err))) -> (,) infos $ Left err
+            Left err -> (mempty, Left (Nothing, err))
+            Right (fname, (src, Left err)) -> (mempty, Left (Just fname, err))
+            Right (fname, (src, Right (pm, infos, Left err))) -> (,) infos $ Left (Just fname, err)
             Right (fname, (src, Right (pm, infos, Right (_, ge)))) -> (,) infos $ Right
                 ( fname
                 , ge
@@ -237,7 +237,7 @@ doTest Config{..} (i, fn) = do
     --getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m (Infos, [Stmt]) ((Infos, [Stmt]), Either Doc (FilePath, Either Doc ExpType))
 
     f ((i, desug), e) | not $ isReject fn = case e of
-        Left (show -> e)         -> Left (unlines $ tab "!Failed" e: map show (listTraceInfos i), Failed)
+        Left (_, show -> e)      -> Left (unlines $ tab "!Failed" e: map show (listTraceInfos i), Failed)
         Right (fname, ge, Left (pShow -> e))
                                  -> Right ("typechecked module", simpleShow $ vcat $ e: showGE fname ge)
         Right (fname, ge, Right (ET e te))
@@ -249,15 +249,15 @@ doTest Config{..} (i, fn) = do
             de = simpleShow $ vcat $ (DAnn "main" $ pShow te) : (DLet "=" "main" res): showGE fname ge
             res = mkDoc (True, False) e
       | otherwise = case e of
-        Left (pShow -> e)        -> Right ("error message", simpleShow $ vcat $ e: listAllInfos i)
+        Left (fn, pShow -> e)    -> Right ("error message", simpleShow $ vcat $ e: listAllInfos fn i)
         Right _                  -> Left (tab "!Failed" "failed to catch error", Failed)
       where
         showGE fname ge =  "------------ desugared source code": intersperse "" (map pShow desug)
                         ++ "------------ core code": intersperse ""
                             [      DAnn (text n) (DResetFreshNames $ pShow t)
                               <$$> DLet "=" (text n) (DResetFreshNames $ mkDoc (False, True) e)
-                            | (n, (e, t, RangeSI (Range fi _ _))) <- Map.toList ge, fileId fi == fileId fname]
-                        ++ listAllInfos' i
+                            | (n, (e, t, RangeSI r)) <- Map.toList ge, rangeFile r == fname]
+                        ++ listAllInfos' (Just fname) i
 
     tab msg
         | isWip fn && cfgReject = const msg

@@ -12,39 +12,39 @@ fun1 = \_ _ _ _ _ _ -> _rhs ()
 fun2 :: forall a b c . a -> b -> c -> ()
 fun2 = \_ _ _ _ _ _ -> _rhs ()
 ------------ tooltips
-typesig03.lc 1:9-1:10
+1:9-1:10
     _f
-typesig03.lc 1:9-1:26
+1:9-1:26
     Type | Type | Type
-typesig03.lc 1:14-1:15
+1:14-1:15
     _e
-typesig03.lc 1:14-1:26
+1:14-1:26
     Type
-typesig03.lc 1:19-1:20
+1:19-1:20
     _d
-typesig03.lc 1:19-1:26
+1:19-1:26
     Type
-typesig03.lc 1:24-1:26
+1:24-1:26
     Type | Type
-typesig03.lc 2:1-2:5
+2:1-2:5
     forall a b c . a -> b -> c -> ()
-typesig03.lc 2:14-2:16
+2:14-2:16
     ()
-typesig03.lc 4:7-4:8
+4:7-4:8
     _f
-typesig03.lc 4:7-4:18
+4:7-4:18
     Type | Type | Type
-typesig03.lc 4:10-4:11
+4:10-4:11
     _e
-typesig03.lc 4:10-4:18
+4:10-4:18
     Type
-typesig03.lc 4:13-4:14
+4:13-4:14
     _d
-typesig03.lc 4:13-4:18
+4:13-4:18
     Type
-typesig03.lc 4:16-4:18
+4:16-4:18
     Type | Type
-typesig03.lc 5:1-5:5
+5:1-5:5
     forall a b c . a -> b -> c -> ()
-typesig03.lc 5:14-5:16
+5:14-5:16
     ()

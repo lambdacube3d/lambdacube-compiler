@@ -27,37 +27,37 @@ value2 = _rhs '7'
 world :: String
 world = _rhs "world"
 ------------ tooltips
-shadowing02.lc 1:1-1:2
+1:1-1:2
     forall a . Num a => a
-shadowing02.lc 1:5-1:6
+1:5-1:6
     _b
-shadowing02.lc 2:1-2:6
+2:1-2:6
     String
-shadowing02.lc 2:9-2:16
+2:9-2:16
     String
-shadowing02.lc 3:1-3:7
+3:1-3:7
     Char
-shadowing02.lc 4:11-4:14
+4:11-4:14
     Char
-shadowing02.lc 5:11-5:18
+5:11-5:18
     String
-shadowing02.lc 6:11-6:14
+6:11-6:14
     _b
-shadowing02.lc 8:17-8:18
+8:17-8:18
     _b
-shadowing02.lc 9:17-9:21
+9:17-9:21
     Float
-shadowing02.lc 10:25-10:27
+10:25-10:27
     ()
-shadowing02.lc 11:25-11:28
+11:25-11:28
     Char
-shadowing02.lc 12:25-12:29
+12:25-12:29
     Float
-shadowing02.lc 13:25-13:26
+13:25-13:26
     forall a . Num a => a
-shadowing02.lc 14:20-14:25
+14:20-14:25
     String
-shadowing02.lc 15:14-15:16
+15:14-15:16
     ()
-shadowing02.lc 16:6-16:9
+16:6-16:9
     Char

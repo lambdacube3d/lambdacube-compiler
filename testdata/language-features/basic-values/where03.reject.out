@@ -1,3 +1,3 @@
-testdata/language-features/basic-values/where03.reject.lc:4:2:
+./testdata/language-features/basic-values/where03.reject.lc:4:2:
 unexpected 'y'
 expecting ''', backquoted ident, end of input, expression, lambda, literal, lowercase ident, rest of expression, symbols, or uppercase ident

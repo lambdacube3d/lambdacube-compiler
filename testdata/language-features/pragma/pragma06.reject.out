@@ -1,2 +1,2 @@
-testdata/language-features/pragma/pragma06.reject.lc:1:18:
+./testdata/language-features/pragma/pragma06.reject.lc:1:18:
 language extension expected instead of abcd

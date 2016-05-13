@@ -5,7 +5,7 @@ x = _lhs x \(_ :: _) (_ :: _) -> _rhs ()
 x :: forall a b . a -> b -> ()
 x = \a b _ _ -> _rhs ()
 ------------ tooltips
-shadowing03.lc 1:1-1:2
+1:1-1:2
     forall a b . a -> b -> ()
-shadowing03.lc 1:9-1:11
+1:9-1:11
     ()

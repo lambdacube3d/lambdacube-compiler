@@ -728,668 +728,668 @@ undefined = \a -> <<builtin>>
 unsafeCoerce :: forall a b . a -> b
 unsafeCoerce = \a b c -> <<delta function with arity 3>>
 ------------ tooltips
-Internals.lc 6:1-6:8
+6:1-6:8
     forall a . a -> a
-Internals.lc 6:13-6:14
+6:13-6:14
     _b
-Internals.lc 9:1-9:7
+9:1-9:7
     forall a . a -> a
-Internals.lc 9:12-9:13
+9:12-9:13
     _b
-Internals.lc 11:1-11:10
+11:1-11:10
     forall a . a
-Internals.lc 11:27-11:31
+11:27-11:31
     Type
-Internals.lc 11:35-11:36
+11:35-11:36
     Type | Type
-Internals.lc 13:1-13:8
+13:1-13:8
     forall a . (a -> a) -> a
-Internals.lc 13:25-13:29
+13:25-13:29
     Type
-Internals.lc 13:33-13:46
+13:33-13:46
     Type
-Internals.lc 13:34-13:35
+13:34-13:35
     Type
-Internals.lc 13:39-13:40
+13:39-13:40
     Type | Type
-Internals.lc 13:45-13:46
+13:45-13:46
     Type | Type
-Internals.lc 15:6-15:10
+15:6-15:10
     Type | Type | Type | Type | Type
-Internals.lc 15:6-15:15
+15:6-15:15
     Type
-Internals.lc 15:13-15:15
+15:13-15:15
     Unit
-Internals.lc 16:6-16:12
+16:6-16:12
     Type | Type | Type | Type
-Internals.lc 17:6-17:11
+17:6-17:11
     String -> Type | String -> Type | String -> Type | Type | Type
-Internals.lc 17:18-17:24
+17:18-17:24
     Type | Type
-Internals.lc 19:1-19:13
+19:1-19:13
     forall a b . a -> b
-Internals.lc 19:30-19:31
+19:30-19:31
     _d
-Internals.lc 19:30-19:36
+19:30-19:36
     Type | Type
-Internals.lc 19:35-19:36
+19:35-19:36
     _c | Type
-Internals.lc 21:6-21:16
+21:6-21:16
     Type | Type | Type | Type
-Internals.lc 21:6-23:11
+21:6-23:11
     Type | Type
-Internals.lc 22:5-22:10
+22:5-22:10
     Constraint
-Internals.lc 22:14-22:24
+22:14-22:24
     Type
-Internals.lc 23:5-23:11
+23:5-23:11
     String -> Constraint | Constraint | Type | Type
-Internals.lc 23:15-23:21
+23:15-23:21
     Type
-Internals.lc 23:25-23:35
+23:25-23:35
     Type | Type
-Internals.lc 25:13-25:15
+25:13-25:15
     Constraint -> Type
-Internals.lc 25:22-25:32
+25:22-25:32
     Type
-Internals.lc 31:13-31:17
+31:13-31:17
     forall a -> a -> a -> Constraint
-Internals.lc 31:24-31:28
+31:24-31:28
     Type
-Internals.lc 31:36-31:37
+31:36-31:37
     Type
-Internals.lc 31:36-31:61
+31:36-31:61
     Type
-Internals.lc 31:45-31:46
+31:45-31:46
     Type
-Internals.lc 31:45-31:61
+31:45-31:61
     Type
-Internals.lc 31:51-31:61
+31:51-31:61
     Type | Type
-Internals.lc 40:1-40:8
+40:1-40:8
     forall a -> a -> a -> a
-Internals.lc 40:24-40:25
+40:24-40:25
     _b
-Internals.lc 40:24-40:35
+40:24-40:35
     Type
-Internals.lc 40:29-40:30
+40:29-40:30
     Type
-Internals.lc 40:29-40:35
+40:29-40:35
     Type
-Internals.lc 40:34-40:35
+40:34-40:35
     Type | Type
-Internals.lc 43:13-43:15
+43:13-43:15
     Constraint -> Constraint -> Constraint
-Internals.lc 43:22-43:32
+43:22-43:32
     Type
-Internals.lc 43:40-43:50
+43:40-43:50
     Type
-Internals.lc 43:40-43:65
+43:40-43:65
     Type
-Internals.lc 43:55-43:65
+43:55-43:65
     Type | Type
-Internals.lc 50:1-50:11
+50:1-50:11
     forall (a :: Type -> Type) -> a Type -> forall b -> a b -> a b
-Internals.lc 50:28-50:32
+50:28-50:32
     Type
-Internals.lc 50:36-50:40
+50:36-50:40
     Type | Type
-Internals.lc 50:45-50:46
+50:45-50:46
     Type -> Type
-Internals.lc 50:45-50:51
+50:45-50:51
     Type
-Internals.lc 50:45-50:87
+50:45-50:87
     Type
-Internals.lc 50:47-50:51
+50:47-50:51
     Type
-Internals.lc 50:55-50:87
+50:55-50:87
     Type
-Internals.lc 50:68-50:72
+50:68-50:72
     Type
-Internals.lc 50:77-50:78
+50:77-50:78
     Type -> Type
-Internals.lc 50:77-50:80
+50:77-50:80
     Type
-Internals.lc 50:77-50:87
+50:77-50:87
     Type
-Internals.lc 50:79-50:80
+50:79-50:80
     Type
-Internals.lc 50:84-50:85
+50:84-50:85
     Type -> Type
-Internals.lc 50:84-50:87
+50:84-50:87
     Type | Type
-Internals.lc 50:86-50:87
+50:86-50:87
     Type
-Internals.lc 52:6-52:11
+52:6-52:11
     forall a . a -> a -> Constraint
-Internals.lc 52:14-52:18
+52:14-52:18
     forall a -> a -> a -> Constraint
-Internals.lc 52:14-52:20
+52:14-52:20
     _a -> _a -> Constraint
-Internals.lc 55:1-55:4
+55:1-55:4
     Unit -> Unit -> Unit
-Internals.lc 55:8-55:12
+55:8-55:12
     Type
-Internals.lc 55:16-55:20
+55:16-55:20
     Type
-Internals.lc 55:16-55:28
+55:16-55:28
     Type
-Internals.lc 55:24-55:28
+55:24-55:28
     Type | Type
-Internals.lc 58:6-58:9
+58:6-58:9
     Type | Type | Type | Type
-Internals.lc 59:6-59:10
+59:6-59:10
     Type | Type | Type | Type
-Internals.lc 60:6-60:11
+60:6-60:11
     Type | Type | Type | Type
-Internals.lc 61:6-61:10
+61:6-61:10
     Type | Type | Type | Type
-Internals.lc 63:6-63:10
+63:6-63:10
     Type | Type | Type | Type | Type | Type
-Internals.lc 63:6-63:25
+63:6-63:25
     Type | Type
-Internals.lc 63:13-63:18
+63:13-63:18
     Bool
-Internals.lc 63:21-63:25
+63:21-63:25
     Bool
-Internals.lc 65:6-65:14
+65:6-65:14
     Type | Type | Type | Type | Type | Type | Type
-Internals.lc 65:6-65:29
+65:6-65:29
     Type | Type | Type
-Internals.lc 65:17-65:19
+65:17-65:19
     Ordering
-Internals.lc 65:22-65:24
+65:22-65:24
     Ordering
-Internals.lc 65:27-65:29
+65:27-65:29
     Ordering
-Internals.lc 67:6-67:9
+67:6-67:9
     Type | Type | Type | Type | Type | Type | Type
-Internals.lc 67:6-67:23
+67:6-67:23
     Type | Type
-Internals.lc 67:12-67:16
+67:12-67:16
     Nat
-Internals.lc 67:19-67:23
+67:19-67:23
     Nat -> Nat | Nat | Type | Type
-Internals.lc 67:24-67:27
+67:24-67:27
     Type
-Internals.lc 70:1-70:14
+70:1-70:14
     Int -> Word
-Internals.lc 70:24-70:27
+70:24-70:27
     Type
-Internals.lc 70:33-70:37
+70:33-70:37
     Type | Type
-Internals.lc 71:1-71:15
+71:1-71:15
     Int -> Float
-Internals.lc 71:24-71:27
+71:24-71:27
     Type
-Internals.lc 71:33-71:38
+71:33-71:38
     Type | Type
-Internals.lc 72:1-72:13
+72:1-72:13
     Int -> Nat
-Internals.lc 72:24-72:27
+72:24-72:27
     Type
-Internals.lc 72:33-72:36
+72:33-72:36
     Type | Type
-Internals.lc 73:1-73:15
+73:1-73:15
     Int -> Int -> Ordering
-Internals.lc 73:24-73:27
+73:24-73:27
     Type
-Internals.lc 73:33-73:36
+73:33-73:36
     Type
-Internals.lc 73:33-73:50
+73:33-73:50
     Type
-Internals.lc 73:42-73:50
+73:42-73:50
     Type | Type
-Internals.lc 74:1-74:16
+74:1-74:16
     Word -> Word -> Ordering
-Internals.lc 74:24-74:28
+74:24-74:28
     Type
-Internals.lc 74:33-74:37
+74:33-74:37
     Type
-Internals.lc 74:33-74:50
+74:33-74:50
     Type
-Internals.lc 74:42-74:50
+74:42-74:50
     Type | Type
-Internals.lc 75:1-75:17
+75:1-75:17
     Float -> Float -> Ordering
-Internals.lc 75:24-75:29
+75:24-75:29
     Type
-Internals.lc 75:33-75:38
+75:33-75:38
     Type
-Internals.lc 75:33-75:50
+75:33-75:50
     Type
-Internals.lc 75:42-75:50
+75:42-75:50
     Type | Type
-Internals.lc 76:1-76:16
+76:1-76:16
     Char -> Char -> Ordering
-Internals.lc 76:24-76:28
+76:24-76:28
     Type
-Internals.lc 76:33-76:37
+76:33-76:37
     Type
-Internals.lc 76:33-76:50
+76:33-76:50
     Type
-Internals.lc 76:42-76:50
+76:42-76:50
     Type | Type
-Internals.lc 77:1-77:18
+77:1-77:18
     String -> String -> Ordering
-Internals.lc 77:24-77:30
+77:24-77:30
     Type
-Internals.lc 77:34-77:40
+77:34-77:40
     Type
-Internals.lc 77:34-77:52
+77:34-77:52
     Type
-Internals.lc 77:44-77:52
+77:44-77:52
     Type | Type
-Internals.lc 78:1-78:14
+78:1-78:14
     Int -> Int
-Internals.lc 78:24-78:27
+78:24-78:27
     Type
-Internals.lc 78:33-78:36
+78:33-78:36
     Type | Type
-Internals.lc 79:1-79:15
+79:1-79:15
     Word -> Word
-Internals.lc 79:24-79:28
+79:24-79:28
     Type
-Internals.lc 79:33-79:37
+79:33-79:37
     Type | Type
-Internals.lc 80:1-80:16
+80:1-80:16
     Float -> Float
-Internals.lc 80:24-80:29
+80:24-80:29
     Type
-Internals.lc 80:33-80:38
+80:33-80:38
     Type | Type
-Internals.lc 81:1-81:11
+81:1-81:11
     Int -> Int -> Int
-Internals.lc 81:24-81:27
+81:24-81:27
     Type
-Internals.lc 81:33-81:36
+81:33-81:36
     Type
-Internals.lc 81:33-81:45
+81:33-81:45
     Type
-Internals.lc 81:42-81:45
+81:42-81:45
     Type | Type
-Internals.lc 82:1-82:11
+82:1-82:11
     Int -> Int -> Int
-Internals.lc 82:24-82:27
+82:24-82:27
     Type
-Internals.lc 82:33-82:36
+82:33-82:36
     Type
-Internals.lc 82:33-82:45
+82:33-82:45
     Type
-Internals.lc 82:42-82:45
+82:42-82:45
     Type | Type
-Internals.lc 83:1-83:11
+83:1-83:11
     Int -> Int -> Int
-Internals.lc 83:24-83:27
+83:24-83:27
     Type
-Internals.lc 83:33-83:36
+83:33-83:36
     Type
-Internals.lc 83:33-83:45
+83:33-83:45
     Type
-Internals.lc 83:42-83:45
+83:42-83:45
     Type | Type
-Internals.lc 84:1-84:14
+84:1-84:14
     Float -> Float
-Internals.lc 84:24-84:29
+84:24-84:29
     Type
-Internals.lc 84:33-84:38
+84:33-84:38
     Type | Type
-Internals.lc 85:1-85:10
+85:1-85:10
     Float -> Int
-Internals.lc 85:24-85:29
+85:24-85:29
     Type
-Internals.lc 85:33-85:36
+85:33-85:36
     Type | Type
-Internals.lc 88:19-88:23
+88:19-88:23
     Type
-Internals.lc 88:19-88:38
+88:19-88:38
     Type
-Internals.lc 88:27-88:28
+88:27-88:28
     _c
-Internals.lc 88:27-88:38
+88:27-88:38
     Type
-Internals.lc 88:32-88:33
+88:32-88:33
     Type
-Internals.lc 88:32-88:38
+88:32-88:38
     Type
-Internals.lc 88:37-88:38
+88:37-88:38
     Type | Type
-Internals.lc 89:1-89:15
+89:1-89:15
     forall a . Bool -> a -> a -> a
-Internals.lc 89:28-89:29
+89:28-89:29
     _d
-Internals.lc 89:28-90:29
+89:28-90:29
     Bool -> _d | _d
-Internals.lc 90:28-90:29
+90:28-90:29
     _e
-Internals.lc 92:1-92:5
+92:1-92:5
     Ordering -> Bool
-Internals.lc 92:11-92:15
+92:11-92:15
     Bool
-Internals.lc 92:11-93:15
+92:11-93:15
     Bool -> Ordering -> Bool
-Internals.lc 93:10-93:15
+93:10-93:15
     Bool | Bool
-Internals.lc 96:7-96:10
+96:7-96:10
     Type -> Constraint | Type -> Constraint | Constraint | Type
       -> Constraint | Constraint | Type -> Constraint | Constraint
-Internals.lc 96:7-97:22
+96:7-97:22
     Type
-Internals.lc 96:7-98:32
+96:7-98:32
     Type
-Internals.lc 96:7-99:19
+96:7-99:19
     Type
-Internals.lc 97:3-97:10
+97:3-97:10
     forall a . Num a => Int -> a
-Internals.lc 97:14-97:17
+97:14-97:17
     Type
-Internals.lc 97:14-97:22
+97:14-97:22
     Type
-Internals.lc 97:21-97:22
+97:21-97:22
     Type | Type
-Internals.lc 98:3-98:10
+98:3-98:10
     forall a . Num a => a -> a -> Ordering
-Internals.lc 98:14-98:15
+98:14-98:15
     Type
-Internals.lc 98:14-98:32
+98:14-98:32
     Type
-Internals.lc 98:19-98:20
+98:19-98:20
     Type
-Internals.lc 98:19-98:32
+98:19-98:32
     Type
-Internals.lc 98:24-98:32
+98:24-98:32
     Type | Type
-Internals.lc 99:3-99:9
+99:3-99:9
     forall a . Num a => a -> a
-Internals.lc 99:13-99:14
+99:13-99:14
     Type
-Internals.lc 99:13-99:19
+99:13-99:19
     Type
-Internals.lc 99:18-99:19
+99:18-99:19
     Type | Type
-Internals.lc 102:13-114:25
+102:13-114:25
     Int -> _b
-Internals.lc 102:19-102:20
+102:19-102:20
     _b
-Internals.lc 103:13-103:27
+103:13-103:27
     Int -> Int -> Ordering
-Internals.lc 103:13-115:22
+103:13-115:22
     _b -> _b -> Ordering
-Internals.lc 104:13-104:26
+104:13-104:26
     Int -> Int
-Internals.lc 104:13-116:22
+104:13-116:22
     _b -> _b
-Internals.lc 106:13-106:26
+106:13-106:26
     Int -> Word
-Internals.lc 106:13-114:25
+106:13-114:25
     Int -> _b
-Internals.lc 107:13-107:28
+107:13-107:28
     Word -> Word -> Ordering
-Internals.lc 107:13-115:22
+107:13-115:22
     _b -> _b -> Ordering
-Internals.lc 108:13-108:27
+108:13-108:27
     Word -> Word
-Internals.lc 108:13-116:22
+108:13-116:22
     _b -> _b
-Internals.lc 110:13-110:27
+110:13-110:27
     Int -> Float
-Internals.lc 110:13-114:25
+110:13-114:25
     Int -> _b
-Internals.lc 111:13-111:29
+111:13-111:29
     Float -> Float -> Ordering
-Internals.lc 111:13-115:22
+111:13-115:22
     _b -> _b -> Ordering
-Internals.lc 112:13-112:28
+112:13-112:28
     Float -> Float
-Internals.lc 112:13-116:22
+112:13-116:22
     _b -> _b
-Internals.lc 114:13-114:25
+114:13-114:25
     Int -> Nat
-Internals.lc 115:13-115:22
+115:13-115:22
     forall a . a
-Internals.lc 116:13-116:22
+116:13-116:22
     forall a . a
-Internals.lc 118:7-118:9
+118:7-118:9
     Type -> Constraint | Type -> Constraint | Constraint
-Internals.lc 118:7-119:27
+118:7-119:27
     Type
-Internals.lc 119:6-119:8
+119:6-119:8
     forall a . Eq a => a -> a -> Bool
-Internals.lc 119:13-119:14
+119:13-119:14
     Type
-Internals.lc 119:13-119:27
+119:13-119:27
     Type
-Internals.lc 119:18-119:19
+119:18-119:19
     Type
-Internals.lc 119:18-119:27
+119:18-119:27
     Type
-Internals.lc 119:23-119:27
+119:23-119:27
     Type | Type
-Internals.lc 123:35-123:39
+123:35-123:39
     Ordering -> Bool
-Internals.lc 123:35-123:63
+123:35-123:63
     Bool
-Internals.lc 123:35-134:29
+123:35-134:29
     _b -> _b -> Bool
-Internals.lc 123:41-123:58
+123:41-123:58
     String -> String -> Ordering
-Internals.lc 123:41-123:60
+123:41-123:60
     String -> Ordering
-Internals.lc 123:41-123:62
+123:41-123:62
     Ordering
-Internals.lc 123:59-123:60
+123:59-123:60
     _d
-Internals.lc 123:61-123:62
+123:61-123:62
     _b
-Internals.lc 124:33-124:37
+124:33-124:37
     Ordering -> Bool
-Internals.lc 124:33-124:59
+124:33-124:59
     Bool
-Internals.lc 124:33-134:29
+124:33-134:29
     _b -> _b -> Bool
-Internals.lc 124:39-124:54
+124:39-124:54
     Char -> Char -> Ordering
-Internals.lc 124:39-124:56
+124:39-124:56
     Char -> Ordering
-Internals.lc 124:39-124:58
+124:39-124:58
     Ordering
-Internals.lc 124:55-124:56
+124:55-124:56
     _d
-Internals.lc 124:57-124:58
+124:57-124:58
     _b
-Internals.lc 125:32-125:36
+125:32-125:36
     Ordering -> Bool
-Internals.lc 125:32-125:57
+125:32-125:57
     Bool
-Internals.lc 125:32-134:29
+125:32-134:29
     _b -> _b -> Bool
-Internals.lc 125:38-125:52
+125:38-125:52
     Int -> Int -> Ordering
-Internals.lc 125:38-125:54
+125:38-125:54
     Int -> Ordering
-Internals.lc 125:38-125:56
+125:38-125:56
     Ordering
-Internals.lc 125:53-125:54
+125:53-125:54
     _d
-Internals.lc 125:55-125:56
+125:55-125:56
     _b
-Internals.lc 126:34-126:38
+126:34-126:38
     Ordering -> Bool
-Internals.lc 126:34-126:61
+126:34-126:61
     Bool
-Internals.lc 126:34-134:29
+126:34-134:29
     _b -> _b -> Bool
-Internals.lc 126:40-126:56
+126:40-126:56
     Float -> Float -> Ordering
-Internals.lc 126:40-126:58
+126:40-126:58
     Float -> Ordering
-Internals.lc 126:40-126:60
+126:40-126:60
     Ordering
-Internals.lc 126:57-126:58
+126:57-126:58
     _d
-Internals.lc 126:59-126:60
+126:59-126:60
     _b
-Internals.lc 128:20-128:24
+128:20-128:24
     Bool
-Internals.lc 128:20-130:19
+128:20-130:19
     Bool -> Bool | Bool
-Internals.lc 128:20-134:29
+128:20-134:29
     _b -> _b -> Bool
-Internals.lc 129:22-129:26
+129:22-129:26
     Bool
-Internals.lc 129:22-130:19
+129:22-130:19
     Bool -> Bool | Bool
-Internals.lc 130:14-130:19
+130:14-130:19
     Bool | Bool
-Internals.lc 132:24-132:28
+132:24-132:28
     Bool
-Internals.lc 132:24-134:29
+132:24-134:29
     Nat -> Bool
-Internals.lc 133:24-133:25
+133:24-133:25
     Nat
-Internals.lc 133:24-133:28
+133:24-133:28
     Nat -> Bool
-Internals.lc 133:24-133:30
+133:24-133:30
     Bool
-Internals.lc 133:24-134:29
+133:24-134:29
     Nat -> Bool
-Internals.lc 133:26-133:28
+133:26-133:28
     forall a . Eq a => a -> a -> Bool
-Internals.lc 133:29-133:30
+133:29-133:30
     Nat
-Internals.lc 134:24-134:29
+134:24-134:29
     Bool | Bool
-Internals.lc 136:6-136:10
+136:6-136:10
     Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type
-Internals.lc 136:6-136:12
+136:6-136:12
     Type | Type | Type | Type
-Internals.lc 136:6-136:23
+136:6-136:23
     Type | Type | Type
-Internals.lc 136:6-136:35
+136:6-136:35
     Type | Type
-Internals.lc 136:11-136:12
+136:11-136:12
     Type | Type
-Internals.lc 136:15-136:18
+136:15-136:18
     forall a . [a] | [_b]
-Internals.lc 136:22-136:23
+136:22-136:23
     forall a . a -> [a] -> [a] | [_e] | Type | Type | Type
-Internals.lc 136:25-136:26
+136:25-136:26
     Type
-Internals.lc 136:28-136:32
+136:28-136:32
     Type -> Type
-Internals.lc 136:28-136:34
+136:28-136:34
     Type
-Internals.lc 136:33-136:34
+136:33-136:34
     Type
-Internals.lc 140:6-140:11
+140:6-140:11
     [Type] -> Type | [Type] -> Type | Type | [Type] -> Type | Type | Type
-Internals.lc 140:6-142:45
+140:6-142:45
     Type | Type
-Internals.lc 140:15-140:21
+140:15-140:21
     Type
-Internals.lc 140:16-140:20
+140:16-140:20
     Type
-Internals.lc 140:25-140:29
+140:25-140:29
     Type | Type
-Internals.lc 141:5-141:9
+141:5-141:9
     ()
-Internals.lc 141:5-141:22
+141:5-141:22
     Type
-Internals.lc 141:13-141:18
+141:13-141:18
     [Type] -> Type
-Internals.lc 141:13-141:22
+141:13-141:22
     Type
-Internals.lc 141:19-141:22
+141:19-141:22
     forall a . [a] | forall a . [a]
-Internals.lc 142:5-142:10
+142:5-142:10
     forall a (b :: [Type]) . a -> HList b -> HList (a : b) | HList (_d : _c)
-Internals.lc 142:5-142:45
+142:5-142:45
     Type | Type | Type | Type | Type
-Internals.lc 142:14-142:15
+142:14-142:15
     _d
-Internals.lc 142:14-142:45
+142:14-142:45
     Type | Type
-Internals.lc 142:19-142:24
+142:19-142:24
     [Type] -> Type
-Internals.lc 142:19-142:27
+142:19-142:27
     Type
-Internals.lc 142:19-142:45
+142:19-142:45
     Type
-Internals.lc 142:25-142:27
+142:25-142:27
     _c
-Internals.lc 142:31-142:36
+142:31-142:36
     [Type] -> Type
-Internals.lc 142:31-142:45
+142:31-142:45
     Type | Type
-Internals.lc 142:39-142:40
+142:39-142:40
     Type | Type
-Internals.lc 142:39-142:41
+142:39-142:41
     [Type] -> [Type] | [Type] -> [Type]
-Internals.lc 142:39-142:44
+142:39-142:44
     [Type] | [Type]
-Internals.lc 142:40-142:41
+142:40-142:41
     forall a . a -> [a] -> [a] | forall a . a -> [a] -> [a]
-Internals.lc 142:42-142:44
+142:42-142:44
     [Type] | [Type]
-Internals.lc 144:1-144:13
+144:1-144:13
     forall a -> a -> () -> a
-Internals.lc 144:29-144:30
+144:29-144:30
     _b
-Internals.lc 144:29-144:48
+144:29-144:48
     Type
-Internals.lc 144:34-144:39
+144:34-144:39
     [Type] -> Type
-Internals.lc 144:34-144:43
+144:34-144:43
     Type
-Internals.lc 144:34-144:48
+144:34-144:48
     Type
-Internals.lc 144:40-144:43
+144:40-144:43
     forall a . [a]
-Internals.lc 144:47-144:48
+144:47-144:48
     Type | Type
-Internals.lc 145:1-145:14
+145:1-145:14
     forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (a : b) -> c
-Internals.lc 146:21-146:25
+146:21-146:25
     Type
-Internals.lc 146:33-146:37
+146:33-146:37
     Type -> Type
-Internals.lc 146:33-146:42
+146:33-146:42
     Type
-Internals.lc 146:33-150:9
+146:33-150:9
     Type
-Internals.lc 146:38-146:42
+146:38-146:42
     Type
-Internals.lc 147:8-150:9
+147:8-150:9
     Type
-Internals.lc 148:8-150:9
+148:8-150:9
     Type
-Internals.lc 148:9-148:10
+148:9-148:10
     Type
-Internals.lc 148:14-148:19
+148:14-148:19
     [Type] -> Type
-Internals.lc 148:14-148:21
+148:14-148:21
     Type
-Internals.lc 148:14-148:26
+148:14-148:26
     Type
-Internals.lc 148:20-148:21
+148:20-148:21
     [Type]
-Internals.lc 148:25-148:26
+148:25-148:26
     _d | Type
-Internals.lc 149:8-149:13
+149:8-149:13
     [Type] -> Type
-Internals.lc 149:8-149:20
+149:8-149:20
     Type
-Internals.lc 149:8-150:9
+149:8-150:9
     Type
-Internals.lc 149:15-149:16
+149:15-149:16
     Type
-Internals.lc 149:15-149:17
+149:15-149:17
     [Type] -> [Type]
-Internals.lc 149:15-149:19
+149:15-149:19
     [Type]
-Internals.lc 149:16-149:17
+149:16-149:17
     forall a . a -> [a] -> [a]
-Internals.lc 149:18-149:19
+149:18-149:19
     [Type]
-Internals.lc 150:8-150:9
+150:8-150:9
     Type | Type

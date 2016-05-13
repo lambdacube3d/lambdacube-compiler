@@ -1,24 +1,24 @@
-already defined 'MyUnit at typesyn03.reject.lc:2:6:
+already defined 'MyUnit at ./testdata/language-features/basic-values/typesyn03.reject.lc:2:6:
 type MyUnit = ()
      ^^^^^^
-and at typesyn03.reject.lc:1:6:
+and at ./testdata/language-features/basic-values/typesyn03.reject.lc:1:6:
 type MyUnit = ()
      ^^^^^^
 ------------ trace
 'MyUnit :: Type
 'MyUnit :: Type
-!already defined 'MyUnit at typesyn03.reject.lc:2:6:
+!already defined 'MyUnit at ./testdata/language-features/basic-values/typesyn03.reject.lc:2:6:
 type MyUnit = ()
      ^^^^^^
-and at typesyn03.reject.lc:1:6:
+and at ./testdata/language-features/basic-values/typesyn03.reject.lc:1:6:
 type MyUnit = ()
      ^^^^^^
 ------------ tooltips
-typesyn03.reject.lc 1:6-1:12
+1:6-1:12
     Type
-typesyn03.reject.lc 1:15-1:17
+1:15-1:17
     Type
-typesyn03.reject.lc 2:6-2:12
+2:6-2:12
     Type
-typesyn03.reject.lc 2:15-2:17
+2:15-2:17
     Type

@@ -74,37 +74,37 @@ match'D1 = \a b c d -> <<type case function>>
 match'E :: forall (a :: Type -> Type) -> a E -> forall b -> a b -> a b
 match'E = \a b c d -> <<type case function>>
 ------------ tooltips
-data01.lc 1:6-1:7
+1:6-1:7
     Type | Type | Type | Type | Type | Type | Type
-data01.lc 1:6-1:13
+1:6-1:13
     Type | Type | Type
-data01.lc 1:8-1:9
+1:8-1:9
     A
-data01.lc 1:10-1:11
+1:10-1:11
     A
-data01.lc 1:12-1:13
+1:12-1:13
     A
-data01.lc 3:6-3:7
+3:6-3:7
     Type | Type | Type | Type | Type | Type | Type | Type
-data01.lc 3:6-3:22
+3:6-3:22
     Type | Type | Type
-data01.lc 3:10-3:11
+3:10-3:11
     E
-data01.lc 3:14-3:15
+3:14-3:15
     () -> E | E | Type | Type
-data01.lc 3:16-3:18
+3:16-3:18
     Type
-data01.lc 3:21-3:22
+3:21-3:22
     E
-data01.lc 5:6-5:8
+5:6-5:8
     Type | Type | Type | Type | Type | Type | Type | Type
-data01.lc 5:6-6:13
+5:6-6:13
     Type | Type | Type
-data01.lc 5:9-5:11
+5:9-5:11
     D1
-data01.lc 6:5-6:7
+6:5-6:7
     () -> D1 | D1 | Type | Type
-data01.lc 6:7-6:9
+6:7-6:9
     Type
-data01.lc 6:11-6:13
+6:11-6:13
     D1

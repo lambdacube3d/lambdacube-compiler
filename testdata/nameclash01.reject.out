@@ -1,3 +1,3 @@
-Constructor FrameBuffer is not defined at nameclash01.reject.lc:2:9:
+Constructor FrameBuffer is not defined at ./testdata/nameclash01.reject.lc:2:9:
     let FrameBuffer = FrameBuffer (colorImage1 1.0)
         ^^^^^^^^^^^

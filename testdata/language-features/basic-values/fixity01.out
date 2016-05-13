@@ -28,19 +28,19 @@ funL = \a b c _ -> _rhs c
 funR :: forall a b . a -> b -> a
 funR = \a b c _ -> _rhs c
 ------------ tooltips
-fixity01.lc 1:1-1:5
+1:1-1:5
     forall a b . a -> b -> a
-fixity01.lc 1:12-1:13
+1:12-1:13
     _d
-fixity01.lc 2:1-2:5
+2:1-2:5
     forall a b . a -> b -> a
-fixity01.lc 2:12-2:13
+2:12-2:13
     _d
-fixity01.lc 4:3-4:7
+4:3-4:7
     forall a b . a -> b -> a
-fixity01.lc 4:12-4:13
+4:12-4:13
     _d
-fixity01.lc 5:3-5:7
+5:3-5:7
     forall a b . a -> b -> b
-fixity01.lc 5:12-5:13
+5:12-5:13
     _b

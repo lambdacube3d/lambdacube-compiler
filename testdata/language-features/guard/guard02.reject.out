@@ -2,7 +2,7 @@ type error: can not unify
   String
 with
   ()
-in guard02.reject.lc:2:12:
+in ./testdata/language-features/guard/guard02.reject.lc:2:12:
   | True = ()
            ^^
 ------------ trace
@@ -10,15 +10,15 @@ in guard02.reject.lc:2:12:
   String
 with
   ()
-in guard02.reject.lc:2:12:
+in ./testdata/language-features/guard/guard02.reject.lc:2:12:
   | True = ()
            ^^
 ------------ tooltips
-guard02.reject.lc 2:12-2:14
+2:12-2:14
     ()
-guard02.reject.lc 3:5-3:10
+3:5-3:10
     Bool
-guard02.reject.lc 3:5-3:15
+3:5-3:15
     String
-guard02.reject.lc 3:13-3:15
+3:13-3:15
     String

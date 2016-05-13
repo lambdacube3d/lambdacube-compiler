@@ -15,43 +15,43 @@ tuple2 = _rhs ((), ())
 tuple3 :: ((String, Char), ())
 tuple3 = _rhs (("name", 'c'), ())
 ------------ tooltips
-tuple02.lc 1:1-1:7
+1:1-1:7
     forall a . Num a => (a, Float, Char, String, ())
-tuple02.lc 1:10-1:33
+1:10-1:33
     (_b, Float, Char, String, ())
-tuple02.lc 1:11-1:12
+1:11-1:12
     _b
-tuple02.lc 1:13-1:16
+1:13-1:16
     Float
-tuple02.lc 1:13-1:32
+1:13-1:32
     (Float, Char, String, ())
-tuple02.lc 1:17-1:20
+1:17-1:20
     Char
-tuple02.lc 1:17-1:32
+1:17-1:32
     (Char, String, ())
-tuple02.lc 1:21-1:29
+1:21-1:29
     String
-tuple02.lc 1:21-1:32
+1:21-1:32
     (String, ())
-tuple02.lc 1:30-1:32
+1:30-1:32
     () | ((()))
-tuple02.lc 3:1-3:7
+3:1-3:7
     ((), ())
-tuple02.lc 3:10-3:17
+3:10-3:17
     ((), ())
-tuple02.lc 3:11-3:13
+3:11-3:13
     ()
-tuple02.lc 3:14-3:16
+3:14-3:16
     () | ((()))
-tuple02.lc 5:1-5:7
+5:1-5:7
     ((String, Char), ())
-tuple02.lc 5:10-5:27
+5:10-5:27
     ((String, Char), ())
-tuple02.lc 5:11-5:23
+5:11-5:23
     (String, Char)
-tuple02.lc 5:12-5:18
+5:12-5:18
     String
-tuple02.lc 5:19-5:22
+5:19-5:22
     Char | ((Char))
-tuple02.lc 5:24-5:26
+5:24-5:26
     () | ((()))

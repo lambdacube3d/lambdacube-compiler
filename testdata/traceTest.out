@@ -25,29 +25,29 @@ match'X = \a b c d -> <<type case function>>
 x :: X (Type -> Type -> Type) \a b -> (a, b)
 x = _rhs (undefined ('X (Type -> Type -> Type) \a b -> ' (a, b)))
 ------------ tooltips
-traceTest.lc 6:1-6:3
+6:1-6:3
     forall a . a -> a
-traceTest.lc 6:8-6:9
+6:8-6:9
     _b
-traceTest.lc 8:6-8:7
+8:6-8:7
     forall a . a -> Type | forall a . a -> Type | forall a . a -> Type | Type | Type
-traceTest.lc 8:6-8:18
+8:6-8:18
     Type
-traceTest.lc 8:17-8:18
+8:17-8:18
     Type | Type | Type
-traceTest.lc 10:6-10:7
+10:6-10:7
     forall a . a -> Type
-traceTest.lc 10:6-10:25
+10:6-10:25
     Type
-traceTest.lc 10:17-10:24
+10:17-10:24
     Type
-traceTest.lc 10:19-10:20
+10:19-10:20
     _e
-traceTest.lc 10:19-10:23
+10:19-10:23
     [Type]
-traceTest.lc 10:22-10:23
+10:22-10:23
     _c | [Type]
-traceTest.lc 11:1-11:2
+11:1-11:2
     X (Type -> Type -> Type) \a b -> (a, b)
-traceTest.lc 11:5-11:14
+11:5-11:14
     forall a . a

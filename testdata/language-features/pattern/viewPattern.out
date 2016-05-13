@@ -14,24 +14,24 @@ id = \a b -> _rhs b
 main :: Bool
 main = _rhs True
 ------------ tooltips
-viewPattern.lc 4:1-4:3
+4:1-4:3
     forall a . a -> a
-viewPattern.lc 4:8-4:9
+4:8-4:9
     _b
-viewPattern.lc 6:1-6:5
+6:1-6:5
     Bool
-viewPattern.lc 6:8-7:25
+6:8-7:25
     Bool
-viewPattern.lc 6:13-6:17
+6:13-6:17
     Bool
-viewPattern.lc 7:6-7:8
+7:6-7:8
     forall a . a -> a | _b
-viewPattern.lc 7:6-7:25
+7:6-7:25
     Bool
-viewPattern.lc 7:21-7:25
+7:21-7:25
     Bool
 ------------ warnings
-Uncovered pattern(s) at viewPattern.lc:6:13:
+Uncovered pattern(s) at ./testdata/language-features/pattern/viewPattern.lc:6:13:
 main = case True of
             ^^^^
 Missing case(s):

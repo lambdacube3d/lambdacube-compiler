@@ -12,5 +12,5 @@ case'Empty = \a b -> <<case function of a type with 0 parameters>>
 match'Empty :: forall (a :: Type -> Type) -> a Empty -> forall b -> a b -> a b
 match'Empty = \a b c d -> <<type case function>>
 ------------ tooltips
-empty.lc 3:6-3:11
+3:6-3:11
     Type | Type | Type | Type

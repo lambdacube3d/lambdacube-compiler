@@ -40,46 +40,46 @@ a = _rhs (1.0 *! k : [] ++ foldr (++) [] (map (\a -> [a *! k]) [k]))
 main :: Bool
 main = _rhs True
 ------------ tooltips
-listcompr04.lc 1:6-1:13
+1:6-1:13
     Type
-listcompr04.lc 1:7-1:12
+1:7-1:12
     Type
-listcompr04.lc 2:1-2:2
+2:1-2:2
     [Float]
-listcompr04.lc 2:6-2:7
+2:6-2:7
     _f
-listcompr04.lc 2:6-2:9
+2:6-2:9
     MatVecScalarElem _e -> _e
-listcompr04.lc 2:6-2:10
+2:6-2:10
     _e | [_d]
-listcompr04.lc 2:6-2:36
+2:6-2:36
     [Float]
-listcompr04.lc 2:7-2:9
+2:7-2:9
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-listcompr04.lc 2:9-2:10
+2:9-2:10
     Float
-listcompr04.lc 2:15-2:16
+2:15-2:16
     _b | Float
-listcompr04.lc 2:19-2:22
+2:19-2:22
     Float
-listcompr04.lc 2:28-2:36
+2:28-2:36
     [Float]
-listcompr04.lc 2:29-2:32
+2:29-2:32
     Float
-listcompr04.lc 2:34-2:35
+2:34-2:35
     Float | [Float]
-listcompr04.lc 4:9-4:13
+4:9-4:13
     Type
-listcompr04.lc 5:1-5:5
+5:1-5:5
     Bool
-listcompr04.lc 5:8-6:28
+5:8-6:28
     Bool
-listcompr04.lc 5:13-5:14
+5:13-5:14
     [Float]
-listcompr04.lc 6:24-6:28
+6:24-6:28
     Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at listcompr04.lc:5:13:
+Uncovered pattern(s) at ./testdata/listcompr04.lc:5:13:
 main = case a of
             ^
 Missing case(s):

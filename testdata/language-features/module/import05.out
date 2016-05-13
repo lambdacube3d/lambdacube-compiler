@@ -6,9 +6,9 @@ x = _lhs x (_rhs hello)
 x :: String
 x = _rhs "hello"
 ------------ tooltips
-import05.lc 3:6-3:12
+3:6-3:12
     Type
-import05.lc 4:1-4:2
+4:1-4:2
     String
-import05.lc 4:5-4:10
+4:5-4:10
     String

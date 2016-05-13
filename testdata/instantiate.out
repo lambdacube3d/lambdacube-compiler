@@ -5,33 +5,33 @@ main' = _lhs main' (_rhs let a = PrimAdd in a (V2 1.0 2.0) (V2 1.0 2.0))
 main' :: VecS Float 2
 main' = _rhs (PrimAdd ('VecS 'Float 2) TT (V2 1.0 2.0) (V2 1.0 2.0))
 ------------ tooltips
-instantiate.lc 1:1-1:6
+1:1-1:6
     VecS Float 2
-instantiate.lc 2:13-2:20
+2:13-2:20
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-instantiate.lc 2:24-2:25
+2:24-2:25
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-instantiate.lc 2:24-2:38
+2:24-2:38
     VecS Float 2 -> VecS Float 2
-instantiate.lc 2:24-2:51
+2:24-2:51
     VecS Float 2
-instantiate.lc 2:27-2:29
+2:27-2:29
     forall a . a -> a -> VecS a 2
-instantiate.lc 2:27-2:33
+2:27-2:33
     Float -> VecS Float 2
-instantiate.lc 2:27-2:37
+2:27-2:37
     VecS Float 2
-instantiate.lc 2:30-2:33
+2:30-2:33
     Float
-instantiate.lc 2:34-2:37
+2:34-2:37
     Float
-instantiate.lc 2:40-2:42
+2:40-2:42
     forall a . a -> a -> VecS a 2
-instantiate.lc 2:40-2:46
+2:40-2:46
     Float -> VecS Float 2
-instantiate.lc 2:40-2:50
+2:40-2:50
     VecS Float 2
-instantiate.lc 2:43-2:46
+2:43-2:46
     Float
-instantiate.lc 2:47-2:50
+2:47-2:50
     Float

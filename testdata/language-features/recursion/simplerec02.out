@@ -19,15 +19,15 @@ value
 value :: ()
 value = _rhs ()
 ------------ tooltips
-simplerec02.lc 1:1-1:6
+1:1-1:6
     ()
-simplerec02.lc 1:21-1:24
+1:21-1:24
     Char
-simplerec02.lc 1:21-2:26
+1:21-2:26
     Bool -> Char
-simplerec02.lc 2:21-2:24
+2:21-2:24
     _e
-simplerec02.lc 2:25-2:26
+2:25-2:26
     _b
-simplerec02.lc 3:12-3:14
+3:12-3:14
     ()

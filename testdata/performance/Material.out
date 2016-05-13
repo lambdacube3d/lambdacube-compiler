@@ -1148,425 +1148,425 @@ saTextureUniform :: StageAttrs -> String
 saTextureUniform
   = \a -> case'StageAttrs (\_ -> 'String) (\_ _ _ _ _ _ _ _ _ _ b -> _rhs b) a
 ------------ tooltips
-Material.lc 7:18-7:23
+7:18-7:23
     Type
-Material.lc 8:1-8:14
+8:1-8:14
     Float
-Material.lc 8:17-8:18
+8:17-8:18
     _b
-Material.lc 10:6-10:12
+10:6-10:12
     Type | Type | Type | Type | Type | Type
-Material.lc 10:6-11:13
+10:6-11:13
     Type
-Material.lc 10:6-15:39
+10:6-15:39
     Type | Type | Type
-Material.lc 11:7-11:13
+11:7-11:13
     Vec 4 Float
       -> Vec 4 Float
         -> Vec 3 Float
           -> Vec 4 Float -> Entity | Entity | Type | Type | Type | Type | Type
-Material.lc 12:7-12:20
+12:7-12:20
     Entity -> VecS Float 4
-Material.lc 12:28-12:31
+12:28-12:31
     Nat -> Type -> Type
-Material.lc 12:28-12:33
+12:28-12:33
     Type -> Type
-Material.lc 12:28-12:39
+12:28-12:39
     Type
-Material.lc 12:32-12:33
+12:32-12:33
     _b
-Material.lc 12:34-12:39
+12:34-12:39
     Type
-Material.lc 13:7-13:21
+13:7-13:21
     Entity -> VecS Float 4
-Material.lc 13:28-13:31
+13:28-13:31
     Nat -> Type -> Type
-Material.lc 13:28-13:33
+13:28-13:33
     Type -> Type
-Material.lc 13:28-13:39
+13:28-13:39
     Type
-Material.lc 13:32-13:33
+13:32-13:33
     _b
-Material.lc 13:34-13:39
+13:34-13:39
     Type
-Material.lc 14:7-14:16
+14:7-14:16
     Entity -> VecS Float 3
-Material.lc 14:28-14:31
+14:28-14:31
     Nat -> Type -> Type
-Material.lc 14:28-14:33
+14:28-14:33
     Type -> Type
-Material.lc 14:28-14:39
+14:28-14:39
     Type
-Material.lc 14:32-14:33
+14:32-14:33
     _b
-Material.lc 14:34-14:39
+14:34-14:39
     Type
-Material.lc 15:7-15:18
+15:7-15:18
     Entity -> VecS Float 4
-Material.lc 15:28-15:31
+15:28-15:31
     Nat -> Type -> Type
-Material.lc 15:28-15:33
+15:28-15:33
     Type -> Type
-Material.lc 15:28-15:39
+15:28-15:39
     Type
-Material.lc 15:32-15:33
+15:32-15:33
     _b
-Material.lc 15:34-15:39
+15:34-15:39
     Type
-Material.lc 18:6-18:14
+18:6-18:14
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 18:6-24:15
+18:6-24:15
     Type | Type | Type | Type | Type | Type
-Material.lc 19:7-19:13
+19:7-19:13
     WaveType
-Material.lc 20:7-20:18
+20:7-20:18
     WaveType
-Material.lc 21:7-21:16
+21:7-21:16
     WaveType
-Material.lc 22:7-22:18
+22:7-22:18
     WaveType
-Material.lc 23:7-23:25
+23:7-23:25
     WaveType
-Material.lc 24:7-24:15
+24:7-24:15
     WaveType
-Material.lc 27:6-27:10
+27:6-27:10
     Type | Type | Type | Type | Type | Type
-Material.lc 27:6-27:17
+27:6-27:17
     Type
-Material.lc 27:6-27:50
+27:6-27:50
     Type | Type | Type | Type
-Material.lc 27:13-27:17
+27:13-27:17
     WaveType
       -> Float
         -> Float
           -> Float -> Float -> Wave | Wave | Type | Type | Type | Type | Type | Type
-Material.lc 27:18-27:26
+27:18-27:26
     Type
-Material.lc 27:27-27:32
+27:27-27:32
     Type
-Material.lc 27:33-27:38
+27:33-27:38
     Type
-Material.lc 27:39-27:44
+27:39-27:44
     Type
-Material.lc 27:45-27:50
+27:45-27:50
     Type
-Material.lc 29:6-29:12
+29:6-29:12
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 29:6-32:32
+29:6-32:32
     Type | Type
-Material.lc 29:6-33:32
+29:6-33:32
     Type
-Material.lc 29:6-34:27
+29:6-34:27
     Type
-Material.lc 29:6-44:13
+29:6-44:13
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 29:6-44:24
+29:6-44:24
     Type
-Material.lc 30:7-30:19
+30:7-30:19
     Deform
-Material.lc 31:7-31:20
+31:7-31:20
     Deform
-Material.lc 32:7-32:14
+32:7-32:14
     Float -> Float -> Float -> Deform | Deform | Type | Type | Type | Type
-Material.lc 32:15-32:20
+32:15-32:20
     Type
-Material.lc 32:21-32:26
+32:21-32:26
     Type
-Material.lc 32:27-32:32
+32:27-32:32
     Type
-Material.lc 33:7-33:13
+33:7-33:13
     Vec 3 Float -> Wave -> Deform | Deform | Type | Type | Type
-Material.lc 33:15-33:18
+33:15-33:18
     Nat -> Type -> Type
-Material.lc 33:15-33:20
+33:15-33:20
     Type -> Type
-Material.lc 33:15-33:26
+33:15-33:26
     Type
-Material.lc 33:19-33:20
+33:19-33:20
     _b
-Material.lc 33:21-33:26
+33:21-33:26
     Type
-Material.lc 33:28-33:32
+33:28-33:32
     Type
-Material.lc 34:7-34:15
+34:7-34:15
     Float -> Float -> Deform | Deform | Type | Type | Type
-Material.lc 34:16-34:21
+34:16-34:21
     Type
-Material.lc 34:22-34:27
+34:22-34:27
     Type
-Material.lc 35:7-35:25
+35:7-35:25
     Deform
-Material.lc 36:7-36:14
+36:7-36:14
     Deform
-Material.lc 37:7-37:14
+37:7-37:14
     Deform
-Material.lc 38:7-38:14
+38:7-38:14
     Deform
-Material.lc 39:7-39:14
+39:7-39:14
     Deform
-Material.lc 40:7-40:14
+40:7-40:14
     Deform
-Material.lc 41:7-41:14
+41:7-41:14
     Deform
-Material.lc 42:7-42:14
+42:7-42:14
     Deform
-Material.lc 43:7-43:14
+43:7-43:14
     Deform
-Material.lc 44:7-44:13
+44:7-44:13
     Float -> Wave -> Deform | Deform | Type | Type | Type
-Material.lc 44:14-44:19
+44:14-44:19
     Type
-Material.lc 44:20-44:24
+44:20-44:24
     Type
-Material.lc 47:6-47:14
+47:6-47:14
     Type | Type | Type | Type | Type | Type | Type
-Material.lc 47:6-50:18
+47:6-50:18
     Type | Type | Type
-Material.lc 48:7-48:20
+48:7-48:20
     CullType
-Material.lc 49:7-49:19
+49:7-49:19
     CullType
-Material.lc 50:7-50:18
+50:7-50:18
     CullType
-Material.lc 53:6-53:15
+53:6-53:15
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 53:6-64:13
+53:6-64:13
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 54:7-54:17
+54:7-54:17
     Blending'
-Material.lc 55:7-55:17
+55:7-55:17
     Blending'
-Material.lc 56:7-56:12
+56:7-56:12
     Blending'
-Material.lc 57:7-57:25
+57:7-57:25
     Blending'
-Material.lc 58:7-58:25
+58:7-58:25
     Blending'
-Material.lc 59:7-59:25
+59:7-59:25
     Blending'
-Material.lc 60:7-60:25
+60:7-60:25
     Blending'
-Material.lc 61:7-61:17
+61:7-61:17
     Blending'
-Material.lc 62:7-62:25
+62:7-62:25
     Blending'
-Material.lc 63:7-63:17
+63:7-63:17
     Blending'
-Material.lc 64:7-64:13
+64:7-64:13
     Blending'
-Material.lc 67:6-67:12
+67:6-67:12
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 67:6-69:34
+67:6-69:34
     Type | Type
-Material.lc 67:6-78:20
+67:6-78:20
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 68:7-68:15
+68:7-68:15
     Wave -> RGBGen | RGBGen | Type | Type
-Material.lc 68:16-68:20
+68:16-68:20
     Type
-Material.lc 69:7-69:16
+69:7-69:16
     Float -> Float -> Float -> RGBGen | RGBGen | Type | Type | Type | Type
-Material.lc 69:17-69:22
+69:17-69:22
     Type
-Material.lc 69:23-69:28
+69:23-69:28
     Type
-Material.lc 69:29-69:34
+69:29-69:34
     Type
-Material.lc 70:7-70:19
+70:7-70:19
     RGBGen
-Material.lc 71:7-71:27
+71:7-71:27
     RGBGen
-Material.lc 72:7-72:17
+72:7-72:17
     RGBGen
-Material.lc 73:7-73:25
+73:7-73:25
     RGBGen
-Material.lc 74:7-74:22
+74:7-74:22
     RGBGen
-Material.lc 75:7-75:17
+75:7-75:17
     RGBGen
-Material.lc 76:7-76:26
+76:7-76:26
     RGBGen
-Material.lc 77:7-77:25
+77:7-77:25
     RGBGen
-Material.lc 78:7-78:20
+78:7-78:20
     RGBGen
-Material.lc 81:6-81:14
+81:6-81:14
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 81:6-90:23
+81:6-90:23
     Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 82:7-82:13
+82:7-82:13
     Wave -> AlphaGen | AlphaGen | Type | Type
-Material.lc 82:14-82:18
+82:14-82:18
     Type
-Material.lc 83:7-83:14
+83:7-83:14
     Float -> AlphaGen | AlphaGen | Type | Type
-Material.lc 83:15-83:20
+83:15-83:20
     Type
-Material.lc 84:7-84:15
+84:7-84:15
     AlphaGen
-Material.lc 85:7-85:17
+85:7-85:17
     AlphaGen
-Material.lc 86:7-86:15
+86:7-86:15
     AlphaGen
-Material.lc 87:7-87:23
+87:7-87:23
     AlphaGen
-Material.lc 88:7-88:15
+88:7-88:15
     AlphaGen
-Material.lc 89:7-89:25
+89:7-89:25
     AlphaGen
-Material.lc 90:7-90:23
+90:7-90:23
     AlphaGen
-Material.lc 93:6-93:11
+93:6-93:11
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 93:6-97:44
+93:6-97:44
     Type
-Material.lc 93:6-98:19
+93:6-98:19
     Type | Type | Type | Type | Type
-Material.lc 94:7-94:14
+94:7-94:14
     TCGen
-Material.lc 95:7-95:18
+95:7-95:18
     TCGen
-Material.lc 96:7-96:21
+96:7-96:21
     TCGen
-Material.lc 97:7-97:16
+97:7-97:16
     Vec 3 Float -> Vec 3 Float -> TCGen | TCGen | Type | Type | Type
-Material.lc 97:18-97:21
+97:18-97:21
     Nat -> Type -> Type
-Material.lc 97:18-97:23
+97:18-97:23
     Type -> Type
-Material.lc 97:18-97:29
+97:18-97:29
     Type
-Material.lc 97:22-97:23
+97:22-97:23
     _b
-Material.lc 97:24-97:29
+97:24-97:29
     Type
-Material.lc 97:32-97:35
+97:32-97:35
     Nat -> Type -> Type
-Material.lc 97:32-97:37
+97:32-97:37
     Type -> Type
-Material.lc 97:32-97:43
+97:32-97:43
     Type
-Material.lc 97:36-97:37
+97:36-97:37
     _b
-Material.lc 97:38-97:43
+97:38-97:43
     Type
-Material.lc 98:7-98:19
+98:7-98:19
     TCGen
-Material.lc 101:6-101:11
+101:6-101:11
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 101:6-104:28
+101:6-104:28
     Type
-Material.lc 101:6-105:27
+101:6-105:27
     Type
-Material.lc 101:6-107:55
+101:6-107:55
     Type | Type | Type | Type | Type
-Material.lc 101:6-108:14
+101:6-108:14
     Type | Type | Type | Type | Type | Type | Type
-Material.lc 101:6-108:38
+101:6-108:38
     Type | Type | Type
-Material.lc 102:7-102:25
+102:7-102:25
     TCMod
-Material.lc 103:7-103:16
+103:7-103:16
     Float -> TCMod | TCMod | Type | Type
-Material.lc 103:17-103:22
+103:17-103:22
     Type
-Material.lc 104:7-104:16
+104:7-104:16
     Float -> Float -> TCMod | TCMod | Type | Type | Type
-Material.lc 104:17-104:22
+104:17-104:22
     Type
-Material.lc 104:23-104:28
+104:23-104:28
     Type
-Material.lc 105:7-105:15
+105:7-105:15
     Float -> Float -> TCMod | TCMod | Type | Type | Type
-Material.lc 105:16-105:21
+105:16-105:21
     Type
-Material.lc 105:22-105:27
+105:22-105:27
     Type
-Material.lc 106:7-106:17
+106:7-106:17
     Wave -> TCMod | TCMod | Type | Type
-Material.lc 106:18-106:22
+106:18-106:22
     Type
-Material.lc 107:7-107:19
+107:7-107:19
     Float
       -> Float
         -> Float
           -> Float
             -> Float
               -> Float -> TCMod | TCMod | Type | Type | Type | Type | Type | Type | Type
-Material.lc 107:20-107:25
+107:20-107:25
     Type
-Material.lc 107:26-107:31
+107:26-107:31
     Type
-Material.lc 107:32-107:37
+107:32-107:37
     Type
-Material.lc 107:38-107:43
+107:38-107:43
     Type
-Material.lc 107:44-107:49
+107:44-107:49
     Type
-Material.lc 107:50-107:55
+107:50-107:55
     Type
-Material.lc 108:7-108:14
+108:7-108:14
     Float
       -> Float -> Float -> Float -> TCMod | TCMod | Type | Type | Type | Type | Type
-Material.lc 108:15-108:20
+108:15-108:20
     Type
-Material.lc 108:21-108:26
+108:21-108:26
     Type
-Material.lc 108:27-108:32
+108:27-108:32
     Type
-Material.lc 108:33-108:38
+108:33-108:38
     Type
-Material.lc 111:6-111:18
+111:6-111:18
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 111:6-114:35
+111:6-114:35
     Type
-Material.lc 111:6-116:20
+111:6-116:20
     Type | Type | Type | Type | Type
-Material.lc 112:7-112:13
+112:7-112:13
     String -> StageTexture | StageTexture | Type | Type
-Material.lc 112:21-112:27
+112:21-112:27
     Type
-Material.lc 113:7-113:18
+113:7-113:18
     String -> StageTexture | StageTexture | Type | Type
-Material.lc 113:21-113:27
+113:21-113:27
     Type
-Material.lc 114:7-114:17
+114:7-114:17
     Float -> [String] -> StageTexture | StageTexture | Type | Type | Type
-Material.lc 114:21-114:26
+114:21-114:26
     Type
-Material.lc 114:27-114:35
+114:27-114:35
     Type
-Material.lc 114:28-114:34
+114:28-114:34
     Type
-Material.lc 115:7-115:18
+115:7-115:18
     StageTexture
-Material.lc 116:7-116:20
+116:7-116:20
     StageTexture
-Material.lc 119:6-119:19
+119:6-119:19
     Type | Type | Type | Type | Type | Type | Type
-Material.lc 119:6-122:14
+119:6-122:14
     Type | Type | Type
-Material.lc 120:7-120:12
+120:7-120:12
     AlphaFunction
-Material.lc 121:7-121:14
+121:7-121:14
     AlphaFunction
-Material.lc 122:7-122:14
+122:7-122:14
     AlphaFunction
-Material.lc 125:6-125:19
+125:6-125:19
     Type | Type | Type | Type | Type | Type
-Material.lc 125:6-127:15
+125:6-127:15
     Type | Type
-Material.lc 126:7-126:14
+126:7-126:14
     DepthFunction
-Material.lc 127:7-127:15
+127:7-127:15
     DepthFunction
-Material.lc 130:6-130:16
+130:6-130:16
     Type | Type | Type | Type | Type | Type
-Material.lc 130:6-131:17
+130:6-131:17
     Type
-Material.lc 130:6-144:34
+130:6-144:34
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 131:7-131:17
+131:7-131:17
     Maybe (Blending', Blending')
       -> RGBGen
         -> AlphaGen
@@ -1579,71 +1579,71 @@ Material.lc 131:7-131:17
                       -> Bool
                         -> String
                           -> StageAttrs | StageAttrs | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 132:7-132:14
+132:7-132:14
     StageAttrs -> Maybe (Blending', Blending')
-Material.lc 132:25-132:30
+132:25-132:30
     Type -> Type
-Material.lc 132:25-132:53
+132:25-132:53
     Type
-Material.lc 132:31-132:53
+132:31-132:53
     Type
-Material.lc 132:32-132:41
+132:32-132:41
     Type
-Material.lc 132:32-132:52
+132:32-132:52
     [Type]
-Material.lc 132:43-132:52
+132:43-132:52
     Type | [Type]
-Material.lc 133:7-133:15
+133:7-133:15
     StageAttrs -> RGBGen
-Material.lc 133:24-133:30
+133:24-133:30
     Type
-Material.lc 134:7-134:17
+134:7-134:17
     StageAttrs -> AlphaGen
-Material.lc 134:24-134:32
+134:24-134:32
     Type
-Material.lc 135:7-135:14
+135:7-135:14
     StageAttrs -> TCGen
-Material.lc 135:24-135:29
+135:24-135:29
     Type
-Material.lc 136:7-136:14
+136:7-136:14
     StageAttrs -> [TCMod]
-Material.lc 136:24-136:31
+136:24-136:31
     Type
-Material.lc 136:25-136:30
+136:25-136:30
     Type
-Material.lc 137:7-137:16
+137:7-137:16
     StageAttrs -> StageTexture
-Material.lc 137:24-137:36
+137:24-137:36
     Type
-Material.lc 138:7-138:19
+138:7-138:19
     StageAttrs -> Bool
-Material.lc 138:24-138:28
+138:24-138:28
     Type
-Material.lc 139:7-139:18
+139:7-139:18
     StageAttrs -> DepthFunction
-Material.lc 139:24-139:37
+139:24-139:37
     Type
-Material.lc 140:7-140:18
+140:7-140:18
     StageAttrs -> Maybe AlphaFunction
-Material.lc 140:25-140:30
+140:25-140:30
     Type -> Type
-Material.lc 140:25-140:44
+140:25-140:44
     Type
-Material.lc 140:31-140:44
+140:31-140:44
     Type
-Material.lc 143:7-143:26
+143:7-143:26
     StageAttrs -> Bool
-Material.lc 143:32-143:36
+143:32-143:36
     Type
-Material.lc 144:7-144:23
+144:7-144:23
     StageAttrs -> String
-Material.lc 144:28-144:34
+144:28-144:34
     Type
-Material.lc 148:22-148:32
+148:22-148:32
     Type
-Material.lc 149:1-149:18
+149:1-149:18
     StageAttrs
-Material.lc 149:21-149:31
+149:21-149:31
     Maybe (Blending', Blending')
       -> RGBGen
         -> AlphaGen
@@ -1651,72 +1651,72 @@ Material.lc 149:21-149:31
             -> [TCMod]
               -> StageTexture
                 -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-Material.lc 149:21-150:30
+149:21-150:30
     RGBGen
       -> AlphaGen
         -> TCGen
           -> [TCMod]
             -> StageTexture
               -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-Material.lc 149:21-151:36
+149:21-151:36
     AlphaGen
       -> TCGen
         -> [TCMod]
           -> StageTexture
             -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-Material.lc 149:21-152:33
+149:21-152:33
     TCGen
       -> [TCMod]
         -> StageTexture
           -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-Material.lc 149:21-153:35
+149:21-153:35
     [TCMod]
       -> StageTexture
         -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-Material.lc 149:21-154:25
+149:21-154:25
     StageTexture
       -> Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-Material.lc 149:21-155:36
+149:21-155:36
     Bool -> DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-Material.lc 149:21-156:27
+149:21-156:27
     DepthFunction -> Maybe AlphaFunction -> Bool -> String -> StageAttrs
-Material.lc 149:21-157:31
+149:21-157:31
     Maybe AlphaFunction -> Bool -> String -> StageAttrs
-Material.lc 149:21-158:30
+149:21-158:30
     Bool -> String -> StageAttrs
-Material.lc 149:21-159:36
+149:21-159:36
     String -> StageAttrs
-Material.lc 149:21-161:6
+149:21-161:6
     StageAttrs
-Material.lc 150:23-150:30
+150:23-150:30
     forall a . Maybe a
-Material.lc 151:23-151:36
+151:23-151:36
     RGBGen
-Material.lc 152:23-152:33
+152:23-152:33
     AlphaGen
-Material.lc 153:23-153:35
+153:23-153:35
     TCGen
-Material.lc 154:23-154:25
+154:23-154:25
     forall a . [a]
-Material.lc 155:23-155:36
+155:23-155:36
     StageTexture
-Material.lc 156:23-156:27
+156:23-156:27
     Bool
-Material.lc 157:23-157:31
+157:23-157:31
     DepthFunction
-Material.lc 158:23-158:30
+158:23-158:30
     forall a . Maybe a
-Material.lc 159:31-159:36
+159:31-159:36
     Bool
-Material.lc 160:27-160:29
+160:27-160:29
     String
-Material.lc 163:6-163:17
+163:6-163:17
     Type | Type | Type | Type | Type | Type
-Material.lc 163:6-164:18
+163:6-164:18
     Type
-Material.lc 163:6-178:32
+163:6-178:32
     Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 164:7-164:18
+164:7-164:18
     ()
       -> ()
         -> Bool
@@ -1730,63 +1730,63 @@ Material.lc 164:7-164:18
                         -> [StageAttrs]
                           -> Bool
                             -> CommonAttrs | CommonAttrs | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type | Type
-Material.lc 165:7-165:17
+165:7-165:17
     CommonAttrs -> ()
-Material.lc 165:28-165:30
+165:28-165:30
     Type
-Material.lc 166:7-166:17
+166:7-166:17
     CommonAttrs -> ()
-Material.lc 166:28-166:30
+166:28-166:30
     Type
-Material.lc 167:7-167:15
+167:7-167:15
     CommonAttrs -> Bool
-Material.lc 167:28-167:32
+167:28-167:32
     Type
-Material.lc 168:7-168:13
+168:7-168:13
     CommonAttrs -> Float
-Material.lc 168:28-168:33
+168:28-168:33
     Type
-Material.lc 169:7-169:23
+169:7-169:23
     CommonAttrs -> Bool
-Material.lc 169:28-169:32
+169:28-169:32
     Type
-Material.lc 170:7-170:16
+170:7-170:16
     CommonAttrs -> Bool
-Material.lc 170:28-170:32
+170:28-170:32
     Type
-Material.lc 171:7-171:13
+171:7-171:13
     CommonAttrs -> CullType
-Material.lc 171:28-171:36
+171:28-171:36
     Type
-Material.lc 172:7-172:23
+172:7-172:23
     CommonAttrs -> [Deform]
-Material.lc 172:28-172:36
+172:28-172:36
     Type
-Material.lc 172:29-172:35
+172:29-172:35
     Type
-Material.lc 173:7-173:18
+173:7-173:18
     CommonAttrs -> Bool
-Material.lc 173:28-173:32
+173:28-173:32
     Type
-Material.lc 174:7-174:22
+174:7-174:22
     CommonAttrs -> Bool
-Material.lc 174:28-174:32
+174:28-174:32
     Type
-Material.lc 175:7-175:15
+175:7-175:15
     CommonAttrs -> [StageAttrs]
-Material.lc 175:28-175:40
+175:28-175:40
     Type
-Material.lc 175:29-175:39
+175:29-175:39
     Type
-Material.lc 178:7-178:14
+178:7-178:14
     CommonAttrs -> Bool
-Material.lc 178:28-178:32
+178:28-178:32
     Type
-Material.lc 182:23-182:34
+182:23-182:34
     Type
-Material.lc 183:1-183:19
+183:1-183:19
     CommonAttrs
-Material.lc 183:22-183:33
+183:22-183:33
     ()
       -> ()
         -> Bool
@@ -1794,66 +1794,66 @@ Material.lc 183:22-183:33
             -> Bool
               -> Bool
                 -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-184:29
+183:22-184:29
     ()
       -> Bool
         -> Float
           -> Bool
             -> Bool
               -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-185:29
+183:22-185:29
     Bool
       -> Float
         -> Bool
           -> Bool
             -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-186:32
+183:22-186:32
     Float
       -> Bool
         -> Bool
           -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-187:28
+183:22-187:28
     Bool
       -> Bool
         -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-188:32
+183:22-188:32
     Bool
       -> CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-189:32
+183:22-189:32
     CullType -> [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-190:40
+183:22-190:40
     [Deform] -> Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-191:29
+183:22-191:29
     Bool -> Bool -> [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-192:32
+183:22-192:32
     Bool -> [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-193:32
+183:22-193:32
     [StageAttrs] -> Bool -> CommonAttrs
-Material.lc 183:22-194:29
+183:22-194:29
     Bool -> CommonAttrs
-Material.lc 183:22-196:6
+183:22-196:6
     CommonAttrs
-Material.lc 184:27-184:29
+184:27-184:29
     ()
-Material.lc 185:27-185:29
+185:27-185:29
     ()
-Material.lc 186:27-186:32
+186:27-186:32
     Bool
-Material.lc 187:27-187:28
+187:27-187:28
     _b
-Material.lc 188:27-188:32
+188:27-188:32
     Bool
-Material.lc 189:27-189:32
+189:27-189:32
     Bool
-Material.lc 190:27-190:40
+190:27-190:40
     CullType
-Material.lc 191:27-191:29
+191:27-191:29
     forall a . [a]
-Material.lc 192:27-192:32
+192:27-192:32
     Bool
-Material.lc 193:27-193:32
+193:27-193:32
     Bool
-Material.lc 194:27-194:29
+194:27-194:29
     forall a . [a]
-Material.lc 195:27-195:32
+195:27-195:32
     Bool

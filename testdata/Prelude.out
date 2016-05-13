@@ -1633,2859 +1633,2859 @@ zip
 ||| :: Bool -> Bool -> Bool
 ||| = \a b -> case'Bool (\_ -> 'Bool) (_rhs b) (_rhs True) a
 ------------ tooltips
-Prelude.lc 16:1-16:6
+16:1-16:6
     forall a b . a -> b -> a
-Prelude.lc 16:13-16:14
+16:13-16:14
     _d
-Prelude.lc 18:1-18:10
+18:1-18:10
     Bool
-Prelude.lc 18:13-18:17
+18:13-18:17
     Bool
-Prelude.lc 20:3-20:4
+20:3-20:4
     forall a b . a -> (a -> b) -> b
-Prelude.lc 20:9-20:10
+20:9-20:10
     _b
-Prelude.lc 20:11-20:12
+20:11-20:12
     _g
-Prelude.lc 22:2-22:3
+22:2-22:3
     forall a b . (a -> b) -> a -> b
-Prelude.lc 22:15-22:16
+22:15-22:16
     _d
-Prelude.lc 22:17-22:18
+22:17-22:18
     _e
-Prelude.lc 23:2-23:3
+23:2-23:3
     forall a b c . (b -> c) -> (a -> b) -> a -> c
-Prelude.lc 23:17-23:18
+23:17-23:18
     _f
-Prelude.lc 23:20-23:21
+23:20-23:21
     _g
-Prelude.lc 23:22-23:23
+23:22-23:23
     _h
-Prelude.lc 25:1-25:8
+25:1-25:8
     forall a b c . (a -> c -> b) -> (a, c) -> b
-Prelude.lc 25:20-25:21
+25:20-25:21
     _o
-Prelude.lc 25:20-25:25
+25:20-25:25
     _c | _d
-Prelude.lc 25:22-25:23
+25:22-25:23
     _n
-Prelude.lc 25:24-25:25
+25:24-25:25
     _j
-Prelude.lc 27:2-27:5
+27:2-27:5
     forall a b c d . (a -> c) -> (b -> d) -> (a, b) -> (c, d)
-Prelude.lc 27:20-27:30
+27:20-27:30
     (_b, _a) | (_b, _a) | (_b, _a)
-Prelude.lc 27:21-27:22
+27:21-27:22
     _s
-Prelude.lc 27:23-27:24
+27:23-27:24
     _p
-Prelude.lc 27:26-27:27
+27:26-27:27
     _r
-Prelude.lc 27:26-27:29
+27:26-27:29
     ((_a))
-Prelude.lc 27:28-27:29
+27:28-27:29
     _l
-Prelude.lc 29:1-29:3
+29:1-29:3
     Float
-Prelude.lc 29:6-29:23
+29:6-29:23
     Float
-Prelude.lc 31:8-31:11
+31:8-31:11
     Type
-Prelude.lc 31:8-31:29
+31:8-31:29
     Type | Type
-Prelude.lc 31:9-31:10
+31:9-31:10
     _d
-Prelude.lc 31:15-31:18
+31:15-31:18
     Type
-Prelude.lc 31:15-31:29
+31:15-31:29
     Type
-Prelude.lc 31:16-31:17
+31:16-31:17
     _c
-Prelude.lc 31:22-31:29
+31:22-31:29
     Type | Type
-Prelude.lc 31:23-31:28
+31:23-31:28
     Type
-Prelude.lc 31:24-31:25
+31:24-31:25
     Type
-Prelude.lc 31:24-31:27
+31:24-31:27
     [Type]
-Prelude.lc 31:26-31:27
+31:26-31:27
     Type | [Type]
-Prelude.lc 32:1-32:4
+32:1-32:4
     forall a b . [a] -> [b] -> [(a, b)]
-Prelude.lc 32:22-32:24
+32:22-32:24
     forall a . [a]
-Prelude.lc 32:22-34:39
+32:22-34:39
     [_a] -> [(_a, _d)] | [(_d, _c)]
-Prelude.lc 33:22-33:24
+33:22-33:24
     forall a . [a]
-Prelude.lc 33:22-34:39
+33:22-34:39
     [_a] -> [(_e, _a)] | [(_c, _f)]
-Prelude.lc 34:23-34:28
+34:23-34:28
     (_h, _d)
-Prelude.lc 34:23-34:29
+34:23-34:29
     [(_h, _d)] -> [(_h, _d)]
-Prelude.lc 34:23-34:39
+34:23-34:39
     [(_g, _c)]
-Prelude.lc 34:24-34:25
+34:24-34:25
     _k
-Prelude.lc 34:26-34:27
+34:26-34:27
     _g | ((_d))
-Prelude.lc 34:28-34:29
+34:28-34:29
     forall a . a -> [a] -> [a]
-Prelude.lc 34:30-34:33
+34:30-34:33
     forall a b . [a] -> [b] -> [(a, b)]
-Prelude.lc 34:30-34:36
+34:30-34:36
     [_a] -> [(_h, _a)]
-Prelude.lc 34:30-34:39
+34:30-34:39
     [(_g, _c)]
-Prelude.lc 34:34-34:36
+34:34-34:36
     [_i]
-Prelude.lc 34:37-34:39
+34:37-34:39
     [_c]
-Prelude.lc 36:10-36:17
+36:10-36:17
     Type
-Prelude.lc 36:10-36:30
+36:10-36:30
     Type | Type
-Prelude.lc 36:11-36:16
+36:11-36:16
     Type
-Prelude.lc 36:12-36:13
+36:12-36:13
     _e
-Prelude.lc 36:12-36:15
+36:12-36:15
     [Type]
-Prelude.lc 36:14-36:15
+36:14-36:15
     _c | [Type]
-Prelude.lc 36:21-36:30
+36:21-36:30
     Type | Type
-Prelude.lc 36:22-36:25
+36:22-36:25
     Type
-Prelude.lc 36:22-36:29
+36:22-36:29
     [Type]
-Prelude.lc 36:23-36:24
+36:23-36:24
     Type
-Prelude.lc 36:26-36:29
+36:26-36:29
     Type | [Type]
-Prelude.lc 36:27-36:28
+36:27-36:28
     Type
-Prelude.lc 37:1-37:6
+37:1-37:6
     forall a b . [(a, b)] -> ([a], [b])
-Prelude.lc 37:12-37:19
+37:12-37:19
     ([_b], [_a])
-Prelude.lc 37:12-39:27
+37:12-39:27
     [(_b, _a)] -> ([_b], [_a]) | ([_c], [_b])
-Prelude.lc 37:13-37:15
+37:13-37:15
     forall a . [a]
-Prelude.lc 37:16-37:18
+37:16-37:18
     forall a . [a] | (([_a]))
-Prelude.lc 38:20-38:31
+38:20-38:31
     ([_n], [_i])
-Prelude.lc 38:20-39:27
+38:20-39:27
     ([_h], [_c]) | ([_d], [_a]) | ([_d], [_c])
-Prelude.lc 38:21-38:22
+38:21-38:22
     _s
-Prelude.lc 38:21-38:23
+38:21-38:23
     [_r] -> [_r]
-Prelude.lc 38:21-38:25
+38:21-38:25
     [_p]
-Prelude.lc 38:22-38:23
+38:22-38:23
     forall a . a -> [a] -> [a]
-Prelude.lc 38:23-38:25
+38:23-38:25
     [_f]
-Prelude.lc 38:26-38:27
+38:26-38:27
     _n
-Prelude.lc 38:26-38:28
+38:26-38:28
     [_m] -> [_m]
-Prelude.lc 38:26-38:30
+38:26-38:30
     [_k] | (([_i]))
-Prelude.lc 38:27-38:28
+38:27-38:28
     forall a . a -> [a] -> [a]
-Prelude.lc 38:28-38:30
+38:28-38:30
     [_f]
-Prelude.lc 39:10-39:12
+39:10-39:12
     _k | _h | _d
-Prelude.lc 39:10-39:15
+39:10-39:15
     ([_e], [_d]) | ([_f], [_e])
-Prelude.lc 39:13-39:15
+39:13-39:15
     _f | _c | _c
-Prelude.lc 39:19-39:24
+39:19-39:24
     forall a b . [(a, b)] -> ([a], [b])
-Prelude.lc 39:19-39:27
+39:19-39:27
     ([_b], [_a])
-Prelude.lc 39:25-39:27
+39:25-39:27
     [_r]
-Prelude.lc 41:1-41:7
+41:1-41:7
     forall a . (a -> Bool) -> [a] -> [a]
-Prelude.lc 41:21-41:23
+41:21-41:23
     forall a . [a]
-Prelude.lc 41:21-44:49
+41:21-44:49
     [_a] -> [_a]
-Prelude.lc 42:22-44:49
+42:22-44:49
     [_c]
-Prelude.lc 42:27-42:31
+42:27-42:31
     _g
-Prelude.lc 42:32-42:33
+42:32-42:33
     _f
-Prelude.lc 43:32-44:49
+43:32-44:49
     Bool -> [_f]
-Prelude.lc 43:33-43:34
+43:33-43:34
     _h
-Prelude.lc 43:33-43:36
+43:33-43:36
     [_g] -> [_g]
-Prelude.lc 43:33-43:51
+43:33-43:51
     [_f]
-Prelude.lc 43:35-43:36
+43:35-43:36
     forall a . a -> [a] -> [a]
-Prelude.lc 43:37-43:43
+43:37-43:43
     _j -> [_f] -> [_f]
-Prelude.lc 43:37-43:48
+43:37-43:48
     [_f] -> [_f]
-Prelude.lc 43:37-43:51
+43:37-43:51
     [_f]
-Prelude.lc 43:44-43:48
+43:44-43:48
     _j
-Prelude.lc 43:49-43:51
+43:49-43:51
     [_f]
-Prelude.lc 44:34-44:40
+44:34-44:40
     _m
-Prelude.lc 44:41-44:45
+44:41-44:45
     _n
-Prelude.lc 44:46-44:48
+44:46-44:48
     [_k]
-Prelude.lc 49:9-49:12
+49:9-49:12
     Type
-Prelude.lc 49:9-49:19
+49:9-49:19
     Type
-Prelude.lc 49:10-49:11
+49:10-49:11
     _b
-Prelude.lc 49:16-49:19
+49:16-49:19
     Type | Type
-Prelude.lc 49:17-49:18
+49:17-49:18
     Type
-Prelude.lc 50:1-50:5
+50:1-50:5
     forall a . [a] -> [a]
-Prelude.lc 50:16-50:18
+50:16-50:18
     [_d] | [_b]
-Prelude.lc 52:10-52:13
+52:10-52:13
     Type
-Prelude.lc 52:10-52:25
+52:10-52:25
     Type
-Prelude.lc 52:11-52:12
+52:11-52:12
     _b
-Prelude.lc 52:17-52:25
+52:17-52:25
     Type | Type
-Prelude.lc 52:18-52:24
+52:18-52:24
     Type
-Prelude.lc 52:19-52:20
+52:19-52:20
     Type
-Prelude.lc 52:19-52:23
+52:19-52:23
     [Type]
-Prelude.lc 52:22-52:23
+52:22-52:23
     Type | [Type]
-Prelude.lc 53:1-53:6
+53:1-53:6
     forall a . [a] -> [(a, a)]
-Prelude.lc 53:11-53:14
+53:11-53:14
     forall a b . [a] -> [b] -> [(a, b)]
-Prelude.lc 53:11-53:16
+53:11-53:16
     [_a] -> [(_c, _a)]
-Prelude.lc 53:11-53:25
+53:11-53:25
     [(_b, _b)]
-Prelude.lc 53:15-53:16
+53:15-53:16
     [_d]
-Prelude.lc 53:18-53:22
+53:18-53:22
     forall a . [a] -> [a]
-Prelude.lc 53:18-53:24
+53:18-53:24
     [_b]
-Prelude.lc 53:23-53:24
+53:23-53:24
     [_c]
-Prelude.lc 55:1-55:7
+55:1-55:7
     forall a b . (a -> b -> a) -> a -> [b] -> a
-Prelude.lc 55:17-55:18
+55:17-55:18
     _f
-Prelude.lc 55:17-56:41
+55:17-56:41
     [_b] -> _f
-Prelude.lc 56:22-56:28
+56:22-56:28
     _k
-Prelude.lc 56:29-56:30
+56:29-56:30
     _l
-Prelude.lc 56:32-56:33
+56:32-56:33
     _m
-Prelude.lc 56:34-56:35
+56:34-56:35
     _n
-Prelude.lc 56:36-56:37
+56:36-56:37
     _k
-Prelude.lc 56:39-56:41
+56:39-56:41
     [_h]
-Prelude.lc 58:1-58:7
+58:1-58:7
     forall a . (a -> a -> a) -> [a] -> a
-Prelude.lc 58:20-58:25
+58:20-58:25
     forall a b . (b -> a -> a) -> a -> [b] -> a
-Prelude.lc 58:20-58:27
+58:20-58:27
     _b -> [_a] -> _b
-Prelude.lc 58:20-58:29
+58:20-58:29
     [_a] -> _e
-Prelude.lc 58:20-58:32
+58:20-58:32
     _c
-Prelude.lc 58:26-58:27
+58:26-58:27
     _j
-Prelude.lc 58:28-58:29
+58:28-58:29
     _f
-Prelude.lc 58:30-58:32
+58:30-58:32
     [_d]
-Prelude.lc 60:1-60:6
+60:1-60:6
     forall a . [a] -> ([a], [a])
-Prelude.lc 60:12-60:20
+60:12-60:20
     ([_b], [_a])
-Prelude.lc 60:12-61:55
+60:12-61:55
     [_b] -> ([_b], [_a])
-Prelude.lc 60:13-60:15
+60:13-60:15
     forall a . [a]
-Prelude.lc 60:17-60:19
+60:17-60:19
     forall a . [a] | (([_a]))
-Prelude.lc 61:17-61:28
+61:17-61:28
     ([_i], _c)
-Prelude.lc 61:18-61:19
+61:18-61:19
     _m
-Prelude.lc 61:18-61:20
+61:18-61:20
     [_l] -> [_l]
-Prelude.lc 61:18-61:23
+61:18-61:23
     [_j]
-Prelude.lc 61:19-61:20
+61:19-61:20
     forall a . a -> [a] -> [a]
-Prelude.lc 61:21-61:23
+61:21-61:23
     _d
-Prelude.lc 61:25-61:27
+61:25-61:27
     _f | ((_c))
-Prelude.lc 61:37-61:39
+61:37-61:39
     _k | _h | _d
-Prelude.lc 61:37-61:43
+61:37-61:43
     _d | (_e, _d)
-Prelude.lc 61:41-61:43
+61:41-61:43
     _f | _c | _c
-Prelude.lc 61:47-61:52
+61:47-61:52
     _i
-Prelude.lc 61:53-61:55
+61:53-61:55
     [_h]
-Prelude.lc 63:1-63:8
+63:1-63:8
     forall a . (a -> a -> Ordering) -> [a] -> [a] -> [a]
-Prelude.lc 63:27-65:32
+63:27-65:32
     [_e]
-Prelude.lc 63:27-67:21
+63:27-67:21
     [_c] -> [_c] | [_c]
-Prelude.lc 63:32-63:33
+63:32-63:33
     _j
-Prelude.lc 63:34-63:35
+63:34-63:35
     _h
-Prelude.lc 63:36-63:37
+63:36-63:37
     _i
-Prelude.lc 64:11-64:12
+64:11-64:12
     _j
-Prelude.lc 64:11-64:13
+64:11-64:13
     [_i] -> [_i]
-Prelude.lc 64:11-64:33
+64:11-64:33
     [_h]
-Prelude.lc 64:11-65:32
+64:11-65:32
     [_g] -> Ordering -> [_g]
-Prelude.lc 64:12-64:13
+64:12-64:13
     forall a . a -> [a] -> [a]
-Prelude.lc 64:14-64:21
+64:14-64:21
     _p
-Prelude.lc 64:22-64:23
+64:22-64:23
     _q
-Prelude.lc 64:24-64:26
+64:24-64:26
     [_l]
-Prelude.lc 64:28-64:29
+64:28-64:29
     _j
-Prelude.lc 64:28-64:30
+64:28-64:30
     [_i] -> [_i]
-Prelude.lc 64:28-64:32
+64:28-64:32
     [_i]
-Prelude.lc 64:29-64:30
+64:29-64:30
     forall a . a -> [a] -> [a]
-Prelude.lc 64:30-64:32
+64:30-64:32
     [_i]
-Prelude.lc 65:10-65:11
+65:10-65:11
     _f | _h
-Prelude.lc 65:10-65:12
+65:10-65:12
     [_e] -> [_e] | [_g] -> [_g]
-Prelude.lc 65:10-65:32
+65:10-65:32
     [_g] | [_g]
-Prelude.lc 65:11-65:12
+65:11-65:12
     forall a . a -> [a] -> [a] | forall a . a -> [a] -> [a]
-Prelude.lc 65:13-65:20
+65:13-65:20
     _m -> [_g] -> [_g] -> [_g] | _m -> [_g] -> [_g] -> [_g]
-Prelude.lc 65:13-65:22
+65:13-65:22
     [_g] -> [_g] -> [_g] | [_g] -> [_g] -> [_g]
-Prelude.lc 65:13-65:29
+65:13-65:29
     [_g] -> [_g] | [_g] -> [_g]
-Prelude.lc 65:13-65:32
+65:13-65:32
     [_g] | [_g]
-Prelude.lc 65:21-65:22
+65:21-65:22
     _m | _m
-Prelude.lc 65:24-65:25
+65:24-65:25
     _h | _h
-Prelude.lc 65:24-65:26
+65:24-65:26
     [_g] -> [_g] | [_g] -> [_g]
-Prelude.lc 65:24-65:28
+65:24-65:28
     [_g] | [_g]
-Prelude.lc 65:25-65:26
+65:25-65:26
     forall a . a -> [a] -> [a] | forall a . a -> [a] -> [a]
-Prelude.lc 65:26-65:28
+65:26-65:28
     [_g] | [_g]
-Prelude.lc 65:30-65:32
+65:30-65:32
     [_g] | [_g]
-Prelude.lc 66:19-66:21
+66:19-66:21
     _d
-Prelude.lc 67:19-67:21
+67:19-67:21
     _i
-Prelude.lc 69:1-69:7
+69:1-69:7
     forall a . (a -> a -> Ordering) -> [a] -> [a]
-Prelude.lc 69:15-69:17
+69:15-69:17
     forall a . [a]
-Prelude.lc 69:15-71:71
+69:15-71:71
     [_b] -> [_b]
-Prelude.lc 70:16-70:19
+70:16-70:19
     [_e]
-Prelude.lc 70:16-71:71
+70:16-71:71
     [_b] -> [_f] | [_d]
-Prelude.lc 70:17-70:18
+70:17-70:18
     _g
-Prelude.lc 71:15-71:22
+71:15-71:22
     forall a b c . (a -> c -> b) -> (a, c) -> b
-Prelude.lc 71:15-71:34
+71:15-71:34
     ([_a], [_a]) -> [_a]
-Prelude.lc 71:15-71:71
+71:15-71:71
     [_h]
-Prelude.lc 71:24-71:31
+71:24-71:31
     forall a . (a -> a -> Ordering) -> [a] -> [a] -> [a]
-Prelude.lc 71:24-71:33
+71:24-71:33
     [_a] -> [_a] -> [_a]
-Prelude.lc 71:32-71:33
+71:32-71:33
     _o
-Prelude.lc 71:36-71:70
+71:36-71:70
     ([_h], [_h])
-Prelude.lc 71:37-71:43
+71:37-71:43
     _p
-Prelude.lc 71:37-71:49
+71:37-71:49
     (_c -> _a) -> (_d, _c) -> (_b, _a)
-Prelude.lc 71:37-71:58
+71:37-71:58
     (_b, _b) -> (_a, _a)
-Prelude.lc 71:44-71:45
+71:44-71:45
     _n -> _n -> Ordering
-Prelude.lc 71:46-71:49
+71:46-71:49
     forall a b c d . (a -> c) -> (b -> d) -> (a, b) -> (c, d)
-Prelude.lc 71:50-71:56
+71:50-71:56
     (_k -> _k -> Ordering) -> _d -> _b
-Prelude.lc 71:50-71:58
+71:50-71:58
     _b -> _a
-Prelude.lc 71:57-71:58
+71:57-71:58
     _i -> _i -> Ordering
-Prelude.lc 71:61-71:66
+71:61-71:66
     forall a . [a] -> ([a], [a])
-Prelude.lc 71:61-71:69
+71:61-71:69
     ([_a], [_a])
-Prelude.lc 71:67-71:69
+71:67-71:69
     _k
-Prelude.lc 73:12-73:32
+73:12-73:32
     Type
-Prelude.lc 73:13-73:14
+73:13-73:14
     _b
-Prelude.lc 73:18-73:19
+73:18-73:19
     Type | Type
-Prelude.lc 73:24-73:25
+73:24-73:25
     Type
-Prelude.lc 73:24-73:32
+73:24-73:32
     Type
-Prelude.lc 73:29-73:32
+73:29-73:32
     Type | Type
-Prelude.lc 73:30-73:31
+73:30-73:31
     Type
-Prelude.lc 74:1-74:8
+74:1-74:8
     forall a . (a -> a) -> a -> [a]
-Prelude.lc 74:16-74:17
+74:16-74:17
     _d
-Prelude.lc 74:16-74:19
+74:16-74:19
     [_c] -> [_c]
-Prelude.lc 74:16-74:35
+74:16-74:35
     [_c]
-Prelude.lc 74:18-74:19
+74:18-74:19
     forall a . a -> [a] -> [a]
-Prelude.lc 74:20-74:27
+74:20-74:27
     forall a . (a -> a) -> a -> [a]
-Prelude.lc 74:20-74:29
+74:20-74:29
     _c -> [_c]
-Prelude.lc 74:20-74:35
+74:20-74:35
     [_c]
-Prelude.lc 74:28-74:29
+74:28-74:29
     _d -> _d
-Prelude.lc 74:31-74:32
+74:31-74:32
     _c -> _c
-Prelude.lc 74:31-74:34
+74:31-74:34
     _c
-Prelude.lc 74:33-74:34
+74:33-74:34
     _c
-Prelude.lc 76:1-76:4
+76:1-76:4
     forall a b . (a, b) -> a
-Prelude.lc 76:14-76:15
+76:14-76:15
     _k | _h | _d
-Prelude.lc 77:1-77:4
+77:1-77:4
     forall a b . (a, b) -> b
-Prelude.lc 77:14-77:15
+77:14-77:15
     _f | _c | _c
-Prelude.lc 79:7-79:10
+79:7-79:10
     Bool -> Bool -> Bool
-Prelude.lc 79:15-79:16
+79:15-79:16
     _c
-Prelude.lc 79:15-80:18
+79:15-80:18
     Bool -> Bool
-Prelude.lc 80:14-80:18
+80:14-80:18
     Bool
-Prelude.lc 84:6-84:9
+84:6-84:9
     Bool -> Bool -> Bool
-Prelude.lc 84:14-84:15
+84:14-84:15
     _b
-Prelude.lc 84:14-85:20
+84:14-85:20
     Bool -> Bool
-Prelude.lc 85:15-85:20
+85:15-85:20
     Bool
-Prelude.lc 122:6-122:13
+122:6-122:13
     Type | Type | Type | Type | Type | Type
-Prelude.lc 122:6-122:23
+122:6-122:23
     Type
-Prelude.lc 122:6-122:35
+122:6-122:35
     Type
-Prelude.lc 122:16-122:23
+122:16-122:23
     String -> Type -> RecItem | RecItem | Type | Type | Type
-Prelude.lc 122:24-122:30
+122:24-122:30
     Type
-Prelude.lc 122:31-122:35
+122:31-122:35
     Type
-Prelude.lc 124:1-124:12
+124:1-124:12
     RecItem -> Type
-Prelude.lc 124:29-124:30
+124:29-124:30
     Type
-Prelude.lc 126:6-126:13
+126:6-126:13
     [RecItem] -> Type | [RecItem] -> Type | [RecItem] -> Type | [RecItem]
       -> Type | Type
-Prelude.lc 126:6-126:17
+126:6-126:17
     Type | Type
-Prelude.lc 126:6-127:17
+126:6-127:17
     Type | Type
-Prelude.lc 126:6-127:46
+126:6-127:46
     Type
-Prelude.lc 126:15-126:17
+126:15-126:17
     [RecItem]
-Prelude.lc 126:21-126:30
+126:21-126:30
     Type | Type | Type
-Prelude.lc 126:22-126:29
+126:22-126:29
     Type | Type | Type
-Prelude.lc 127:7-127:17
+127:7-127:17
     forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a | RecordC
       _c | Type | Type
-Prelude.lc 127:19-127:24
+127:19-127:24
     [Type] -> Type
-Prelude.lc 127:19-127:45
+127:19-127:45
     Type
-Prelude.lc 127:26-127:29
+127:26-127:29
     forall a b . (a -> b) -> [a] -> [b]
-Prelude.lc 127:26-127:41
+127:26-127:41
     [RecItem] -> [Type]
-Prelude.lc 127:26-127:44
+127:26-127:44
     [Type]
-Prelude.lc 127:30-127:41
+127:30-127:41
     RecItem -> Type
-Prelude.lc 127:42-127:44
+127:42-127:44
     [RecItem]
-Prelude.lc 129:1-129:7
+129:1-129:7
     String -> Type -> [RecItem] -> Constraint
-Prelude.lc 129:17-129:24
+129:17-129:24
     String -> Constraint
-Prelude.lc 129:17-129:27
+129:17-129:27
     Constraint
-Prelude.lc 129:17-130:75
+129:17-130:75
     [RecItem] -> Constraint
-Prelude.lc 129:25-129:27
+129:25-129:27
     String
-Prelude.lc 130:34-130:75
+130:34-130:75
     Constraint | Constraint
-Prelude.lc 130:37-130:38
+130:37-130:38
     _o
-Prelude.lc 130:37-130:41
+130:37-130:41
     _n -> Bool
-Prelude.lc 130:37-130:44
+130:37-130:44
     Bool
-Prelude.lc 130:37-130:56
+130:37-130:56
     Constraint -> Constraint
-Prelude.lc 130:39-130:41
+130:39-130:41
     forall a . Eq a => a -> a -> Bool
-Prelude.lc 130:42-130:44
+130:42-130:44
     String
-Prelude.lc 130:50-130:51
+130:50-130:51
     _l
-Prelude.lc 130:50-130:53
+130:50-130:53
     _k -> Constraint
-Prelude.lc 130:50-130:56
+130:50-130:56
     Constraint
-Prelude.lc 130:52-130:53
+130:52-130:53
     forall a . a -> a -> Constraint
-Prelude.lc 130:54-130:56
+130:54-130:56
     Type
-Prelude.lc 130:62-130:68
+130:62-130:68
     _k
-Prelude.lc 130:69-130:70
+130:69-130:70
     String
-Prelude.lc 130:71-130:72
+130:71-130:72
     Type
-Prelude.lc 130:73-130:75
+130:73-130:75
     [_i]
-Prelude.lc 132:1-132:7
+132:1-132:7
     forall a (b :: [Type]) . HList (a : b) -> a
-Prelude.lc 132:10-132:23
+132:10-132:23
     forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (a : b) -> c
-Prelude.lc 132:10-132:25
+132:10-132:25
     (_c -> HList _b -> _a) -> HList (_c : _b) -> _a
-Prelude.lc 132:10-132:37
+132:10-132:37
     HList (_b : _a) -> _b
-Prelude.lc 132:35-132:36
+132:35-132:36
     _e
-Prelude.lc 133:1-133:7
+133:1-133:7
     forall a (b :: [Type]) . HList (a : b) -> HList b
-Prelude.lc 133:10-133:23
+133:10-133:23
     forall a (b :: [Type]) . forall c -> (a -> HList b -> c) -> HList (a : b) -> c
-Prelude.lc 133:10-133:25
+133:10-133:25
     (_c -> HList _b -> _a) -> HList (_c : _b) -> _a
-Prelude.lc 133:10-133:37
+133:10-133:37
     HList (_b : _a) -> HList _a
-Prelude.lc 133:35-133:36
+133:35-133:36
     HList _d
-Prelude.lc 136:28-136:37
+136:28-136:37
     Type
-Prelude.lc 136:28-136:97
+136:28-136:97
     Type
-Prelude.lc 136:29-136:36
+136:29-136:36
     Type
-Prelude.lc 136:41-136:97
+136:41-136:97
     Type
-Prelude.lc 136:54-136:60
+136:54-136:60
     Type
-Prelude.lc 136:65-136:71
+136:65-136:71
     String -> Type -> [RecItem] -> Constraint
-Prelude.lc 136:65-136:73
+136:65-136:73
     Type -> [RecItem] -> Constraint
-Prelude.lc 136:65-136:75
+136:65-136:75
     [RecItem] -> Constraint
-Prelude.lc 136:65-136:78
+136:65-136:78
     Constraint
-Prelude.lc 136:65-136:97
+136:65-136:97
     Type
-Prelude.lc 136:72-136:73
+136:72-136:73
     String
-Prelude.lc 136:74-136:75
+136:74-136:75
     _d
-Prelude.lc 136:76-136:78
+136:76-136:78
     [RecItem]
-Prelude.lc 136:82-136:89
+136:82-136:89
     [RecItem] -> Type
-Prelude.lc 136:82-136:92
+136:82-136:92
     Type
-Prelude.lc 136:82-136:97
+136:82-136:97
     Type
-Prelude.lc 136:90-136:92
+136:90-136:92
     [RecItem]
-Prelude.lc 136:96-136:97
+136:96-136:97
     Type | Type
-Prelude.lc 137:1-137:8
+137:1-137:8
     forall a (b :: [RecItem])
       . forall (c :: String) -> isKeyC c a b => RecordC b -> a
-Prelude.lc 137:57-137:58
+137:57-137:58
     String
-Prelude.lc 137:57-137:61
+137:57-137:61
     String -> Bool
-Prelude.lc 137:57-137:64
+137:57-137:64
     Bool
-Prelude.lc 137:57-138:186
+137:57-138:186
     _m | _j | _g | _e
-Prelude.lc 137:59-137:61
+137:59-137:61
     forall a . Eq a => a -> a -> Bool
-Prelude.lc 137:62-137:64
+137:62-137:64
     String
-Prelude.lc 137:67-137:73
+137:67-137:73
     forall a (b :: [Type]) . HList (a : b) -> a
-Prelude.lc 137:67-137:129
+137:67-137:129
     _n
-Prelude.lc 137:67-138:186
+137:67-138:186
     Bool -> _n
-Prelude.lc 137:75-137:87
+137:75-137:87
     forall a b . a -> b
-Prelude.lc 137:75-137:90
+137:75-137:90
     forall a . _a -> a
-Prelude.lc 137:75-137:125
+137:75-137:125
     _a -> HList (_q : map recItemType _j)
-Prelude.lc 137:75-137:128
+137:75-137:128
     HList (_n : map recItemType _g)
-Prelude.lc 137:93-137:98
+137:93-137:98
     [Type] -> Type
-Prelude.lc 137:93-137:124
+137:93-137:124
     Type
-Prelude.lc 137:101-137:102
+137:101-137:102
     Type
-Prelude.lc 137:101-137:104
+137:101-137:104
     [Type] -> [Type]
-Prelude.lc 137:101-137:123
+137:101-137:123
     [Type]
-Prelude.lc 137:103-137:104
+137:103-137:104
     forall a . a -> [a] -> [a]
-Prelude.lc 137:105-137:108
+137:105-137:108
     forall a b . (a -> b) -> [a] -> [b]
-Prelude.lc 137:105-137:120
+137:105-137:120
     [RecItem] -> [Type]
-Prelude.lc 137:105-137:123
+137:105-137:123
     [Type]
-Prelude.lc 137:109-137:120
+137:109-137:120
     RecItem -> Type
-Prelude.lc 137:121-137:123
+137:121-137:123
     [RecItem]
-Prelude.lc 137:126-137:128
+137:126-137:128
     HList (map recItemType _d)
-Prelude.lc 138:57-138:64
+138:57-138:64
     forall a (b :: [RecItem])
       . forall (c :: String) -> isKeyC c a b => RecordC b -> a
-Prelude.lc 138:57-138:67
+138:57-138:67
     forall (a :: [RecItem])
       . forall (b :: String) -> isKeyC b _p a => RecordC a -> _p
-Prelude.lc 138:57-138:71
+138:57-138:71
     forall (a :: String) -> isKeyC a _o _h => RecordC _h -> _o
-Prelude.lc 138:57-138:73
+138:57-138:73
     isKeyC _m _o _h => RecordC _h -> _o
-Prelude.lc 138:57-138:108
+138:57-138:108
     RecordC _h -> _o
-Prelude.lc 138:57-138:186
+138:57-138:186
     _n
-Prelude.lc 138:66-138:67
+138:66-138:67
     Type
-Prelude.lc 138:69-138:71
+138:69-138:71
     [_k]
-Prelude.lc 138:72-138:73
+138:72-138:73
     String
-Prelude.lc 138:76-138:85
+138:76-138:85
     forall a . a
-Prelude.lc 138:76-138:107
+138:76-138:107
     CW (isKeyC _m _o _h)
-Prelude.lc 138:88-138:90
+138:88-138:90
     Constraint -> Type
-Prelude.lc 138:88-138:106
+138:88-138:106
     Type
-Prelude.lc 138:92-138:98
+138:92-138:98
     String -> Type -> [RecItem] -> Constraint
-Prelude.lc 138:92-138:100
+138:92-138:100
     Type -> [RecItem] -> Constraint
-Prelude.lc 138:92-138:102
+138:92-138:102
     [RecItem] -> Constraint
-Prelude.lc 138:92-138:105
+138:92-138:105
     Constraint
-Prelude.lc 138:99-138:100
+138:99-138:100
     String
-Prelude.lc 138:101-138:102
+138:101-138:102
     Type
-Prelude.lc 138:103-138:105
+138:103-138:105
     [RecItem]
-Prelude.lc 138:110-138:120
+138:110-138:120
     forall (a :: [RecItem]) . HList (map recItemType a) -> RecordC a
-Prelude.lc 138:110-138:185
+138:110-138:185
     RecordC _b
-Prelude.lc 138:122-138:128
+138:122-138:128
     forall a (b :: [Type]) . HList (a : b) -> HList b
-Prelude.lc 138:122-138:184
+138:122-138:184
     HList (map recItemType _h)
-Prelude.lc 138:130-138:142
+138:130-138:142
     forall a b . a -> b
-Prelude.lc 138:130-138:145
+138:130-138:145
     forall a . _a -> a
-Prelude.lc 138:130-138:180
+138:130-138:180
     _a -> HList (_r : map recItemType _k)
-Prelude.lc 138:130-138:183
+138:130-138:183
     HList (_o : map recItemType _h)
-Prelude.lc 138:148-138:153
+138:148-138:153
     [Type] -> Type
-Prelude.lc 138:148-138:179
+138:148-138:179
     Type
-Prelude.lc 138:156-138:157
+138:156-138:157
     Type
-Prelude.lc 138:156-138:159
+138:156-138:159
     [Type] -> [Type]
-Prelude.lc 138:156-138:178
+138:156-138:178
     [Type]
-Prelude.lc 138:158-138:159
+138:158-138:159
     forall a . a -> [a] -> [a]
-Prelude.lc 138:160-138:163
+138:160-138:163
     forall a b . (a -> b) -> [a] -> [b]
-Prelude.lc 138:160-138:175
+138:160-138:175
     [RecItem] -> [Type]
-Prelude.lc 138:160-138:178
+138:160-138:178
     [Type]
-Prelude.lc 138:164-138:175
+138:164-138:175
     RecItem -> Type
-Prelude.lc 138:176-138:178
+138:176-138:178
     [RecItem]
-Prelude.lc 138:181-138:183
+138:181-138:183
     HList (map recItemType _e)
-Prelude.lc 142:1-142:4
+142:1-142:4
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 142:13-142:15
+142:13-142:15
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 142:13-142:17
+142:13-142:17
     _f -> _f -> _f -> VecS _f 4
-Prelude.lc 142:13-142:19
+142:13-142:19
     _e -> _e -> VecS _e 4
-Prelude.lc 142:13-142:21
+142:13-142:21
     _d -> VecS _d 4
-Prelude.lc 142:13-142:25
+142:13-142:25
     VecS Float 4
-Prelude.lc 142:16-142:17
+142:16-142:17
     _g
-Prelude.lc 142:18-142:19
+142:18-142:19
     _d
-Prelude.lc 142:20-142:21
+142:20-142:21
     _b
-Prelude.lc 142:22-142:25
+142:22-142:25
     Float
-Prelude.lc 144:1-144:6
+144:1-144:6
     VecS Float 4
-Prelude.lc 144:11-144:14
+144:11-144:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 144:11-144:18
+144:11-144:18
     Float -> Float -> VecS Float 4
-Prelude.lc 144:11-144:22
+144:11-144:22
     Float -> VecS Float 4
-Prelude.lc 144:11-144:26
+144:11-144:26
     VecS Float 4
-Prelude.lc 144:15-144:18
+144:15-144:18
     Float
-Prelude.lc 144:19-144:22
+144:19-144:22
     Float
-Prelude.lc 144:23-144:26
+144:23-144:26
     Float
-Prelude.lc 145:1-145:5
+145:1-145:5
     VecS Float 4
-Prelude.lc 145:11-145:14
+145:11-145:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 145:11-145:18
+145:11-145:18
     Float -> Float -> VecS Float 4
-Prelude.lc 145:11-145:22
+145:11-145:22
     Float -> VecS Float 4
-Prelude.lc 145:11-145:26
+145:11-145:26
     VecS Float 4
-Prelude.lc 145:15-145:18
+145:15-145:18
     Float
-Prelude.lc 145:19-145:22
+145:19-145:22
     Float
-Prelude.lc 145:23-145:26
+145:23-145:26
     Float
-Prelude.lc 146:1-146:7
+146:1-146:7
     VecS Float 4
-Prelude.lc 146:11-146:14
+146:11-146:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 146:11-146:19
+146:11-146:19
     Float -> Float -> VecS Float 4
-Prelude.lc 146:11-146:24
+146:11-146:24
     Float -> VecS Float 4
-Prelude.lc 146:11-146:29
+146:11-146:29
     VecS Float 4
-Prelude.lc 146:15-146:19
+146:15-146:19
     Float
-Prelude.lc 146:20-146:24
+146:20-146:24
     Float
-Prelude.lc 146:25-146:29
+146:25-146:29
     Float
-Prelude.lc 147:1-147:6
+147:1-147:6
     VecS Float 4
-Prelude.lc 147:11-147:14
+147:11-147:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 147:11-147:18
+147:11-147:18
     Float -> Float -> VecS Float 4
-Prelude.lc 147:11-147:22
+147:11-147:22
     Float -> VecS Float 4
-Prelude.lc 147:11-147:26
+147:11-147:26
     VecS Float 4
-Prelude.lc 147:15-147:18
+147:15-147:18
     Float
-Prelude.lc 147:19-147:22
+147:19-147:22
     Float
-Prelude.lc 147:23-147:26
+147:23-147:26
     Float
-Prelude.lc 148:1-148:7
+148:1-148:7
     VecS Float 4
-Prelude.lc 148:11-148:14
+148:11-148:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 148:11-148:18
+148:11-148:18
     Float -> Float -> VecS Float 4
-Prelude.lc 148:11-148:22
+148:11-148:22
     Float -> VecS Float 4
-Prelude.lc 148:11-148:26
+148:11-148:26
     VecS Float 4
-Prelude.lc 148:15-148:18
+148:15-148:18
     Float
-Prelude.lc 148:19-148:22
+148:19-148:22
     Float
-Prelude.lc 148:23-148:26
+148:23-148:26
     Float
-Prelude.lc 149:1-149:4
+149:1-149:4
     VecS Float 4
-Prelude.lc 149:11-149:14
+149:11-149:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 149:11-149:18
+149:11-149:18
     Float -> Float -> VecS Float 4
-Prelude.lc 149:11-149:22
+149:11-149:22
     Float -> VecS Float 4
-Prelude.lc 149:11-149:26
+149:11-149:26
     VecS Float 4
-Prelude.lc 149:15-149:18
+149:15-149:18
     Float
-Prelude.lc 149:19-149:22
+149:19-149:22
     Float
-Prelude.lc 149:23-149:26
+149:23-149:26
     Float
-Prelude.lc 150:1-150:6
+150:1-150:6
     VecS Float 4
-Prelude.lc 150:11-150:14
+150:11-150:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 150:11-150:18
+150:11-150:18
     Float -> Float -> VecS Float 4
-Prelude.lc 150:11-150:22
+150:11-150:22
     Float -> VecS Float 4
-Prelude.lc 150:11-150:26
+150:11-150:26
     VecS Float 4
-Prelude.lc 150:15-150:18
+150:15-150:18
     Float
-Prelude.lc 150:19-150:22
+150:19-150:22
     Float
-Prelude.lc 150:23-150:26
+150:23-150:26
     Float
-Prelude.lc 151:1-151:7
+151:1-151:7
     VecS Float 4
-Prelude.lc 151:11-151:14
+151:11-151:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 151:11-151:18
+151:11-151:18
     Float -> Float -> VecS Float 4
-Prelude.lc 151:11-151:22
+151:11-151:22
     Float -> VecS Float 4
-Prelude.lc 151:11-151:26
+151:11-151:26
     VecS Float 4
-Prelude.lc 151:15-151:18
+151:15-151:18
     Float
-Prelude.lc 151:19-151:22
+151:19-151:22
     Float
-Prelude.lc 151:23-151:26
+151:23-151:26
     Float
-Prelude.lc 152:1-152:6
+152:1-152:6
     VecS Float 4
-Prelude.lc 152:11-152:14
+152:11-152:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 152:11-152:18
+152:11-152:18
     Float -> Float -> VecS Float 4
-Prelude.lc 152:11-152:22
+152:11-152:22
     Float -> VecS Float 4
-Prelude.lc 152:11-152:26
+152:11-152:26
     VecS Float 4
-Prelude.lc 152:15-152:18
+152:15-152:18
     Float
-Prelude.lc 152:19-152:22
+152:19-152:22
     Float
-Prelude.lc 152:23-152:26
+152:23-152:26
     Float
-Prelude.lc 153:1-153:5
+153:1-153:5
     VecS Float 4
-Prelude.lc 153:11-153:14
+153:11-153:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 153:11-153:18
+153:11-153:18
     Float -> Float -> VecS Float 4
-Prelude.lc 153:11-153:22
+153:11-153:22
     Float -> VecS Float 4
-Prelude.lc 153:11-153:26
+153:11-153:26
     VecS Float 4
-Prelude.lc 153:15-153:18
+153:15-153:18
     Float
-Prelude.lc 153:19-153:22
+153:19-153:22
     Float
-Prelude.lc 153:23-153:26
+153:23-153:26
     Float
-Prelude.lc 154:1-154:5
+154:1-154:5
     VecS Float 4
-Prelude.lc 154:11-154:14
+154:11-154:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 154:11-154:18
+154:11-154:18
     Float -> Float -> VecS Float 4
-Prelude.lc 154:11-154:22
+154:11-154:22
     Float -> VecS Float 4
-Prelude.lc 154:11-154:26
+154:11-154:26
     VecS Float 4
-Prelude.lc 154:15-154:18
+154:15-154:18
     Float
-Prelude.lc 154:19-154:22
+154:19-154:22
     Float
-Prelude.lc 154:23-154:26
+154:23-154:26
     Float
-Prelude.lc 155:1-155:5
+155:1-155:5
     VecS Float 4
-Prelude.lc 155:11-155:14
+155:11-155:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 155:11-155:18
+155:11-155:18
     Float -> Float -> VecS Float 4
-Prelude.lc 155:11-155:22
+155:11-155:22
     Float -> VecS Float 4
-Prelude.lc 155:11-155:26
+155:11-155:26
     VecS Float 4
-Prelude.lc 155:15-155:18
+155:15-155:18
     Float
-Prelude.lc 155:19-155:22
+155:19-155:22
     Float
-Prelude.lc 155:23-155:26
+155:23-155:26
     Float
-Prelude.lc 156:1-156:5
+156:1-156:5
     VecS Float 4
-Prelude.lc 156:11-156:14
+156:11-156:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 156:11-156:18
+156:11-156:18
     Float -> Float -> VecS Float 4
-Prelude.lc 156:11-156:22
+156:11-156:22
     Float -> VecS Float 4
-Prelude.lc 156:11-156:26
+156:11-156:26
     VecS Float 4
-Prelude.lc 156:15-156:18
+156:15-156:18
     Float
-Prelude.lc 156:19-156:22
+156:19-156:22
     Float
-Prelude.lc 156:23-156:26
+156:23-156:26
     Float
-Prelude.lc 157:1-157:5
+157:1-157:5
     VecS Float 4
-Prelude.lc 157:11-157:14
+157:11-157:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 157:11-157:18
+157:11-157:18
     Float -> Float -> VecS Float 4
-Prelude.lc 157:11-157:22
+157:11-157:22
     Float -> VecS Float 4
-Prelude.lc 157:11-157:26
+157:11-157:26
     VecS Float 4
-Prelude.lc 157:15-157:18
+157:15-157:18
     Float
-Prelude.lc 157:19-157:22
+157:19-157:22
     Float
-Prelude.lc 157:23-157:26
+157:23-157:26
     Float
-Prelude.lc 158:1-158:7
+158:1-158:7
     VecS Float 4
-Prelude.lc 158:11-158:14
+158:11-158:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 158:11-158:18
+158:11-158:18
     Float -> Float -> VecS Float 4
-Prelude.lc 158:11-158:22
+158:11-158:22
     Float -> VecS Float 4
-Prelude.lc 158:11-158:26
+158:11-158:26
     VecS Float 4
-Prelude.lc 158:15-158:18
+158:15-158:18
     Float
-Prelude.lc 158:19-158:22
+158:19-158:22
     Float
-Prelude.lc 158:23-158:26
+158:23-158:26
     Float
-Prelude.lc 159:1-159:8
+159:1-159:8
     VecS Float 4
-Prelude.lc 159:11-159:14
+159:11-159:14
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 159:11-159:18
+159:11-159:18
     Float -> Float -> VecS Float 4
-Prelude.lc 159:11-159:22
+159:11-159:22
     Float -> VecS Float 4
-Prelude.lc 159:11-159:26
+159:11-159:26
     VecS Float 4
-Prelude.lc 159:15-159:18
+159:15-159:18
     Float
-Prelude.lc 159:19-159:22
+159:19-159:22
     Float
-Prelude.lc 159:23-159:26
+159:23-159:26
     Float
-Prelude.lc 161:1-161:12
+161:1-161:12
     forall (a :: Nat) b c . (Num b, c ~ VecScalar a b) => c -> Image 1 ('Color c)
-Prelude.lc 161:15-161:25
+161:15-161:25
     forall (a :: Nat) (b :: Nat) c d
       . (Num c, d ~ VecScalar b c) => d -> Image a ('Color d)
-Prelude.lc 161:15-161:28
+161:15-161:28
     forall (a :: Nat) b c . (Num b, c ~ VecScalar a b) => c -> Image 1 ('Color c)
-Prelude.lc 161:27-161:28
+161:27-161:28
     _b
-Prelude.lc 162:1-162:12
+162:1-162:12
     forall (a :: Nat) b c . (Num b, c ~ VecScalar a b) => c -> Image 2 ('Color c)
-Prelude.lc 162:15-162:25
+162:15-162:25
     forall (a :: Nat) (b :: Nat) c d
       . (Num c, d ~ VecScalar b c) => d -> Image a ('Color d)
-Prelude.lc 162:15-162:28
+162:15-162:28
     forall (a :: Nat) b c . (Num b, c ~ VecScalar a b) => c -> Image 2 ('Color c)
-Prelude.lc 162:27-162:28
+162:27-162:28
     _b
-Prelude.lc 164:1-164:12
+164:1-164:12
     Float -> Image 1 'Depth
-Prelude.lc 164:15-164:25
+164:15-164:25
     forall (a :: Nat) . Float -> Image a 'Depth
-Prelude.lc 164:15-164:28
+164:15-164:28
     Float -> Image 1 'Depth
-Prelude.lc 164:27-164:28
+164:27-164:28
     _b
-Prelude.lc 166:13-166:16
+166:13-166:16
     Nat -> Type -> Type
-Prelude.lc 166:13-166:18
+166:13-166:18
     Type -> Type
-Prelude.lc 166:13-166:24
+166:13-166:24
     Type
-Prelude.lc 166:17-166:18
+166:17-166:18
     _b
-Prelude.lc 166:19-166:24
+166:19-166:24
     Type
-Prelude.lc 166:28-166:31
+166:28-166:31
     Nat -> Type -> Type
-Prelude.lc 166:28-166:33
+166:28-166:33
     Type -> Type
-Prelude.lc 166:28-166:39
+166:28-166:39
     Type | Type
-Prelude.lc 166:32-166:33
+166:32-166:33
     _b
-Prelude.lc 166:34-166:39
+166:34-166:39
     Type
-Prelude.lc 167:1-167:9
+167:1-167:9
     Vec 3 Float -> VecS Float 4
-Prelude.lc 167:14-167:16
+167:14-167:16
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 167:14-167:20
+167:14-167:20
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 167:14-167:24
+167:14-167:24
     Float -> Float -> VecS Float 4
-Prelude.lc 167:14-167:28
+167:14-167:28
     Float -> VecS Float 4
-Prelude.lc 167:14-167:30
+167:14-167:30
     VecS Float 4
-Prelude.lc 167:17-167:18
+167:17-167:18
     Vec 3 Float
-Prelude.lc 167:17-167:20
+167:17-167:20
     Float
-Prelude.lc 167:21-167:22
+167:21-167:22
     Vec 3 Float
-Prelude.lc 167:21-167:24
+167:21-167:24
     Float
-Prelude.lc 167:25-167:26
+167:25-167:26
     Vec 3 Float
-Prelude.lc 167:25-167:28
+167:25-167:28
     Float
-Prelude.lc 167:29-167:30
+167:29-167:30
     _b
-Prelude.lc 174:1-174:8
+174:1-174:8
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 174:11-174:22
+174:11-174:22
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 175:1-175:8
+175:1-175:8
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 175:11-175:22
+175:11-175:22
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 176:1-176:4
+176:1-176:4
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 176:7-176:14
+176:7-176:14
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 177:1-177:4
+177:1-177:4
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 177:7-177:14
+177:7-177:14
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 178:1-178:4
+178:1-178:4
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 178:7-178:14
+178:7-178:14
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 179:1-179:5
+179:1-179:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 179:8-179:16
+179:8-179:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 180:1-180:5
+180:1-180:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 180:8-180:16
+180:8-180:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 181:1-181:5
+181:1-181:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 181:8-181:16
+181:8-181:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 182:1-182:5
+182:1-182:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 182:8-182:16
+182:8-182:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 183:1-183:6
+183:1-183:6
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 183:9-183:18
+183:9-183:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 184:1-184:5
+184:1-184:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 184:8-184:16
+184:8-184:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 185:1-185:6
+185:1-185:6
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 185:9-185:18
+185:9-185:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 186:1-186:5
+186:1-186:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 186:8-186:16
+186:8-186:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 187:1-187:6
+187:1-187:6
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 187:9-187:18
+187:9-187:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 188:1-188:6
+188:1-188:6
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
-Prelude.lc 188:9-188:18
+188:9-188:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
-Prelude.lc 191:1-191:4
+191:1-191:4
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
-Prelude.lc 191:7-191:14
+191:7-191:14
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
-Prelude.lc 192:1-192:4
+192:1-192:4
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 192:7-192:14
+192:7-192:14
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 193:1-193:4
+193:1-193:4
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 193:7-193:14
+193:7-193:14
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 194:1-194:5
+194:1-194:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 194:8-194:16
+194:8-194:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 195:1-195:5
+195:1-195:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 195:8-195:16
+195:8-195:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 196:1-196:5
+196:1-196:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 196:8-196:16
+196:8-196:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 197:1-197:12
+197:1-197:12
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 197:15-197:26
+197:15-197:26
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 200:1-200:4
+200:1-200:4
     forall a b (c :: Nat) . (Signed a, b ~ VecScalar c a) => b -> b
-Prelude.lc 200:7-200:14
+200:7-200:14
     forall a b (c :: Nat) . (Signed a, b ~ VecScalar c a) => b -> b
-Prelude.lc 201:1-201:5
+201:1-201:5
     forall a b (c :: Nat) . (Signed a, b ~ VecScalar c a) => b -> b
-Prelude.lc 201:8-201:16
+201:8-201:16
     forall a b (c :: Nat) . (Signed a, b ~ VecScalar c a) => b -> b
-Prelude.lc 202:1-202:6
+202:1-202:6
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 202:9-202:18
+202:9-202:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 203:1-203:6
+203:1-203:6
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 203:9-203:18
+203:9-203:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 204:1-204:6
+204:1-204:6
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 204:9-204:18
+204:9-204:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 205:1-205:10
+205:1-205:10
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 205:13-205:26
+205:13-205:26
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 206:1-206:5
+206:1-206:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 206:8-206:16
+206:8-206:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 207:1-207:6
+207:1-207:6
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 207:9-207:18
+207:9-207:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 208:1-208:4
+208:1-208:4
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 208:7-208:14
+208:7-208:14
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 209:1-209:4
+209:1-209:4
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 209:7-209:14
+209:7-209:14
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 210:1-210:4
+210:1-210:4
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 210:7-210:14
+210:7-210:14
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 211:1-211:5
+211:1-211:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> (a, a)
-Prelude.lc 211:8-211:16
+211:8-211:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> (a, a)
-Prelude.lc 212:1-212:6
+212:1-212:6
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b -> b
-Prelude.lc 212:9-212:18
+212:9-212:18
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b -> b
-Prelude.lc 213:1-213:7
+213:1-213:7
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> a -> a -> b
-Prelude.lc 213:10-213:20
+213:10-213:20
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> a -> a -> b
-Prelude.lc 214:1-214:4
+214:1-214:4
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
-Prelude.lc 214:7-214:14
+214:7-214:14
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
-Prelude.lc 215:1-215:5
+215:1-215:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float -> a
-Prelude.lc 215:8-215:16
+215:8-215:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float -> a
-Prelude.lc 216:1-216:5
+216:1-216:5
     forall a (b :: Nat) c
       . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> a -> c -> a
-Prelude.lc 216:8-216:16
+216:8-216:16
     forall a (b :: Nat) c
       . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> a -> c -> a
-Prelude.lc 217:1-217:5
+217:1-217:5
     forall a (b :: Nat) . (a ~ VecS Float b) => a -> a -> a
-Prelude.lc 217:8-217:16
+217:8-217:16
     forall a (b :: Nat) . (a ~ VecS Float b) => a -> a -> a
-Prelude.lc 218:1-218:6
+218:1-218:6
     forall a (b :: Nat) . (a ~ VecScalar b Float) => Float -> a -> a
-Prelude.lc 218:9-218:18
+218:9-218:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => Float -> a -> a
-Prelude.lc 219:1-219:11
+219:1-219:11
     forall a (b :: Nat) . (a ~ VecS Float b) => a -> a -> a -> a
-Prelude.lc 219:14-219:28
+219:14-219:28
     forall a (b :: Nat) . (a ~ VecS Float b) => a -> a -> a -> a
-Prelude.lc 220:1-220:12
+220:1-220:12
     forall a (b :: Nat) . (a ~ VecScalar b Float) => Float -> Float -> a -> a
-Prelude.lc 220:15-220:30
+220:15-220:30
     forall a (b :: Nat) . (a ~ VecScalar b Float) => Float -> Float -> a -> a
-Prelude.lc 221:1-221:6
+221:1-221:6
     forall a (b :: Nat) c . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
-Prelude.lc 221:9-221:18
+221:9-221:18
     forall a (b :: Nat) c . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
-Prelude.lc 222:1-222:6
+222:1-222:6
     forall a (b :: Nat) c . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
-Prelude.lc 222:9-222:18
+222:9-222:18
     forall a (b :: Nat) c . (a ~ VecScalar b Float, c ~ VecScalar b Bool) => a -> c
-Prelude.lc 224:1-224:5
+224:1-224:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 224:8-224:16
+224:8-224:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 225:1-225:5
+225:1-225:5
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 225:8-225:16
+225:8-225:16
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 226:1-226:7
+226:1-226:7
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 226:10-226:20
+226:10-226:20
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 228:1-228:7
+228:1-228:7
     forall (a :: Nat) . VecScalar a Float -> Float
-Prelude.lc 228:10-228:20
+228:10-228:20
     forall (a :: Nat) . VecScalar a Float -> Float
-Prelude.lc 229:1-229:7
+229:1-229:7
     forall (a :: Nat) . VecScalar a Float -> Vec 2 Float
-Prelude.lc 229:10-229:20
+229:10-229:20
     forall (a :: Nat) . VecScalar a Float -> Vec 2 Float
-Prelude.lc 230:1-230:7
+230:1-230:7
     forall (a :: Nat) . VecScalar a Float -> Vec 3 Float
-Prelude.lc 230:10-230:20
+230:10-230:20
     forall (a :: Nat) . VecScalar a Float -> Vec 3 Float
-Prelude.lc 231:1-231:7
+231:1-231:7
     forall (a :: Nat) . VecScalar a Float -> Vec 4 Float
-Prelude.lc 231:10-231:20
+231:10-231:20
     forall (a :: Nat) . VecScalar a Float -> Vec 4 Float
-Prelude.lc 234:1-234:7
+234:1-234:7
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> Float
-Prelude.lc 234:10-234:20
+234:10-234:20
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> Float
-Prelude.lc 235:1-235:9
+235:1-235:9
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float
-Prelude.lc 235:12-235:24
+235:12-235:24
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float
-Prelude.lc 236:1-236:4
+236:1-236:4
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float
-Prelude.lc 236:7-236:14
+236:7-236:14
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> Float
-Prelude.lc 237:1-237:6
+237:1-237:6
     forall a . (a ~ VecS Float 3) => a -> a -> a
-Prelude.lc 237:9-237:18
+237:9-237:18
     forall a . (a ~ VecS Float 3) => a -> a -> a
-Prelude.lc 238:1-238:10
+238:1-238:10
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 238:13-238:26
+238:13-238:26
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 239:1-239:12
+239:1-239:12
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
-Prelude.lc 239:15-239:30
+239:15-239:30
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
-Prelude.lc 240:1-240:8
+240:1-240:8
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
-Prelude.lc 240:11-240:22
+240:11-240:22
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a
-Prelude.lc 241:1-241:8
+241:1-241:8
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
-Prelude.lc 241:11-241:22
+241:11-241:22
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a -> a -> a
-Prelude.lc 243:1-243:10
+243:1-243:10
     forall (a :: Nat) (b :: Nat) c . Mat a b c -> Mat b a c
-Prelude.lc 243:13-243:26
+243:13-243:26
     forall (a :: Nat) (b :: Nat) c . Mat a b c -> Mat b a c
-Prelude.lc 244:1-244:4
+244:1-244:4
     forall (a :: Nat) b . Mat a a b -> Float
-Prelude.lc 244:7-244:22
+244:7-244:22
     forall (a :: Nat) b . Mat a a b -> Float
-Prelude.lc 245:1-245:4
+245:1-245:4
     forall (a :: Nat) b . Mat a a b -> Mat a a b
-Prelude.lc 245:7-245:18
+245:7-245:18
     forall (a :: Nat) b . Mat a a b -> Mat a a b
-Prelude.lc 246:1-246:6
+246:1-246:6
     forall (a :: Nat) b (c :: Nat) . Vec a b -> Vec c b -> Mat c a b
-Prelude.lc 246:9-246:25
+246:9-246:25
     forall (a :: Nat) b (c :: Nat) . Vec a b -> Vec c b -> Mat c a b
-Prelude.lc 248:1-248:5
+248:1-248:5
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 248:11-248:19
+248:11-248:19
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 249:1-249:4
+249:1-249:4
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 249:11-249:18
+249:11-249:18
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 250:1-250:5
+250:1-250:5
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 250:11-250:19
+250:11-250:19
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 251:1-251:5
+251:1-251:5
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b
-Prelude.lc 251:11-251:19
+251:11-251:19
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> b
-Prelude.lc 252:1-252:6
+252:1-252:6
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
-Prelude.lc 252:11-252:20
+252:11-252:20
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
-Prelude.lc 253:1-253:5
+253:1-253:5
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
-Prelude.lc 253:11-253:19
+253:11-253:19
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
-Prelude.lc 254:1-254:6
+254:1-254:6
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
-Prelude.lc 254:11-254:20
+254:11-254:20
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> a -> b
-Prelude.lc 255:1-255:7
+255:1-255:7
     forall a b (c :: Nat) d
       . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
-Prelude.lc 255:11-255:22
+255:11-255:22
     forall a b (c :: Nat) d
       . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
-Prelude.lc 256:1-256:7
+256:1-256:7
     forall a b (c :: Nat) d
       . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
-Prelude.lc 256:11-256:22
+256:11-256:22
     forall a b (c :: Nat) d
       . (Integral a, b ~ VecScalar c a, d ~ VecScalar c Word) => b -> d -> b
-Prelude.lc 257:1-257:8
+257:1-257:8
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> Word -> b
-Prelude.lc 257:11-257:23
+257:11-257:23
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> Word -> b
-Prelude.lc 258:1-258:8
+258:1-258:8
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> Word -> b
-Prelude.lc 258:11-258:23
+258:11-258:23
     forall a b (c :: Nat) . (Integral a, b ~ VecScalar c a) => b -> Word -> b
-Prelude.lc 260:1-260:15
+260:1-260:15
     forall (a :: Nat) . VecScalar a Float -> VecScalar a Int
-Prelude.lc 260:19-260:37
+260:19-260:37
     forall (a :: Nat) . VecScalar a Float -> VecScalar a Int
-Prelude.lc 261:1-261:16
+261:1-261:16
     forall (a :: Nat) . VecScalar a Float -> VecScalar a Word
-Prelude.lc 261:19-261:38
+261:19-261:38
     forall (a :: Nat) . VecScalar a Float -> VecScalar a Word
-Prelude.lc 262:1-262:15
+262:1-262:15
     forall (a :: Nat) . VecScalar a Int -> VecScalar a Float
-Prelude.lc 262:19-262:37
+262:19-262:37
     forall (a :: Nat) . VecScalar a Int -> VecScalar a Float
-Prelude.lc 263:1-263:16
+263:1-263:16
     forall (a :: Nat) . VecScalar a Word -> VecScalar a Float
-Prelude.lc 263:19-263:38
+263:19-263:38
     forall (a :: Nat) . VecScalar a Word -> VecScalar a Float
-Prelude.lc 281:3-281:4
+281:3-281:4
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 281:9-281:16
+281:9-281:16
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 281:9-281:18
+281:9-281:18
     _e -> _e
-Prelude.lc 281:9-281:20
+281:9-281:20
     _d
-Prelude.lc 281:17-281:18
+281:17-281:18
     _f
-Prelude.lc 281:19-281:20
+281:19-281:20
     _c
-Prelude.lc 282:3-282:4
+282:3-282:4
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 282:9-282:16
+282:9-282:16
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 282:9-282:18
+282:9-282:18
     _e -> _e
-Prelude.lc 282:9-282:20
+282:9-282:20
     _d
-Prelude.lc 282:17-282:18
+282:17-282:18
     _f
-Prelude.lc 282:19-282:20
+282:19-282:20
     _c
-Prelude.lc 283:3-283:4
+283:3-283:4
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 283:9-283:16
+283:9-283:16
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 283:9-283:18
+283:9-283:18
     _e -> _e
-Prelude.lc 283:9-283:20
+283:9-283:20
     _d
-Prelude.lc 283:17-283:18
+283:17-283:18
     _f
-Prelude.lc 283:19-283:20
+283:19-283:20
     _c
-Prelude.lc 284:3-284:4
+284:3-284:4
     forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-Prelude.lc 284:9-284:16
+284:9-284:16
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 284:9-284:18
+284:9-284:18
     VecScalar _b _c -> VecScalar _b _c
-Prelude.lc 284:9-284:20
+284:9-284:20
     VecScalar _b _c
-Prelude.lc 284:17-284:18
+284:17-284:18
     _g
-Prelude.lc 284:19-284:20
+284:19-284:20
     _e
-Prelude.lc 285:3-285:4
+285:3-285:4
     forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-Prelude.lc 285:9-285:16
+285:9-285:16
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> b -> b
-Prelude.lc 285:9-285:18
+285:9-285:18
     VecScalar _b _c -> VecScalar _b _c
-Prelude.lc 285:9-285:20
+285:9-285:20
     VecScalar _b _c
-Prelude.lc 285:17-285:18
+285:17-285:18
     _g
-Prelude.lc 285:19-285:20
+285:19-285:20
     _e
-Prelude.lc 287:1-287:4
+287:1-287:4
     forall a . Signed (MatVecScalarElem a) => a -> a
-Prelude.lc 287:9-287:16
+287:9-287:16
     forall a . Signed (MatVecScalarElem a) => a -> a
-Prelude.lc 287:9-287:18
+287:9-287:18
     _c
-Prelude.lc 287:17-287:18
+287:17-287:18
     _d
-Prelude.lc 291:3-291:5
+291:3-291:5
     forall a . a -> a -> Bool
-Prelude.lc 291:10-291:22
+291:10-291:22
     forall a b . (b ~ MatVecScalarElem a) => a -> a -> Bool
-Prelude.lc 291:10-291:24
+291:10-291:24
     _d -> Bool
-Prelude.lc 291:10-291:26
+291:10-291:26
     Bool
-Prelude.lc 291:23-291:24
+291:23-291:24
     _e
-Prelude.lc 291:25-291:26
+291:25-291:26
     _b
-Prelude.lc 292:3-292:4
+292:3-292:4
     forall (a :: Nat) b
       . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-Prelude.lc 292:9-292:21
+292:9-292:21
     forall a (b :: Nat) c d
       . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
-Prelude.lc 292:9-292:23
+292:9-292:23
     VecScalar _c _b -> VecScalar _c Bool
-Prelude.lc 292:9-292:25
+292:9-292:25
     VecScalar _c Bool
-Prelude.lc 292:22-292:23
+292:22-292:23
     _g
-Prelude.lc 292:24-292:25
+292:24-292:25
     _e
-Prelude.lc 293:3-293:5
+293:3-293:5
     forall (a :: Nat) b
       . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-Prelude.lc 293:10-293:27
+293:10-293:27
     forall a (b :: Nat) c d
       . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
-Prelude.lc 293:10-293:29
+293:10-293:29
     VecScalar _c _b -> VecScalar _c Bool
-Prelude.lc 293:10-293:31
+293:10-293:31
     VecScalar _c Bool
-Prelude.lc 293:28-293:29
+293:28-293:29
     _g
-Prelude.lc 293:30-293:31
+293:30-293:31
     _e
-Prelude.lc 294:3-294:5
+294:3-294:5
     forall (a :: Nat) b
       . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-Prelude.lc 294:10-294:30
+294:10-294:30
     forall a (b :: Nat) c d
       . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
-Prelude.lc 294:10-294:32
+294:10-294:32
     VecScalar _c _b -> VecScalar _c Bool
-Prelude.lc 294:10-294:34
+294:10-294:34
     VecScalar _c Bool
-Prelude.lc 294:31-294:32
+294:31-294:32
     _g
-Prelude.lc 294:33-294:34
+294:33-294:34
     _e
-Prelude.lc 295:3-295:4
+295:3-295:4
     forall (a :: Nat) b
       . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-Prelude.lc 295:9-295:24
+295:9-295:24
     forall a (b :: Nat) c d
       . (Num c, a ~ VecScalar b c, d ~ VecScalar b Bool) => a -> a -> d
-Prelude.lc 295:9-295:26
+295:9-295:26
     VecScalar _c _b -> VecScalar _c Bool
-Prelude.lc 295:9-295:28
+295:9-295:28
     VecScalar _c Bool
-Prelude.lc 295:25-295:26
+295:25-295:26
     _g
-Prelude.lc 295:27-295:28
+295:27-295:28
     _e
-Prelude.lc 298:3-298:5
+298:3-298:5
     Bool -> Bool -> Bool
-Prelude.lc 298:10-298:17
+298:10-298:17
     Bool -> Bool -> Bool
-Prelude.lc 298:10-298:19
+298:10-298:19
     Bool -> Bool
-Prelude.lc 298:10-298:21
+298:10-298:21
     Bool
-Prelude.lc 298:18-298:19
+298:18-298:19
     _d
-Prelude.lc 298:20-298:21
+298:20-298:21
     _b
-Prelude.lc 299:3-299:5
+299:3-299:5
     Bool -> Bool -> Bool
-Prelude.lc 299:10-299:16
+299:10-299:16
     Bool -> Bool -> Bool
-Prelude.lc 299:10-299:18
+299:10-299:18
     Bool -> Bool
-Prelude.lc 299:10-299:20
+299:10-299:20
     Bool
-Prelude.lc 299:17-299:18
+299:17-299:18
     _d
-Prelude.lc 299:19-299:20
+299:19-299:20
     _b
-Prelude.lc 300:1-300:4
+300:1-300:4
     Bool -> Bool -> Bool
-Prelude.lc 300:7-300:14
+300:7-300:14
     Bool -> Bool -> Bool
-Prelude.lc 301:1-301:4
+301:1-301:4
     forall (a :: Nat) . VecScalar a Bool -> VecScalar a Bool
-Prelude.lc 301:9-301:16
+301:9-301:16
     forall a (b :: Nat) . (a ~ VecScalar b Bool) => a -> a
-Prelude.lc 301:9-301:18
+301:9-301:18
     VecScalar _a Bool
-Prelude.lc 301:17-301:18
+301:17-301:18
     _c
-Prelude.lc 302:1-302:4
+302:1-302:4
     forall (a :: Nat) . VecScalar a Bool -> Bool
-Prelude.lc 302:9-302:16
+302:9-302:16
     forall (a :: Nat) . VecScalar a Bool -> Bool
-Prelude.lc 302:9-302:18
+302:9-302:18
     Bool
-Prelude.lc 302:17-302:18
+302:17-302:18
     _c
-Prelude.lc 303:1-303:4
+303:1-303:4
     forall (a :: Nat) . VecScalar a Bool -> Bool
-Prelude.lc 303:9-303:16
+303:9-303:16
     forall (a :: Nat) . VecScalar a Bool -> Bool
-Prelude.lc 303:9-303:18
+303:9-303:18
     Bool
-Prelude.lc 303:17-303:18
+303:17-303:18
     _c
-Prelude.lc 306:3-306:6
+306:3-306:6
     forall (a :: Nat) (b :: Nat) c (d :: Nat) . Mat a b c -> Mat b d c -> Mat a d c
-Prelude.lc 306:11-306:24
+306:11-306:24
     forall (a :: Nat) (b :: Nat) c (d :: Nat) . Mat a b c -> Mat b d c -> Mat a d c
-Prelude.lc 306:11-306:26
+306:11-306:26
     Mat _c _a _b -> Mat _d _a _b
-Prelude.lc 306:11-306:28
+306:11-306:28
     Mat _d _a _b
-Prelude.lc 306:25-306:26
+306:25-306:26
     _h
-Prelude.lc 306:27-306:28
+306:27-306:28
     _f
-Prelude.lc 307:3-307:5
+307:3-307:5
     forall (a :: Nat) (b :: Nat) c . Mat a b c -> VecS c b -> Vec a c
-Prelude.lc 307:10-307:23
+307:10-307:23
     forall (a :: Nat) (b :: Nat) c . Mat a b c -> Vec b c -> Vec a c
-Prelude.lc 307:10-307:25
+307:10-307:25
     Vec _b _a -> Vec _c _a
-Prelude.lc 307:10-307:27
+307:10-307:27
     Vec _c _a
-Prelude.lc 307:24-307:25
+307:24-307:25
     _g
-Prelude.lc 307:26-307:27
+307:26-307:27
     _e
-Prelude.lc 308:3-308:5
+308:3-308:5
     forall (a :: Nat) b (c :: Nat) . VecS b a -> Mat a c b -> Vec c b
-Prelude.lc 308:10-308:23
+308:10-308:23
     forall (a :: Nat) b (c :: Nat) . Vec a b -> Mat a c b -> Vec c b
-Prelude.lc 308:10-308:25
+308:10-308:25
     Mat _c _a _b -> Vec _a _b
-Prelude.lc 308:10-308:27
+308:10-308:27
     Vec _a _b
-Prelude.lc 308:24-308:25
+308:24-308:25
     _g
-Prelude.lc 308:26-308:27
+308:26-308:27
     _e
-Prelude.lc 315:3-315:5
+315:3-315:5
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-Prelude.lc 315:10-315:18
+315:10-315:18
     forall a b . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
-Prelude.lc 315:10-315:20
+315:10-315:20
     MatVecScalarElem _e -> _e
-Prelude.lc 315:10-315:22
+315:10-315:22
     _d
-Prelude.lc 315:19-315:20
+315:19-315:20
     _f
-Prelude.lc 315:21-315:22
+315:21-315:22
     _c
-Prelude.lc 316:3-316:5
+316:3-316:5
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-Prelude.lc 316:10-316:18
+316:10-316:18
     forall a b . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
-Prelude.lc 316:10-316:20
+316:10-316:20
     MatVecScalarElem _e -> _e
-Prelude.lc 316:10-316:22
+316:10-316:22
     _d
-Prelude.lc 316:19-316:20
+316:19-316:20
     _f
-Prelude.lc 316:21-316:22
+316:21-316:22
     _c
-Prelude.lc 317:3-317:5
+317:3-317:5
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-Prelude.lc 317:10-317:18
+317:10-317:18
     forall a b . (a ~ MatVecScalarElem b, Num a) => b -> a -> b
-Prelude.lc 317:10-317:20
+317:10-317:20
     MatVecScalarElem _e -> _e
-Prelude.lc 317:10-317:22
+317:10-317:22
     _d
-Prelude.lc 317:19-317:20
+317:19-317:20
     _f
-Prelude.lc 317:21-317:22
+317:21-317:22
     _c
-Prelude.lc 318:3-318:5
+318:3-318:5
     forall a (b :: Nat) . Num a => VecScalar b a -> a -> VecScalar b a
-Prelude.lc 318:10-318:18
+318:10-318:18
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> a -> b
-Prelude.lc 318:10-318:20
+318:10-318:20
     _c -> VecScalar _b _c
-Prelude.lc 318:10-318:22
+318:10-318:22
     VecScalar _b _d
-Prelude.lc 318:19-318:20
+318:19-318:20
     _g
-Prelude.lc 318:21-318:22
+318:21-318:22
     _e
-Prelude.lc 319:3-319:5
+319:3-319:5
     forall a (b :: Nat) . Num a => VecScalar b a -> a -> VecScalar b a
-Prelude.lc 319:10-319:18
+319:10-319:18
     forall a b (c :: Nat) . (Num a, b ~ VecScalar c a) => b -> a -> b
-Prelude.lc 319:10-319:20
+319:10-319:20
     _c -> VecScalar _b _c
-Prelude.lc 319:10-319:22
+319:10-319:22
     VecScalar _b _d
-Prelude.lc 319:19-319:20
+319:19-319:20
     _g
-Prelude.lc 319:21-319:22
+319:21-319:22
     _e
-Prelude.lc 326:16-326:21
+326:16-326:21
     Type
-Prelude.lc 327:16-327:21
+327:16-327:21
     Type
-Prelude.lc 327:16-330:29
+327:16-330:29
     Type
-Prelude.lc 328:16-328:21
+328:16-328:21
     Type
-Prelude.lc 328:16-330:29
+328:16-330:29
     Type
-Prelude.lc 329:16-329:21
+329:16-329:21
     Type
-Prelude.lc 329:16-330:29
+329:16-330:29
     Type
-Prelude.lc 330:16-330:19
+330:16-330:19
     Nat -> Nat -> Type -> Type
-Prelude.lc 330:16-330:21
+330:16-330:21
     Nat -> Type -> Type
-Prelude.lc 330:16-330:23
+330:16-330:23
     Type -> Type
-Prelude.lc 330:16-330:29
+330:16-330:29
     Type | Type
-Prelude.lc 330:20-330:21
+330:20-330:21
     _b
-Prelude.lc 330:22-330:23
+330:22-330:23
     _b
-Prelude.lc 330:24-330:29
+330:24-330:29
     Type
-Prelude.lc 331:1-331:12
+331:1-331:12
     Float -> Float -> Float -> Float -> Mat 4 4 Float
-Prelude.lc 332:5-332:9
+332:5-332:9
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 332:5-332:59
+332:5-332:59
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 332:5-333:59
+332:5-333:59
     Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 332:5-334:62
+332:5-334:62
     Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 332:5-335:59
+332:5-335:59
     Mat 4 4 Float
-Prelude.lc 332:11-332:13
+332:11-332:13
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 332:11-332:25
+332:11-332:25
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 332:11-332:29
+332:11-332:29
     Float -> Float -> VecS Float 4
-Prelude.lc 332:11-332:43
+332:11-332:43
     Float -> VecS Float 4
-Prelude.lc 332:11-332:58
+332:11-332:58
     VecS Float 4
-Prelude.lc 332:15-332:16
+332:15-332:16
     _b
-Prelude.lc 332:15-332:17
+332:15-332:17
     _c -> _c
-Prelude.lc 332:15-332:18
+332:15-332:18
     VecScalar 1 Float
-Prelude.lc 332:15-332:19
+332:15-332:19
     VecScalar 1 Float -> VecScalar 1 Float
-Prelude.lc 332:15-332:24
+332:15-332:24
     VecScalar 1 Float
-Prelude.lc 332:16-332:17
+332:16-332:17
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 332:17-332:18
+332:17-332:18
     Float
-Prelude.lc 332:18-332:19
+332:18-332:19
     forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-Prelude.lc 332:20-332:21
+332:20-332:21
     Float
-Prelude.lc 332:20-332:22
+332:20-332:22
     Float -> Float
-Prelude.lc 332:20-332:23
+332:20-332:23
     Float
-Prelude.lc 332:21-332:22
+332:21-332:22
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 332:22-332:23
+332:22-332:23
     Float
-Prelude.lc 332:28-332:29
+332:28-332:29
     _b
-Prelude.lc 332:42-332:43
+332:42-332:43
     _b
-Prelude.lc 332:57-332:58
+332:57-332:58
     _b
-Prelude.lc 333:11-333:13
+333:11-333:13
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 333:11-333:15
+333:11-333:15
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 333:11-333:39
+333:11-333:39
     Float -> Float -> VecS Float 4
-Prelude.lc 333:11-333:43
+333:11-333:43
     Float -> VecS Float 4
-Prelude.lc 333:11-333:58
+333:11-333:58
     VecS Float 4
-Prelude.lc 333:14-333:15
+333:14-333:15
     _b
-Prelude.lc 333:29-333:30
+333:29-333:30
     _b
-Prelude.lc 333:29-333:31
+333:29-333:31
     _c -> _c
-Prelude.lc 333:29-333:32
+333:29-333:32
     VecScalar 1 Float
-Prelude.lc 333:29-333:33
+333:29-333:33
     VecScalar 1 Float -> VecScalar 1 Float
-Prelude.lc 333:29-333:38
+333:29-333:38
     VecScalar 1 Float
-Prelude.lc 333:30-333:31
+333:30-333:31
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 333:31-333:32
+333:31-333:32
     Float
-Prelude.lc 333:32-333:33
+333:32-333:33
     forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-Prelude.lc 333:34-333:35
+333:34-333:35
     Float
-Prelude.lc 333:34-333:36
+333:34-333:36
     Float -> Float
-Prelude.lc 333:34-333:37
+333:34-333:37
     Float
-Prelude.lc 333:35-333:36
+333:35-333:36
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 333:36-333:37
+333:36-333:37
     Float
-Prelude.lc 333:42-333:43
+333:42-333:43
     _b
-Prelude.lc 333:57-333:58
+333:57-333:58
     _b
-Prelude.lc 334:11-334:13
+334:11-334:13
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 334:11-334:27
+334:11-334:27
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 334:11-334:41
+334:11-334:41
     Float -> Float -> VecS Float 4
-Prelude.lc 334:11-334:56
+334:11-334:56
     Float -> VecS Float 4
-Prelude.lc 334:11-334:61
+334:11-334:61
     VecS Float 4
-Prelude.lc 334:15-334:21
+334:15-334:21
     VecScalar 1 Float -> VecScalar 1 Float
-Prelude.lc 334:15-334:26
+334:15-334:26
     VecScalar 1 Float
-Prelude.lc 334:16-334:17
+334:16-334:17
     Float
-Prelude.lc 334:16-334:18
+334:16-334:18
     Float -> Float
-Prelude.lc 334:16-334:19
+334:16-334:19
     Float
-Prelude.lc 334:17-334:18
+334:17-334:18
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 334:18-334:19
+334:18-334:19
     Float
-Prelude.lc 334:20-334:21
+334:20-334:21
     forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-Prelude.lc 334:22-334:23
+334:22-334:23
     Float
-Prelude.lc 334:22-334:24
+334:22-334:24
     Float -> Float
-Prelude.lc 334:22-334:25
+334:22-334:25
     Float
-Prelude.lc 334:23-334:24
+334:23-334:24
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 334:24-334:25
+334:24-334:25
     Float
-Prelude.lc 334:29-334:35
+334:29-334:35
     VecScalar 1 Float -> VecScalar 1 Float
-Prelude.lc 334:29-334:40
+334:29-334:40
     VecScalar 1 Float
-Prelude.lc 334:30-334:31
+334:30-334:31
     Float
-Prelude.lc 334:30-334:32
+334:30-334:32
     Float -> Float
-Prelude.lc 334:30-334:33
+334:30-334:33
     Float
-Prelude.lc 334:31-334:32
+334:31-334:32
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 334:32-334:33
+334:32-334:33
     Float
-Prelude.lc 334:34-334:35
+334:34-334:35
     forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-Prelude.lc 334:36-334:37
+334:36-334:37
     Float
-Prelude.lc 334:36-334:38
+334:36-334:38
     Float -> Float
-Prelude.lc 334:36-334:39
+334:36-334:39
     Float
-Prelude.lc 334:37-334:38
+334:37-334:38
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 334:38-334:39
+334:38-334:39
     Float
-Prelude.lc 334:43-334:44
+334:43-334:44
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 334:43-334:55
+334:43-334:55
     Float
-Prelude.lc 334:44-334:50
+334:44-334:50
     VecScalar 1 Float -> VecScalar 1 Float
-Prelude.lc 334:44-334:55
+334:44-334:55
     VecScalar 1 Float
-Prelude.lc 334:45-334:46
+334:45-334:46
     Float
-Prelude.lc 334:45-334:47
+334:45-334:47
     Float -> Float
-Prelude.lc 334:45-334:48
+334:45-334:48
     Float
-Prelude.lc 334:46-334:47
+334:46-334:47
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 334:47-334:48
+334:47-334:48
     Float
-Prelude.lc 334:49-334:50
+334:49-334:50
     forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-Prelude.lc 334:51-334:52
+334:51-334:52
     Float
-Prelude.lc 334:51-334:53
+334:51-334:53
     Float -> Float
-Prelude.lc 334:51-334:54
+334:51-334:54
     Float
-Prelude.lc 334:52-334:53
+334:52-334:53
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 334:53-334:54
+334:53-334:54
     Float
-Prelude.lc 334:58-334:59
+334:58-334:59
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 334:58-334:60
+334:58-334:60
     Float
-Prelude.lc 334:59-334:60
+334:59-334:60
     _b
-Prelude.lc 335:11-335:13
+335:11-335:13
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 335:11-335:15
+335:11-335:15
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 335:11-335:29
+335:11-335:29
     _c -> _c -> VecS _c 4
-Prelude.lc 335:11-335:56
+335:11-335:56
     Float -> VecS Float 4
-Prelude.lc 335:11-335:58
+335:11-335:58
     VecS Float 4
-Prelude.lc 335:14-335:15
+335:14-335:15
     _b
-Prelude.lc 335:28-335:29
+335:28-335:29
     _b
-Prelude.lc 335:43-335:44
+335:43-335:44
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 335:43-335:55
+335:43-335:55
     Float
-Prelude.lc 335:44-335:45
+335:44-335:45
     _b
-Prelude.lc 335:44-335:46
+335:44-335:46
     _c -> _c
-Prelude.lc 335:44-335:47
+335:44-335:47
     Float
-Prelude.lc 335:44-335:48
+335:44-335:48
     Float -> Float
-Prelude.lc 335:44-335:49
+335:44-335:49
     Float
-Prelude.lc 335:44-335:50
+335:44-335:50
     VecScalar 1 Float -> VecScalar 1 Float
-Prelude.lc 335:44-335:55
+335:44-335:55
     VecScalar 1 Float
-Prelude.lc 335:45-335:46
+335:45-335:46
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 335:46-335:47
+335:46-335:47
     Float
-Prelude.lc 335:47-335:48
+335:47-335:48
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 335:48-335:49
+335:48-335:49
     Float
-Prelude.lc 335:49-335:50
+335:49-335:50
     forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-Prelude.lc 335:51-335:52
+335:51-335:52
     Float
-Prelude.lc 335:51-335:53
+335:51-335:53
     Float -> Float
-Prelude.lc 335:51-335:54
+335:51-335:54
     Float
-Prelude.lc 335:52-335:53
+335:52-335:53
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 335:53-335:54
+335:53-335:54
     Float
-Prelude.lc 335:57-335:58
+335:57-335:58
     _b
-Prelude.lc 337:9-337:10
+337:9-337:10
     Float
-Prelude.lc 337:9-337:11
+337:9-337:11
     Float -> Float
-Prelude.lc 337:9-337:22
+337:9-337:22
     Float
-Prelude.lc 337:10-337:11
+337:10-337:11
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 337:11-337:14
+337:11-337:14
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 337:11-337:22
+337:11-337:22
     VecScalar 1 Float
-Prelude.lc 337:15-337:19
+337:15-337:19
     Float
-Prelude.lc 337:15-337:20
+337:15-337:20
     VecScalar 1 Float -> VecScalar 1 Float
-Prelude.lc 337:15-337:21
+337:15-337:21
     VecScalar 1 Float
-Prelude.lc 337:19-337:20
+337:19-337:20
     forall a (b :: Nat) . Num a => VecScalar b a -> VecScalar b a -> VecScalar b a
-Prelude.lc 337:20-337:21
+337:20-337:21
     _b
-Prelude.lc 338:9-338:10
+338:9-338:10
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 338:9-338:11
+338:9-338:11
     Float
-Prelude.lc 338:10-338:11
+338:10-338:11
     Float
-Prelude.lc 339:9-339:15
+339:9-339:15
     Float
-Prelude.lc 339:9-339:16
+339:9-339:16
     Float -> Float
-Prelude.lc 339:9-339:17
+339:9-339:17
     Float
-Prelude.lc 339:15-339:16
+339:15-339:16
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 339:16-339:17
+339:16-339:17
     Float
-Prelude.lc 340:9-340:10
+340:9-340:10
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 340:9-340:11
+340:9-340:11
     Float
-Prelude.lc 340:10-340:11
+340:10-340:11
     Float
-Prelude.lc 342:1-342:11
+342:1-342:11
     VecScalar 1 Float -> Mat 4 4 Float
-Prelude.lc 342:16-342:20
+342:16-342:20
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 342:16-342:33
+342:16-342:33
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 342:16-342:49
+342:16-342:49
     Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 342:16-342:62
+342:16-342:62
     Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 342:16-342:75
+342:16-342:75
     Mat 4 4 Float
-Prelude.lc 342:22-342:24
+342:22-342:24
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 342:22-342:26
+342:22-342:26
     VecScalar _c Float
       -> VecScalar _c Float -> VecScalar _c Float -> VecS (VecScalar _c Float) 4
-Prelude.lc 342:22-342:28
+342:22-342:28
     VecScalar _c Float -> VecScalar _c Float -> VecS (VecScalar _c Float) 4
-Prelude.lc 342:22-342:30
+342:22-342:30
     VecScalar _d Float -> VecS (VecScalar _d Float) 4
-Prelude.lc 342:22-342:32
+342:22-342:32
     VecS (VecScalar 1 Float) 4
-Prelude.lc 342:25-342:26
+342:25-342:26
     VecScalar _d Float
-Prelude.lc 342:27-342:28
+342:27-342:28
     VecScalar _c Float
-Prelude.lc 342:29-342:30
+342:29-342:30
     _b
-Prelude.lc 342:31-342:32
+342:31-342:32
     _b
-Prelude.lc 342:35-342:37
+342:35-342:37
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 342:35-342:42
+342:35-342:42
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 342:35-342:44
+342:35-342:44
     Float -> Float -> VecS Float 4
-Prelude.lc 342:35-342:46
+342:35-342:46
     Float -> VecS Float 4
-Prelude.lc 342:35-342:48
+342:35-342:48
     VecS Float 4
-Prelude.lc 342:39-342:40
+342:39-342:40
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 342:39-342:41
+342:39-342:41
     Float
-Prelude.lc 342:40-342:41
+342:40-342:41
     VecScalar 1 Float
-Prelude.lc 342:43-342:44
+342:43-342:44
     VecScalar 1 Float
-Prelude.lc 342:45-342:46
+342:45-342:46
     _b
-Prelude.lc 342:47-342:48
+342:47-342:48
     _b
-Prelude.lc 342:51-342:53
+342:51-342:53
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 342:51-342:55
+342:51-342:55
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 342:51-342:57
+342:51-342:57
     _c -> _c -> VecS _c 4
-Prelude.lc 342:51-342:59
+342:51-342:59
     _c -> VecS _c 4
-Prelude.lc 342:51-342:61
+342:51-342:61
     VecS Float 4
-Prelude.lc 342:54-342:55
+342:54-342:55
     _b
-Prelude.lc 342:56-342:57
+342:56-342:57
     _b
-Prelude.lc 342:58-342:59
+342:58-342:59
     _b
-Prelude.lc 342:60-342:61
+342:60-342:61
     _b
-Prelude.lc 342:64-342:66
+342:64-342:66
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 342:64-342:68
+342:64-342:68
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 342:64-342:70
+342:64-342:70
     _c -> _c -> VecS _c 4
-Prelude.lc 342:64-342:72
+342:64-342:72
     _c -> VecS _c 4
-Prelude.lc 342:64-342:74
+342:64-342:74
     VecS Float 4
-Prelude.lc 342:67-342:68
+342:67-342:68
     _b
-Prelude.lc 342:69-342:70
+342:69-342:70
     _b
-Prelude.lc 342:71-342:72
+342:71-342:72
     _b
-Prelude.lc 342:73-342:74
+342:73-342:74
     _b
-Prelude.lc 344:9-344:12
+344:9-344:12
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 344:9-344:14
+344:9-344:14
     VecScalar _a Float
-Prelude.lc 344:13-344:14
+344:13-344:14
     _c
-Prelude.lc 345:9-345:12
+345:9-345:12
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 345:9-345:14
+345:9-345:14
     VecScalar _b Float
-Prelude.lc 345:13-345:14
+345:13-345:14
     VecScalar _c Float
-Prelude.lc 347:1-347:11
+347:1-347:11
     VecScalar 1 Float -> Mat 4 4 Float
-Prelude.lc 347:16-347:20
+347:16-347:20
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 347:16-347:36
+347:16-347:36
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 347:16-347:49
+347:16-347:49
     Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 347:16-347:62
+347:16-347:62
     Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 347:16-347:75
+347:16-347:75
     Mat 4 4 Float
-Prelude.lc 347:22-347:24
+347:22-347:24
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 347:22-347:26
+347:22-347:26
     VecScalar _c Float
       -> VecScalar _c Float -> VecScalar _c Float -> VecS (VecScalar _c Float) 4
-Prelude.lc 347:22-347:28
+347:22-347:28
     VecScalar _d Float -> VecScalar _d Float -> VecS (VecScalar _d Float) 4
-Prelude.lc 347:22-347:33
+347:22-347:33
     VecScalar _f Float -> VecS (VecScalar _f Float) 4
-Prelude.lc 347:22-347:35
+347:22-347:35
     VecS (VecScalar 1 Float) 4
-Prelude.lc 347:25-347:26
+347:25-347:26
     VecScalar _d Float
-Prelude.lc 347:27-347:28
+347:27-347:28
     _b
-Prelude.lc 347:30-347:31
+347:30-347:31
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 347:30-347:32
+347:30-347:32
     VecScalar _f Float
-Prelude.lc 347:31-347:32
+347:31-347:32
     VecScalar _f Float
-Prelude.lc 347:34-347:35
+347:34-347:35
     _b
-Prelude.lc 347:38-347:40
+347:38-347:40
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 347:38-347:42
+347:38-347:42
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 347:38-347:44
+347:38-347:44
     _c -> _c -> VecS _c 4
-Prelude.lc 347:38-347:46
+347:38-347:46
     _c -> VecS _c 4
-Prelude.lc 347:38-347:48
+347:38-347:48
     VecS Float 4
-Prelude.lc 347:41-347:42
+347:41-347:42
     _b
-Prelude.lc 347:43-347:44
+347:43-347:44
     _b
-Prelude.lc 347:45-347:46
+347:45-347:46
     _b
-Prelude.lc 347:47-347:48
+347:47-347:48
     _b
-Prelude.lc 347:51-347:53
+347:51-347:53
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 347:51-347:55
+347:51-347:55
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 347:51-347:57
+347:51-347:57
     Float -> Float -> VecS Float 4
-Prelude.lc 347:51-347:59
+347:51-347:59
     Float -> VecS Float 4
-Prelude.lc 347:51-347:61
+347:51-347:61
     VecS Float 4
-Prelude.lc 347:54-347:55
+347:54-347:55
     VecScalar 1 Float
-Prelude.lc 347:56-347:57
+347:56-347:57
     _b
-Prelude.lc 347:58-347:59
+347:58-347:59
     VecScalar 1 Float
-Prelude.lc 347:60-347:61
+347:60-347:61
     _b
-Prelude.lc 347:64-347:66
+347:64-347:66
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 347:64-347:68
+347:64-347:68
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 347:64-347:70
+347:64-347:70
     _c -> _c -> VecS _c 4
-Prelude.lc 347:64-347:72
+347:64-347:72
     _c -> VecS _c 4
-Prelude.lc 347:64-347:74
+347:64-347:74
     VecS Float 4
-Prelude.lc 347:67-347:68
+347:67-347:68
     _b
-Prelude.lc 347:69-347:70
+347:69-347:70
     _b
-Prelude.lc 347:71-347:72
+347:71-347:72
     _b
-Prelude.lc 347:73-347:74
+347:73-347:74
     _b
-Prelude.lc 349:9-349:12
+349:9-349:12
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 349:9-349:14
+349:9-349:14
     VecScalar _a Float
-Prelude.lc 349:13-349:14
+349:13-349:14
     _c
-Prelude.lc 350:9-350:12
+350:9-350:12
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 350:9-350:14
+350:9-350:14
     VecScalar _b Float
-Prelude.lc 350:13-350:14
+350:13-350:14
     VecScalar _c Float
-Prelude.lc 352:1-352:11
+352:1-352:11
     VecScalar 1 Float -> Mat 4 4 Float
-Prelude.lc 352:16-352:20
+352:16-352:20
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 352:16-352:33
+352:16-352:33
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 352:16-352:46
+352:16-352:46
     Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 352:16-352:62
+352:16-352:62
     Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 352:16-352:75
+352:16-352:75
     Mat 4 4 Float
-Prelude.lc 352:22-352:24
+352:22-352:24
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 352:22-352:26
+352:22-352:26
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 352:22-352:28
+352:22-352:28
     _c -> _c -> VecS _c 4
-Prelude.lc 352:22-352:30
+352:22-352:30
     _c -> VecS _c 4
-Prelude.lc 352:22-352:32
+352:22-352:32
     VecS Float 4
-Prelude.lc 352:25-352:26
+352:25-352:26
     _b
-Prelude.lc 352:27-352:28
+352:27-352:28
     _b
-Prelude.lc 352:29-352:30
+352:29-352:30
     _b
-Prelude.lc 352:31-352:32
+352:31-352:32
     _b
-Prelude.lc 352:35-352:37
+352:35-352:37
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 352:35-352:39
+352:35-352:39
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 352:35-352:41
+352:35-352:41
     VecScalar _d Float -> VecScalar _d Float -> VecS (VecScalar _d Float) 4
-Prelude.lc 352:35-352:43
+352:35-352:43
     VecScalar _d Float -> VecS (VecScalar _d Float) 4
-Prelude.lc 352:35-352:45
+352:35-352:45
     VecS (VecScalar 1 Float) 4
-Prelude.lc 352:38-352:39
+352:38-352:39
     _b
-Prelude.lc 352:40-352:41
+352:40-352:41
     VecScalar _e Float
-Prelude.lc 352:42-352:43
+352:42-352:43
     VecScalar _d Float
-Prelude.lc 352:44-352:45
+352:44-352:45
     _b
-Prelude.lc 352:48-352:50
+352:48-352:50
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 352:48-352:52
+352:48-352:52
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 352:48-352:57
+352:48-352:57
     Float -> Float -> VecS Float 4
-Prelude.lc 352:48-352:59
+352:48-352:59
     Float -> VecS Float 4
-Prelude.lc 352:48-352:61
+352:48-352:61
     VecS Float 4
-Prelude.lc 352:51-352:52
+352:51-352:52
     _b
-Prelude.lc 352:54-352:55
+352:54-352:55
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 352:54-352:56
+352:54-352:56
     Float
-Prelude.lc 352:55-352:56
+352:55-352:56
     VecScalar 1 Float
-Prelude.lc 352:58-352:59
+352:58-352:59
     VecScalar 1 Float
-Prelude.lc 352:60-352:61
+352:60-352:61
     _b
-Prelude.lc 352:64-352:66
+352:64-352:66
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 352:64-352:68
+352:64-352:68
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 352:64-352:70
+352:64-352:70
     _c -> _c -> VecS _c 4
-Prelude.lc 352:64-352:72
+352:64-352:72
     _c -> VecS _c 4
-Prelude.lc 352:64-352:74
+352:64-352:74
     VecS Float 4
-Prelude.lc 352:67-352:68
+352:67-352:68
     _b
-Prelude.lc 352:69-352:70
+352:69-352:70
     _b
-Prelude.lc 352:71-352:72
+352:71-352:72
     _b
-Prelude.lc 352:73-352:74
+352:73-352:74
     _b
-Prelude.lc 354:9-354:12
+354:9-354:12
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 354:9-354:14
+354:9-354:14
     VecScalar _a Float
-Prelude.lc 354:13-354:14
+354:13-354:14
     _c
-Prelude.lc 355:9-355:12
+355:9-355:12
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 355:9-355:14
+355:9-355:14
     VecScalar _b Float
-Prelude.lc 355:13-355:14
+355:13-355:14
     VecScalar _c Float
-Prelude.lc 357:1-357:14
+357:1-357:14
     Float -> Float -> Float -> Mat 4 4 Float
-Prelude.lc 357:23-357:33
+357:23-357:33
     VecScalar 1 Float -> Mat 4 4 Float
-Prelude.lc 357:23-357:35
+357:23-357:35
     Mat 4 4 Float
-Prelude.lc 357:23-357:39
+357:23-357:39
     Mat 4 _a Float -> Mat 4 _a Float
-Prelude.lc 357:23-357:52
+357:23-357:52
     Mat 4 4 Float
-Prelude.lc 357:23-357:56
+357:23-357:56
     Mat 4 _a Float -> Mat 4 _a Float
-Prelude.lc 357:23-357:69
+357:23-357:69
     Mat 4 4 Float
-Prelude.lc 357:34-357:35
+357:34-357:35
     _k
-Prelude.lc 357:36-357:39
+357:36-357:39
     forall (a :: Nat) (b :: Nat) c (d :: Nat) . Mat a b c -> Mat b d c -> Mat a d c
-Prelude.lc 357:40-357:50
+357:40-357:50
     VecScalar 1 Float -> Mat 4 4 Float
-Prelude.lc 357:40-357:52
+357:40-357:52
     Mat 4 4 Float
-Prelude.lc 357:51-357:52
+357:51-357:52
     _e
-Prelude.lc 357:53-357:56
+357:53-357:56
     forall (a :: Nat) (b :: Nat) c (d :: Nat) . Mat a b c -> Mat b d c -> Mat a d c
-Prelude.lc 357:57-357:67
+357:57-357:67
     VecScalar 1 Float -> Mat 4 4 Float
-Prelude.lc 357:57-357:69
+357:57-357:69
     Mat 4 4 Float
-Prelude.lc 357:68-357:69
+357:68-357:69
     _b
-Prelude.lc 359:21-359:24
+359:21-359:24
     Nat -> Type -> Type
-Prelude.lc 359:21-359:26
+359:21-359:26
     Type -> Type
-Prelude.lc 359:21-359:32
+359:21-359:32
     Type
-Prelude.lc 359:25-359:26
+359:25-359:26
     _b
-Prelude.lc 359:27-359:32
+359:27-359:32
     Type
-Prelude.lc 359:36-359:39
+359:36-359:39
     Nat -> Nat -> Type -> Type
-Prelude.lc 359:36-359:41
+359:36-359:41
     Nat -> Type -> Type
-Prelude.lc 359:36-359:43
+359:36-359:43
     Type -> Type
-Prelude.lc 359:36-359:49
+359:36-359:49
     Type | Type
-Prelude.lc 359:40-359:41
+359:40-359:41
     _b
-Prelude.lc 359:42-359:43
+359:42-359:43
     _b
-Prelude.lc 359:44-359:49
+359:44-359:49
     Type
-Prelude.lc 360:1-360:17
+360:1-360:17
     Vec 3 Float -> Mat 4 4 Float
-Prelude.lc 360:22-360:26
+360:22-360:26
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 360:22-360:29
+360:22-360:29
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 360:22-360:32
+360:22-360:32
     Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 360:22-360:35
+360:22-360:35
     Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 360:22-360:38
+360:22-360:38
     Mat 4 4 Float
-Prelude.lc 360:27-360:29
+360:27-360:29
     forall a . Num a => VecS a 4
-Prelude.lc 360:30-360:32
+360:30-360:32
     forall a . Num a => VecS a 4
-Prelude.lc 360:33-360:35
+360:33-360:35
     forall a . Num a => VecS a 4
-Prelude.lc 360:36-360:38
+360:36-360:38
     VecS Float 4
-Prelude.lc 362:9-362:11
+362:9-362:11
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 362:9-362:13
+362:9-362:13
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 362:9-362:15
+362:9-362:15
     _c -> _c -> VecS _c 4
-Prelude.lc 362:9-362:17
+362:9-362:17
     _c -> VecS _c 4
-Prelude.lc 362:9-362:19
+362:9-362:19
     VecS _c 4
-Prelude.lc 362:12-362:13
+362:12-362:13
     _b
-Prelude.lc 362:14-362:15
+362:14-362:15
     _b
-Prelude.lc 362:16-362:17
+362:16-362:17
     _b
-Prelude.lc 362:18-362:19
+362:18-362:19
     _b
-Prelude.lc 363:9-363:11
+363:9-363:11
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 363:9-363:13
+363:9-363:13
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 363:9-363:15
+363:9-363:15
     _c -> _c -> VecS _c 4
-Prelude.lc 363:9-363:17
+363:9-363:17
     _c -> VecS _c 4
-Prelude.lc 363:9-363:19
+363:9-363:19
     VecS _c 4
-Prelude.lc 363:12-363:13
+363:12-363:13
     _b
-Prelude.lc 363:14-363:15
+363:14-363:15
     _b
-Prelude.lc 363:16-363:17
+363:16-363:17
     _b
-Prelude.lc 363:18-363:19
+363:18-363:19
     _b
-Prelude.lc 364:9-364:11
+364:9-364:11
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 364:9-364:13
+364:9-364:13
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 364:9-364:15
+364:9-364:15
     _c -> _c -> VecS _c 4
-Prelude.lc 364:9-364:17
+364:9-364:17
     _c -> VecS _c 4
-Prelude.lc 364:9-364:19
+364:9-364:19
     VecS _c 4
-Prelude.lc 364:12-364:13
+364:12-364:13
     _b
-Prelude.lc 364:14-364:15
+364:14-364:15
     _b
-Prelude.lc 364:16-364:17
+364:16-364:17
     _b
-Prelude.lc 364:18-364:19
+364:18-364:19
     _b
-Prelude.lc 365:9-365:11
+365:9-365:11
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 365:9-365:15
+365:9-365:15
     Float -> Float -> Float -> VecS Float 4
-Prelude.lc 365:9-365:19
+365:9-365:19
     Float -> Float -> VecS Float 4
-Prelude.lc 365:9-365:23
+365:9-365:23
     Float -> VecS Float 4
-Prelude.lc 365:9-365:25
+365:9-365:25
     VecS Float 4
-Prelude.lc 365:12-365:13
+365:12-365:13
     Vec 3 Float
-Prelude.lc 365:12-365:15
+365:12-365:15
     Float
-Prelude.lc 365:16-365:17
+365:16-365:17
     Vec 3 Float
-Prelude.lc 365:16-365:19
+365:16-365:19
     Float
-Prelude.lc 365:20-365:21
+365:20-365:21
     Vec 3 Float
-Prelude.lc 365:20-365:23
+365:20-365:23
     Float
-Prelude.lc 365:24-365:25
+365:24-365:25
     _b
-Prelude.lc 368:11-368:14
+368:11-368:14
     Nat -> Type -> Type
-Prelude.lc 368:11-368:16
+368:11-368:16
     Type -> Type
-Prelude.lc 368:11-368:22
+368:11-368:22
     Type
-Prelude.lc 368:15-368:16
+368:15-368:16
     _b
-Prelude.lc 368:17-368:22
+368:17-368:22
     Type
-Prelude.lc 369:11-369:14
+369:11-369:14
     Nat -> Type -> Type
-Prelude.lc 369:11-369:16
+369:11-369:16
     Type -> Type
-Prelude.lc 369:11-369:22
+369:11-369:22
     Type
-Prelude.lc 369:11-371:24
+369:11-371:24
     Type
-Prelude.lc 369:15-369:16
+369:15-369:16
     _b
-Prelude.lc 369:17-369:22
+369:17-369:22
     Type
-Prelude.lc 370:11-370:14
+370:11-370:14
     Nat -> Type -> Type
-Prelude.lc 370:11-370:16
+370:11-370:16
     Type -> Type
-Prelude.lc 370:11-370:22
+370:11-370:22
     Type
-Prelude.lc 370:11-371:24
+370:11-371:24
     Type
-Prelude.lc 370:15-370:16
+370:15-370:16
     _b
-Prelude.lc 370:17-370:22
+370:17-370:22
     Type
-Prelude.lc 371:11-371:14
+371:11-371:14
     Nat -> Nat -> Type -> Type
-Prelude.lc 371:11-371:16
+371:11-371:16
     Nat -> Type -> Type
-Prelude.lc 371:11-371:18
+371:11-371:18
     Type -> Type
-Prelude.lc 371:11-371:24
+371:11-371:24
     Type | Type
-Prelude.lc 371:15-371:16
+371:15-371:16
     _b
-Prelude.lc 371:17-371:18
+371:17-371:18
     _b
-Prelude.lc 371:19-371:24
+371:19-371:24
     Type
-Prelude.lc 372:1-372:7
+372:1-372:7
     Vec 3 Float -> Vec 3 Float -> Vec 3 Float -> Mat 4 4 Float
-Prelude.lc 372:24-372:25
+372:24-372:25
     Mat 4 4 Float
-Prelude.lc 372:24-372:29
+372:24-372:29
     Mat 4 _a Float -> Mat 4 _a Float
-Prelude.lc 372:24-372:56
+372:24-372:56
     Mat 4 4 Float
-Prelude.lc 372:26-372:29
+372:26-372:29
     forall (a :: Nat) (b :: Nat) c (d :: Nat) . Mat a b c -> Mat b d c -> Mat a d c
-Prelude.lc 372:30-372:46
+372:30-372:46
     Vec 3 Float -> Mat 4 4 Float
-Prelude.lc 372:30-372:56
+372:30-372:56
     Mat 4 4 Float
-Prelude.lc 372:48-372:51
+372:48-372:51
     forall a . Signed (MatVecScalarElem a) => a -> a
-Prelude.lc 372:48-372:55
+372:48-372:55
     VecS Float 3
-Prelude.lc 372:52-372:55
+372:52-372:55
     Vec 3 Float
-Prelude.lc 374:14-374:16
+374:14-374:16
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 374:14-374:20
+374:14-374:20
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 374:14-374:24
+374:14-374:24
     _b -> _b -> VecS _b 4
-Prelude.lc 374:14-374:28
+374:14-374:28
     _b -> VecS _b 4
-Prelude.lc 374:14-374:30
+374:14-374:30
     VecS _c 4
-Prelude.lc 374:17-374:18
+374:17-374:18
     _e
-Prelude.lc 374:17-374:20
+374:17-374:20
     _b
-Prelude.lc 374:21-374:22
+374:21-374:22
     VecS _d _c
-Prelude.lc 374:21-374:24
+374:21-374:24
     _b
-Prelude.lc 374:25-374:26
+374:25-374:26
     VecS _d _c
-Prelude.lc 374:25-374:28
+374:25-374:28
     _b
-Prelude.lc 374:29-374:30
+374:29-374:30
     _b
-Prelude.lc 375:9-375:18
+375:9-375:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 375:9-375:20
+375:9-375:20
     VecScalar _a Float -> VecScalar _a Float
-Prelude.lc 375:9-375:33
+375:9-375:33
     VecScalar 3 Float
-Prelude.lc 375:19-375:20
+375:19-375:20
     forall a b . (a -> b) -> a -> b
-Prelude.lc 375:21-375:24
+375:21-375:24
     Vec 3 Float
-Prelude.lc 375:21-375:26
+375:21-375:26
     VecS Float 3 -> VecS Float 3
-Prelude.lc 375:21-375:33
+375:21-375:33
     VecS Float 3
-Prelude.lc 375:25-375:26
+375:25-375:26
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 375:27-375:33
+375:27-375:33
     Vec 3 Float
-Prelude.lc 376:9-376:18
+376:9-376:18
     forall a (b :: Nat) . (a ~ VecScalar b Float) => a -> a
-Prelude.lc 376:9-376:20
+376:9-376:20
     VecScalar _a Float -> VecScalar _a Float
-Prelude.lc 376:9-376:33
+376:9-376:33
     VecScalar 3 Float
-Prelude.lc 376:19-376:20
+376:19-376:20
     forall a b . (a -> b) -> a -> b
-Prelude.lc 376:21-376:23
+376:21-376:23
     Vec 3 Float
-Prelude.lc 376:21-376:31
+376:21-376:31
     VecS Float 3 -> VecS Float 3
-Prelude.lc 376:21-376:33
+376:21-376:33
     VecS Float 3
-Prelude.lc 376:24-376:31
+376:24-376:31
     forall a . (a ~ VecS Float 3) => a -> a -> a
-Prelude.lc 376:32-376:33
+376:32-376:33
     VecScalar 3 Float
-Prelude.lc 377:9-377:10
+377:9-377:10
     VecScalar 3 Float
-Prelude.lc 377:9-377:18
+377:9-377:18
     VecS Float 3 -> VecS Float 3
-Prelude.lc 377:9-377:20
+377:9-377:20
     VecS Float 3
-Prelude.lc 377:11-377:18
+377:11-377:18
     forall a . (a ~ VecS Float 3) => a -> a -> a
-Prelude.lc 377:19-377:20
+377:19-377:20
     VecScalar 3 Float
-Prelude.lc 378:9-378:18
+378:9-378:18
     forall (a :: Nat) (b :: Nat) c . Mat a b c -> Mat b a c
-Prelude.lc 378:9-378:20
+378:9-378:20
     Mat _c _b _a -> Mat _b _c _a
-Prelude.lc 378:9-378:65
+378:9-378:65
     Mat 4 4 Float
-Prelude.lc 378:19-378:20
+378:19-378:20
     forall a b . (a -> b) -> a -> b
-Prelude.lc 378:21-378:25
+378:21-378:25
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 378:21-378:34
+378:21-378:34
     Vec 4 Float -> Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 378:21-378:43
+378:21-378:43
     Vec 4 Float -> Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 378:21-378:52
+378:21-378:52
     Vec 4 Float -> Mat 4 4 Float
-Prelude.lc 378:21-378:65
+378:21-378:65
     Mat 4 4 Float
-Prelude.lc 378:27-378:31
+378:27-378:31
     forall a (b :: Nat) . Num a => VecS a b -> VecS a 4
-Prelude.lc 378:27-378:33
+378:27-378:33
     VecS Float 4
-Prelude.lc 378:32-378:33
+378:32-378:33
     VecScalar 3 Float
-Prelude.lc 378:36-378:40
+378:36-378:40
     forall a (b :: Nat) . Num a => VecS a b -> VecS a 4
-Prelude.lc 378:36-378:42
+378:36-378:42
     VecS Float 4
-Prelude.lc 378:41-378:42
+378:41-378:42
     VecS Float 3
-Prelude.lc 378:45-378:49
+378:45-378:49
     forall a (b :: Nat) . Num a => VecS a b -> VecS a 4
-Prelude.lc 378:45-378:51
+378:45-378:51
     VecS Float 4
-Prelude.lc 378:50-378:51
+378:50-378:51
     VecScalar 3 Float
-Prelude.lc 378:54-378:56
+378:54-378:56
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 378:54-378:58
+378:54-378:58
     _b -> _b -> _b -> VecS _b 4
-Prelude.lc 378:54-378:60
+378:54-378:60
     _c -> _c -> VecS _c 4
-Prelude.lc 378:54-378:62
+378:54-378:62
     _c -> VecS _c 4
-Prelude.lc 378:54-378:64
+378:54-378:64
     VecS Float 4
-Prelude.lc 378:57-378:58
+378:57-378:58
     _b
-Prelude.lc 378:59-378:60
+378:59-378:60
     _b
-Prelude.lc 378:61-378:62
+378:61-378:62
     _b
-Prelude.lc 378:63-378:64
+378:63-378:64
     _b
-Prelude.lc 380:1-380:6
+380:1-380:6
     Float -> VecS Float 4 -> VecS Float 4
-Prelude.lc 380:13-380:14
+380:13-380:14
     _d
-Prelude.lc 380:13-380:16
+380:13-380:16
     _c -> _c
-Prelude.lc 380:13-380:29
+380:13-380:29
     VecS Float 4
-Prelude.lc 380:15-380:16
+380:15-380:16
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 380:17-380:19
+380:17-380:19
     forall a . a -> a -> a -> a -> VecS a 4
-Prelude.lc 380:17-380:21
+380:17-380:21
     _e -> _e -> _e -> VecS _e 4
-Prelude.lc 380:17-380:23
+380:17-380:23
     _e -> _e -> VecS _e 4
-Prelude.lc 380:17-380:25
+380:17-380:25
     _e -> VecS _e 4
-Prelude.lc 380:17-380:29
+380:17-380:29
     VecS Float 4
-Prelude.lc 380:20-380:21
+380:20-380:21
     _f
-Prelude.lc 380:22-380:23
+380:22-380:23
     _e
-Prelude.lc 380:24-380:25
+380:24-380:25
     _e
-Prelude.lc 380:26-380:29
+380:26-380:29
     Float
-Prelude.lc 382:11-382:16
+382:11-382:16
     Type
-Prelude.lc 382:20-382:25
+382:20-382:25
     Type
-Prelude.lc 382:20-382:36
+382:20-382:36
     Type
-Prelude.lc 382:29-382:36
+382:29-382:36
     Type | Type
-Prelude.lc 382:30-382:35
+382:30-382:35
     Type
-Prelude.lc 383:1-383:7
+383:1-383:7
     Float -> Float -> [Float]
-Prelude.lc 384:7-384:8
+384:7-384:8
     Float
-Prelude.lc 384:7-384:10
+384:7-384:10
     VecScalar 1 Float -> VecScalar 1 Bool
-Prelude.lc 384:7-384:12
+384:7-384:12
     VecScalar 1 Bool
-Prelude.lc 384:7-385:38
+384:7-385:38
     [Float]
-Prelude.lc 384:9-384:10
+384:9-384:10
     forall (a :: Nat) b
       . Num b => VecScalar a b -> VecScalar a b -> VecScalar a Bool
-Prelude.lc 384:11-384:12
+384:11-384:12
     Float
-Prelude.lc 384:15-384:17
+384:15-384:17
     forall a . [a]
-Prelude.lc 384:15-385:38
+384:15-385:38
     Bool -> [Float]
-Prelude.lc 385:19-385:20
+385:19-385:20
     Float
-Prelude.lc 385:19-385:21
+385:19-385:21
     [Float] -> [Float]
-Prelude.lc 385:19-385:38
+385:19-385:38
     [Float]
-Prelude.lc 385:20-385:21
+385:20-385:21
     forall a . a -> [a] -> [a]
-Prelude.lc 385:22-385:28
+385:22-385:28
     Float -> Float -> [Float]
-Prelude.lc 385:22-385:36
+385:22-385:36
     Float -> [Float]
-Prelude.lc 385:22-385:38
+385:22-385:38
     [Float]
-Prelude.lc 385:30-385:31
+385:30-385:31
     Float
-Prelude.lc 385:30-385:33
+385:30-385:33
     Float -> Float
-Prelude.lc 385:30-385:35
+385:30-385:35
     Float
-Prelude.lc 385:32-385:33
+385:32-385:33
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 385:34-385:35
+385:34-385:35
     _b
-Prelude.lc 385:37-385:38
+385:37-385:38
     Float
-Prelude.lc 387:9-387:12
+387:9-387:12
     Type
-Prelude.lc 387:9-387:24
+387:9-387:24
     Type
-Prelude.lc 387:10-387:11
+387:10-387:11
     _b
-Prelude.lc 387:16-387:19
+387:16-387:19
     Type
-Prelude.lc 387:16-387:24
+387:16-387:24
     Type
-Prelude.lc 387:23-387:24
+387:23-387:24
     Type | Type
-Prelude.lc 388:10-388:12
+388:10-388:12
     forall a . [a] -> Int -> a
-Prelude.lc 388:19-388:20
+388:19-388:20
     _d
-Prelude.lc 388:19-389:30
+388:19-389:30
     Bool -> _d | _c | _c
-Prelude.lc 389:19-389:21
+389:19-389:21
     [_f]
-Prelude.lc 389:19-389:24
+389:19-389:24
     Int -> _e
-Prelude.lc 389:19-389:30
+389:19-389:30
     _d
-Prelude.lc 389:22-389:24
+389:22-389:24
     forall a . [a] -> Int -> a
-Prelude.lc 389:26-389:27
+389:26-389:27
     Int
-Prelude.lc 389:26-389:28
+389:26-389:28
     Int -> Int
-Prelude.lc 389:26-389:29
+389:26-389:29
     Int
-Prelude.lc 389:27-389:28
+389:27-389:28
     forall a . Num (MatVecScalarElem a) => a -> a -> a
-Prelude.lc 389:28-389:29
+389:28-389:29
     _b
 ------------ warnings
-Uncovered pattern(s) at Prelude.lc:50:1:
+Uncovered pattern(s) at ./testdata/Prelude.lc:50:1:
 tail (_: xs) = xs
 ^^^^
 Missing case(s):
     tail []
-Uncovered pattern(s) at Prelude.lc:58:1:
+Uncovered pattern(s) at ./testdata/Prelude.lc:58:1:
 foldr1 f (x: xs) = foldr f x xs
 ^^^^^^
 Missing case(s):
     foldr1 _ []
-Uncovered pattern(s) at Prelude.lc:137:1:
+Uncovered pattern(s) at ./testdata/Prelude.lc:137:1:
 project @a @('RecItem s' a': xs) s @_ (RecordCons ts) | s == s' = fstTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)
 project @a @('RecItem s' a': xs) s @_ (RecordCons ts) = project @a @xs s @(undefined @(CW (isKeyC s a xs))) (RecordCons (sndTup (unsafeCoerce @_ @(HList '(a : map recItemType xs)) ts)))
 Missing case(s):
     project _ [] _ _ _
-Uncovered pattern(s) at Prelude.lc:388:10:
+Uncovered pattern(s) at ./testdata/Prelude.lc:388:10:
 (x : _)  !! 0  =  x
 (_ : xs) !! n  =  xs !! (n-1)
 Missing case(s):

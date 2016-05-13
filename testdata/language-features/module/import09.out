@@ -6,17 +6,17 @@ fun = _lhs fun \(_ :: _) (a :: _) -> hlistNilCase _ (_rhs ()) a
 fun :: forall a . a -> MyUnit -> ()
 fun = \_ _ a -> hlistNilCase ' () (_rhs ()) a
 ------------ tooltips
-import09.lc 3:8-3:9
+3:8-3:9
     _b
-import09.lc 3:8-3:29
+3:8-3:29
     Type
-import09.lc 3:13-3:19
+3:13-3:19
     Type
-import09.lc 3:13-3:29
+3:13-3:29
     Type
-import09.lc 3:23-3:29
+3:23-3:29
     Type | Type
-import09.lc 4:1-4:4
+4:1-4:4
     forall a . a -> MyUnit -> ()
-import09.lc 4:12-4:14
+4:12-4:14
     () | ()

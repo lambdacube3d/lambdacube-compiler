@@ -121,78 +121,78 @@ a
 main :: Bool
 main = _rhs True
 ------------ tooltips
-listcompr03.lc 1:6-1:21
+1:6-1:21
     Type
-listcompr03.lc 1:7-1:20
+1:7-1:20
     Type
-listcompr03.lc 1:8-1:13
+1:8-1:13
     Type
-listcompr03.lc 1:8-1:19
+1:8-1:19
     [Type]
-listcompr03.lc 1:14-1:19
+1:14-1:19
     Type | [Type]
-listcompr03.lc 2:1-2:2
+2:1-2:2
     [(Float, Float)]
-listcompr03.lc 2:6-2:20
+2:6-2:20
     (Float, Float) | [(Float, Float)]
-listcompr03.lc 2:6-2:63
+2:6-2:63
     [(Float, Float)]
-listcompr03.lc 2:7-2:8
+2:7-2:8
     Float
-listcompr03.lc 2:7-2:10
+2:7-2:10
     MatVecScalarElem Float -> Float
-listcompr03.lc 2:7-2:11
+2:7-2:11
     Float
-listcompr03.lc 2:7-2:13
+2:7-2:13
     MatVecScalarElem Float -> Float
-listcompr03.lc 2:7-2:14
+2:7-2:14
     Float
-listcompr03.lc 2:8-2:10
+2:8-2:10
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-listcompr03.lc 2:10-2:11
+2:10-2:11
     _j
-listcompr03.lc 2:11-2:13
+2:11-2:13
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-listcompr03.lc 2:13-2:14
+2:13-2:14
     _e
-listcompr03.lc 2:15-2:16
+2:15-2:16
     Float
-listcompr03.lc 2:15-2:18
+2:15-2:18
     MatVecScalarElem Float -> Float
-listcompr03.lc 2:15-2:19
+2:15-2:19
     Float | ((Float))
-listcompr03.lc 2:16-2:18
+2:16-2:18
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-listcompr03.lc 2:18-2:19
+2:18-2:19
     Float
-listcompr03.lc 2:25-2:26
+2:25-2:26
     _b | Float
-listcompr03.lc 2:29-2:32
+2:29-2:32
     Float
-listcompr03.lc 2:38-2:46
+2:38-2:46
     [Float]
-listcompr03.lc 2:39-2:42
+2:39-2:42
     Float
-listcompr03.lc 2:44-2:45
+2:44-2:45
     Float | [Float]
-listcompr03.lc 2:53-2:63
+2:53-2:63
     [Float]
-listcompr03.lc 2:54-2:57
+2:54-2:57
     Float
-listcompr03.lc 2:59-2:62
+2:59-2:62
     Float | [Float]
-listcompr03.lc 4:9-4:13
+4:9-4:13
     Type
-listcompr03.lc 5:1-5:5
+5:1-5:5
     Bool
-listcompr03.lc 5:8-6:59
+5:8-6:59
     Bool
-listcompr03.lc 5:13-5:14
+5:13-5:14
     [(Float, Float)]
-listcompr03.lc 6:55-6:59
+6:55-6:59
     Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at listcompr03.lc:5:13:
+Uncovered pattern(s) at ./testdata/listcompr03.lc:5:13:
 main = case a of
             ^
 Missing case(s):

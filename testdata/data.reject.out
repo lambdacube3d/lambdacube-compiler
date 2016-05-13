@@ -1,11 +1,11 @@
-can't find: a in data.reject.lc:1:20:
+can't find: a in ./testdata/data.reject.lc:1:20:
 data Data1 = Data1 a b c
                    ^
 ------------ trace
 'Data1 :: Type
-!can't find: a in data.reject.lc:1:20:
+!can't find: a in ./testdata/data.reject.lc:1:20:
 data Data1 = Data1 a b c
                    ^
 ------------ tooltips
-data.reject.lc 1:6-1:11
+1:6-1:11
     Type

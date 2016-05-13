@@ -1,5 +1,5 @@
 type error: no instance of 'Component on ???
-in adhoc.reject.lc:4:5:
+in ./testdata/adhoc.reject.lc:4:5:
 x = one :: Vec 4 A
     ^^^
 ------------ trace
@@ -8,25 +8,25 @@ A :: A
 case'A :: forall (a :: A -> Type) -> a 'A -> forall (b :: A) -> a b
 match'A :: forall (a :: Type -> Type) -> a A -> forall b -> a b -> a b
 !type error: no instance of 'Component on ???
-in adhoc.reject.lc:4:5:
+in ./testdata/adhoc.reject.lc:4:5:
 x = one :: Vec 4 A
     ^^^
 ------------ tooltips
-adhoc.reject.lc 2:6-2:7
+2:6-2:7
     Type | Type | Type | Type | Type
-adhoc.reject.lc 2:6-2:11
+2:6-2:11
     Type
-adhoc.reject.lc 2:10-2:11
+2:10-2:11
     A
-adhoc.reject.lc 4:5-4:8
+4:5-4:8
     forall a . Component a => a
-adhoc.reject.lc 4:12-4:15
+4:12-4:15
     Nat -> Type -> Type
-adhoc.reject.lc 4:12-4:17
+4:12-4:17
     Type -> Type
-adhoc.reject.lc 4:12-4:19
+4:12-4:19
     Type
-adhoc.reject.lc 4:16-4:17
+4:16-4:17
     _b
-adhoc.reject.lc 4:18-4:19
+4:18-4:19
     Type

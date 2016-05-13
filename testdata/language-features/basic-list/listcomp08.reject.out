@@ -1,22 +1,22 @@
 type error: can not unify
-  'Internals.lc:63:6:
+  <<installed-prelude-path>>/Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
   String
-in listcomp08.reject.lc:1:23:
+in ./testdata/language-features/basic-list/listcomp08.reject.lc:1:23:
 value = [x | x <- [], "not Bool"]
                       ^^^^^^^^^^
 ------------ trace
 !type error: can not unify
-  'Internals.lc:63:6:
+  <<installed-prelude-path>>/Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
   String
-in listcomp08.reject.lc:1:23:
+in ./testdata/language-features/basic-list/listcomp08.reject.lc:1:23:
 value = [x | x <- [], "not Bool"]
                       ^^^^^^^^^^
 ------------ tooltips
-listcomp08.reject.lc 1:23-1:33
+1:23-1:33
     String

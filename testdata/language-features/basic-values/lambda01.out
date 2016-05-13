@@ -27,19 +27,19 @@ fun4
   :: forall a b c d e f g h i . a -> b -> c -> d -> e -> f -> g -> h -> i -> ()
 fun4 = \a b c d e f g h i -> _rhs \_ _ _ _ _ _ _ _ _ -> ()
 ------------ tooltips
-lambda01.lc 1:1-1:5
+1:1-1:5
     forall a . a -> ()
-lambda01.lc 1:14-1:16
+1:14-1:16
     ()
-lambda01.lc 2:1-2:5
+2:1-2:5
     forall a . a -> ()
-lambda01.lc 2:15-2:17
+2:15-2:17
     ()
-lambda01.lc 3:1-3:5
+3:1-3:5
     forall a . a -> ()
-lambda01.lc 3:13-3:15
+3:13-3:15
     ()
-lambda01.lc 4:1-4:5
+4:1-4:5
     forall a b c d e f g h i . a -> b -> c -> d -> e -> f -> g -> h -> i -> ()
-lambda01.lc 5:28-5:30
+5:28-5:30
     ()

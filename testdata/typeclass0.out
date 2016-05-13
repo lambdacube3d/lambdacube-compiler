@@ -11,16 +11,16 @@ main
 main :: Bool
 main = _rhs True
 ------------ tooltips
-typeclass0.lc 2:1-2:5
+2:1-2:5
     Bool
-typeclass0.lc 2:8-3:16
+2:8-3:16
     Bool
-typeclass0.lc 2:13-2:14
+2:13-2:14
     _b
-typeclass0.lc 3:12-3:16
+3:12-3:16
     Bool
 ------------ warnings
-Uncovered pattern(s) at typeclass0.lc:2:13:
+Uncovered pattern(s) at ./testdata/typeclass0.lc:2:13:
 main = case 1 of
             ^
 Missing case(s):

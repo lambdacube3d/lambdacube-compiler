@@ -42,7 +42,7 @@ instance Arbitrary SPos where
 
 -- TODO: review
 instance Arbitrary FileInfo where
-    arbitrary = FileInfo <$> arbitrary <*> arbitrary <*> arbitrary
+    arbitrary = FileInfo <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
 
 -- Range
 instance Arbitrary Range where

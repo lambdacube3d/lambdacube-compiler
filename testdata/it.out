@@ -40,60 +40,60 @@ from = primFix _ \a -> _rhs \b -> b : a (primAddInt 1 b)
 main :: Bool
 main = _rhs True
 ------------ tooltips
-it.lc 4:1-4:5
+4:1-4:5
     Int -> [Int]
-it.lc 4:14-4:15
+4:14-4:15
     _c
-it.lc 4:14-4:16
+4:14-4:16
     [_b] -> [_b]
-it.lc 4:14-4:38
+4:14-4:38
     [Int]
-it.lc 4:15-4:16
+4:15-4:16
     forall a . a -> [a] -> [a]
-it.lc 4:17-4:21
+4:17-4:21
     _d
-it.lc 4:23-4:33
+4:23-4:33
     Int -> Int -> Int
-it.lc 4:23-4:35
+4:23-4:35
     Int -> Int
-it.lc 4:23-4:37
+4:23-4:37
     Int
-it.lc 4:34-4:35
+4:34-4:35
     _b
-it.lc 4:36-4:37
+4:36-4:37
     _e
-it.lc 6:1-6:5
+6:1-6:5
     Bool
-it.lc 6:8-7:57
+6:8-7:57
     Bool
-it.lc 6:13-6:17
+6:13-6:17
     Int -> [Int]
-it.lc 6:13-6:19
+6:13-6:19
     [Int]
-it.lc 6:18-6:19
+6:18-6:19
     _b
-it.lc 7:20-7:57
+7:20-7:57
     Bool | Bool | Bool | Bool
-it.lc 7:25-7:39
+7:25-7:39
     Int -> Int -> Ordering
-it.lc 7:25-7:41
+7:25-7:41
     Int -> Ordering
-it.lc 7:25-7:43
+7:25-7:43
     Ordering
-it.lc 7:40-7:41
+7:40-7:41
     _c
-it.lc 7:42-7:43
+7:42-7:43
     _b
-it.lc 7:53-7:57
+7:53-7:57
     Bool
 ------------ warnings
-Uncovered pattern(s) at it.lc:7:25:
+Uncovered pattern(s) at ./testdata/it.lc:7:25:
     (_:_:_:i:_) -> case primCompareInt i 3 of EQ -> True
                         ^^^^^^^^^^^^^^^^^^
 Missing case(s):
      LT
      GT
-Uncovered pattern(s) at it.lc:6:13:
+Uncovered pattern(s) at ./testdata/it.lc:6:13:
 main = case from 0 of
             ^^^^^^
 Missing case(s):

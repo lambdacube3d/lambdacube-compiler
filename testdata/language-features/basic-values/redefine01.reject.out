@@ -1,29 +1,29 @@
-already defined unit at redefine01.reject.lc:3:1:
+already defined unit at ./testdata/language-features/basic-values/redefine01.reject.lc:3:1:
 unit = ()
 ^^^^
-and at redefine01.reject.lc:1:1:
+and at ./testdata/language-features/basic-values/redefine01.reject.lc:1:1:
 unit = ()
 ^^^^
 ------------ trace
 unit :: ()
 tuple :: ()
 unit :: ()
-!already defined unit at redefine01.reject.lc:3:1:
+!already defined unit at ./testdata/language-features/basic-values/redefine01.reject.lc:3:1:
 unit = ()
 ^^^^
-and at redefine01.reject.lc:1:1:
+and at ./testdata/language-features/basic-values/redefine01.reject.lc:1:1:
 unit = ()
 ^^^^
 ------------ tooltips
-redefine01.reject.lc 1:1-1:5
+1:1-1:5
     ()
-redefine01.reject.lc 1:8-1:10
+1:8-1:10
     ()
-redefine01.reject.lc 2:1-2:6
+2:1-2:6
     ()
-redefine01.reject.lc 2:9-2:11
+2:9-2:11
     ()
-redefine01.reject.lc 3:1-3:5
+3:1-3:5
     ()
-redefine01.reject.lc 3:8-3:10
+3:8-3:10
     ()

@@ -108,80 +108,80 @@ match'Zero = \a b c d -> <<type case function>>
 value1 :: OneBool
 value1 = _rhs (OneBool True)
 ------------ tooltips
-adt01.lc 1:6-1:10
+1:6-1:10
     Type | Type | Type | Type
-adt01.lc 3:6-3:10
+3:6-3:10
     Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type
-adt01.lc 3:6-3:12
+3:6-3:12
     Type | Type
-adt01.lc 3:6-3:19
+3:6-3:19
     Type | Type
-adt01.lc 3:6-3:21
+3:6-3:21
     Type
-adt01.lc 3:11-3:12
+3:11-3:12
     Type
-adt01.lc 3:15-3:19
+3:15-3:19
     forall a . a -> One1 a | One1 _c | Type | Type
-adt01.lc 3:20-3:21
+3:20-3:21
     Type
-adt01.lc 5:6-5:12
+5:6-5:12
     Type | Type | Type | Type | Type | Type
-adt01.lc 5:6-5:19
+5:6-5:19
     Type
-adt01.lc 5:15-5:19
+5:15-5:19
     Int -> OneInt | OneInt | Type | Type
-adt01.lc 5:20-5:23
+5:20-5:23
     Type
-adt01.lc 7:6-7:13
+7:6-7:13
     Type | Type | Type | Type | Type | Type
-adt01.lc 7:6-7:23
+7:6-7:23
     Type
-adt01.lc 7:16-7:23
+7:16-7:23
     Bool -> OneBool | OneBool | Type | Type
-adt01.lc 7:24-7:28
+7:24-7:28
     Type
-adt01.lc 9:6-9:9
+9:6-9:9
     Type -> Type -> Type | Type -> Type -> Type | Type -> Type -> Type | Type
       -> Type -> Type | Type -> Type -> Type | Type
-adt01.lc 9:6-9:11
+9:6-9:11
     Type -> Type | Type -> Type
-adt01.lc 9:6-9:13
+9:6-9:13
     Type | Type | Type | Type
-adt01.lc 9:6-10:11
+9:6-10:11
     Type | Type
-adt01.lc 9:6-11:9
+9:6-11:9
     Type | Type | Type | Type
-adt01.lc 9:6-11:11
+9:6-11:11
     Type | Type
-adt01.lc 9:10-9:11
+9:10-9:11
     Type | Type
-adt01.lc 9:12-9:13
+9:12-9:13
     Type | Type
-adt01.lc 10:5-10:9
+10:5-10:9
     forall a b . a -> Two a b | Two _d _c | Type | Type
-adt01.lc 10:10-10:11
+10:10-10:11
     Type
-adt01.lc 11:5-11:9
+11:5-11:9
     forall a b . b -> Two a b | Two _e _d | Type | Type
-adt01.lc 11:10-11:11
+11:10-11:11
     Type
-adt01.lc 13:1-13:7
+13:1-13:7
     OneBool
-adt01.lc 13:10-13:17
+13:10-13:17
     Bool -> OneBool
-adt01.lc 13:10-13:22
+13:10-13:22
     OneBool
-adt01.lc 13:18-13:22
+13:18-13:22
     Bool
-adt01.lc 15:1-15:2
+15:1-15:2
     OneBool -> Bool
-adt01.lc 15:17-15:18
+15:17-15:18
     Bool
-adt01.lc 17:1-17:5
+17:1-17:5
     Bool
-adt01.lc 17:8-17:9
+17:8-17:9
     OneBool -> Bool
-adt01.lc 17:8-17:16
+17:8-17:16
     Bool
-adt01.lc 17:10-17:16
+17:10-17:16
     OneBool

@@ -1,5 +1,5 @@
 type error: can not unify
-  'Internals.lc:58:6:
+  <<installed-prelude-path>>/Internals.lc:58:6:
   data Int
        ^^^
 with
@@ -7,18 +7,18 @@ with
 in []
 ------------ trace
 !type error: can not unify
-  'Internals.lc:58:6:
+  <<installed-prelude-path>>/Internals.lc:58:6:
   data Int
        ^^^
 with
   Float
 in []
 ------------ tooltips
-list10.reject.lc 1:10-1:11
+1:10-1:11
     _b
-list10.reject.lc 1:12-1:15
+1:12-1:15
     Float
-list10.reject.lc 1:20-1:25
+1:20-1:25
     Type
-list10.reject.lc 1:21-1:24
+1:21-1:24
     Type

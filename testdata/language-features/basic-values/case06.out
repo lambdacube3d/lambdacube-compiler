@@ -11,15 +11,15 @@ value
   = \a b c d -> _rhs
     (case'Bool (\_ -> 'Char) '_' '1' ((a == b) (fromInt a c 1) d))
 ------------ tooltips
-case06.lc 1:1-1:6
+1:1-1:6
     forall a . (Eq a, Num a) => a -> Char
-case06.lc 1:11-3:11
+1:11-3:11
     Char
-case06.lc 1:16-1:17
+1:16-1:17
     _e
-case06.lc 2:8-2:11
+2:8-2:11
     Char
-case06.lc 2:8-3:11
+2:8-3:11
     Bool -> Char
-case06.lc 3:8-3:11
+3:8-3:11
     Char

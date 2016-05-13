@@ -121,68 +121,68 @@ a
 main :: Bool
 main = _rhs True
 ------------ tooltips
-listcompr02.lc 1:6-1:21
+1:6-1:21
     Type
-listcompr02.lc 1:7-1:20
+1:7-1:20
     Type
-listcompr02.lc 1:8-1:13
+1:8-1:13
     Type
-listcompr02.lc 1:8-1:19
+1:8-1:19
     [Type]
-listcompr02.lc 1:14-1:19
+1:14-1:19
     Type | [Type]
-listcompr02.lc 2:1-2:2
+2:1-2:2
     [(Float, Float)]
-listcompr02.lc 2:5-2:51
+2:5-2:51
     [(Float, Float)]
-listcompr02.lc 2:6-2:17
+2:6-2:17
     (_g, _g) | [(_e, _e)]
-listcompr02.lc 2:6-2:50
+2:6-2:50
     [(_d, _d)]
-listcompr02.lc 2:7-2:8
+2:7-2:8
     _k
-listcompr02.lc 2:7-2:10
+2:7-2:10
     MatVecScalarElem _j -> _j
-listcompr02.lc 2:7-2:11
+2:7-2:11
     _h
-listcompr02.lc 2:8-2:10
+2:8-2:10
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-listcompr02.lc 2:10-2:11
+2:10-2:11
     _f
-listcompr02.lc 2:12-2:13
+2:12-2:13
     _k
-listcompr02.lc 2:12-2:15
+2:12-2:15
     MatVecScalarElem _j -> _j
-listcompr02.lc 2:12-2:16
+2:12-2:16
     _i | ((_g))
-listcompr02.lc 2:13-2:15
+2:13-2:15
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-listcompr02.lc 2:15-2:16
+2:15-2:16
     MatVecScalarElem _i
-listcompr02.lc 2:23-2:33
+2:23-2:33
     [Float]
-listcompr02.lc 2:24-2:27
+2:24-2:27
     Float
-listcompr02.lc 2:29-2:32
+2:29-2:32
     Float | [Float]
-listcompr02.lc 2:40-2:50
+2:40-2:50
     [Float]
-listcompr02.lc 2:41-2:44
+2:41-2:44
     Float
-listcompr02.lc 2:46-2:49
+2:46-2:49
     Float | [Float]
-listcompr02.lc 4:9-4:13
+4:9-4:13
     Type
-listcompr02.lc 5:1-5:5
+5:1-5:5
     Bool
-listcompr02.lc 5:8-6:59
+5:8-6:59
     Bool
-listcompr02.lc 5:13-5:14
+5:13-5:14
     [(Float, Float)]
-listcompr02.lc 6:55-6:59
+6:55-6:59
     Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at listcompr02.lc:5:13:
+Uncovered pattern(s) at ./testdata/listcompr02.lc:5:13:
 main = case a of
             ^
 Missing case(s):

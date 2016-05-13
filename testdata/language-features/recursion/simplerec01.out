@@ -20,13 +20,13 @@ fun
       (_rhs 'a')
       ((a == c) (fromInt a d 0) f)
 ------------ tooltips
-simplerec01.lc 1:1-1:4
+1:1-1:4
     forall a . (Num a, Eq a, Num a) => a -> Char
-simplerec01.lc 1:9-1:12
+1:9-1:12
     Char
-simplerec01.lc 1:9-2:14
+1:9-2:14
     Bool -> Char
-simplerec01.lc 2:9-2:12
+2:9-2:12
     _e
-simplerec01.lc 2:13-2:14
+2:13-2:14
     _b

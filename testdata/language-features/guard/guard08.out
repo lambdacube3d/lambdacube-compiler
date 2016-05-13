@@ -12,19 +12,19 @@ value
 value :: String
 value = _rhs "True"
 ------------ tooltips
-guard08.lc 1:1-1:6
+1:1-1:6
     String
-guard08.lc 1:7-1:11
+1:7-1:11
     Bool
-guard08.lc 1:7-1:32
+1:7-1:32
     String
-guard08.lc 1:12-1:18
+1:12-1:18
     String
-guard08.lc 1:12-1:32
+1:12-1:32
     Bool -> String
-guard08.lc 1:19-1:24
+1:19-1:24
     Bool
-guard08.lc 1:19-1:32
+1:19-1:32
     String
-guard08.lc 1:25-1:32
+1:25-1:32
     String

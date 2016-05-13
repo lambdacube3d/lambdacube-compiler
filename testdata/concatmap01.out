@@ -26,38 +26,38 @@ a = _rhs (1.0 : [] ++ foldr (++) [] (map (\a -> [a]) []))
 main :: Bool
 main = _rhs True
 ------------ tooltips
-concatmap01.lc 1:6-1:13
+1:6-1:13
     Type
-concatmap01.lc 1:7-1:12
+1:7-1:12
     Type
-concatmap01.lc 2:1-2:2
+2:1-2:2
     [Float]
-concatmap01.lc 2:5-2:14
+2:5-2:14
     forall a b . (a -> [b]) -> [a] -> [b]
-concatmap01.lc 2:5-2:26
+2:5-2:26
     [_a] -> [_a]
-concatmap01.lc 2:5-2:32
+2:5-2:32
     [Float]
-concatmap01.lc 2:22-2:25
+2:22-2:25
     [_b]
-concatmap01.lc 2:23-2:24
+2:23-2:24
     _d
-concatmap01.lc 2:27-2:32
+2:27-2:32
     [Float]
-concatmap01.lc 2:28-2:31
+2:28-2:31
     Float
-concatmap01.lc 4:9-4:13
+4:9-4:13
     Type
-concatmap01.lc 5:1-5:5
+5:1-5:5
     Bool
-concatmap01.lc 5:8-6:23
+5:8-6:23
     Bool
-concatmap01.lc 5:13-5:14
+5:13-5:14
     [Float]
-concatmap01.lc 6:19-6:23
+6:19-6:23
     Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at concatmap01.lc:5:13:
+Uncovered pattern(s) at ./testdata/concatmap01.lc:5:13:
 main = case a of
             ^
 Missing case(s):

@@ -7,11 +7,11 @@ world = _lhs world (_rhs "world")
 hello :: String
 hello = _rhs "hello"
 ------------ tooltips
-Moduledef09.lc 5:1-5:6
+5:1-5:6
     String
-Moduledef09.lc 5:9-5:16
+5:9-5:16
     String
-Moduledef09.lc 6:1-6:6
+6:1-6:6
     String
-Moduledef09.lc 6:9-6:16
+6:9-6:16
     String

@@ -16,53 +16,53 @@ main = _lhs main (_rhs ((True :: B) && fst ((True, 'c') :: F Bool Char)))
 main :: Bool
 main = _rhs True
 ------------ tooltips
-typesyn.lc 3:6-3:7
+3:6-3:7
     Type
-typesyn.lc 3:10-3:14
+3:10-3:14
     Type
-typesyn.lc 5:6-5:7
+5:6-5:7
     Type -> Type -> Type
-typesyn.lc 5:14-5:20
+5:14-5:20
     Type
-typesyn.lc 5:15-5:16
+5:15-5:16
     _e
-typesyn.lc 5:15-5:19
+5:15-5:19
     [Type]
-typesyn.lc 5:18-5:19
+5:18-5:19
     _c | [Type]
-typesyn.lc 7:1-7:5
+7:1-7:5
     Bool
-typesyn.lc 7:8-7:22
+7:8-7:22
     Bool -> Bool
-typesyn.lc 7:8-7:55
+7:8-7:55
     Bool
-typesyn.lc 7:9-7:13
+7:9-7:13
     Bool
-typesyn.lc 7:9-7:18
+7:9-7:18
     B
-typesyn.lc 7:17-7:18
+7:17-7:18
     Type
-typesyn.lc 7:20-7:22
+7:20-7:22
     Bool -> Bool -> Bool
-typesyn.lc 7:23-7:26
+7:23-7:26
     forall a b . (a, b) -> a
-typesyn.lc 7:23-7:55
+7:23-7:55
     Bool
-typesyn.lc 7:28-7:39
+7:28-7:39
     (Bool, Char)
-typesyn.lc 7:28-7:54
+7:28-7:54
     F Bool Char
-typesyn.lc 7:29-7:33
+7:29-7:33
     Bool
-typesyn.lc 7:35-7:38
+7:35-7:38
     Char | ((Char))
-typesyn.lc 7:43-7:44
+7:43-7:44
     Type -> Type -> Type
-typesyn.lc 7:43-7:49
+7:43-7:49
     Type -> Type
-typesyn.lc 7:43-7:54
+7:43-7:54
     Type
-typesyn.lc 7:45-7:49
+7:45-7:49
     Type
-typesyn.lc 7:50-7:54
+7:50-7:54
     Type

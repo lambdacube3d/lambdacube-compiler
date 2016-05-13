@@ -66,77 +66,77 @@ value1 = _rhs TEmpty
 value2 :: forall a . Num a => TList a
 value2 = \a b -> _rhs (TCons (fromInt a b 3) TEmpty)
 ------------ tooltips
-adt05.lc 3:6-3:11
+3:6-3:11
     Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type -> Type | Type
-adt05.lc 3:6-3:13
+3:6-3:13
     Type | Type | Type | Type
-adt05.lc 3:6-3:30
+3:6-3:30
     Type | Type | Type
-adt05.lc 3:6-3:42
+3:6-3:42
     Type | Type
-adt05.lc 3:12-3:13
+3:12-3:13
     Type | Type
-adt05.lc 3:16-3:22
+3:16-3:22
     forall a . TList a | TList _b
-adt05.lc 3:25-3:30
+3:25-3:30
     forall a . a -> TList a -> TList a | TList _e | Type | Type | Type
-adt05.lc 3:31-3:32
+3:31-3:32
     Type
-adt05.lc 3:34-3:39
+3:34-3:39
     Type -> Type
-adt05.lc 3:34-3:41
+3:34-3:41
     Type
-adt05.lc 3:40-3:41
+3:40-3:41
     Type
-adt05.lc 5:1-5:7
+5:1-5:7
     forall a . TList a
-adt05.lc 5:10-5:16
+5:10-5:16
     forall a . TList a
-adt05.lc 6:1-6:7
+6:1-6:7
     forall a . Num a => TList a
-adt05.lc 6:10-6:15
+6:10-6:15
     forall a . a -> TList a -> TList a
-adt05.lc 6:10-6:17
+6:10-6:17
     TList _b -> TList _b
-adt05.lc 6:10-6:24
+6:10-6:24
     TList _b
-adt05.lc 6:16-6:17
+6:16-6:17
     _b
-adt05.lc 6:18-6:24
+6:18-6:24
     forall a . TList a
-adt05.lc 8:1-8:8
+8:1-8:8
     forall a . TList a -> Bool
-adt05.lc 8:18-8:22
+8:18-8:22
     Bool
-adt05.lc 8:18-9:23
+8:18-9:23
     TList _a -> Bool
-adt05.lc 9:18-9:23
+9:18-9:23
     Bool
-adt05.lc 11:1-11:7
+11:1-11:7
     forall a . TList a -> Bool
-adt05.lc 11:22-11:26
+11:22-11:26
     Bool
-adt05.lc 11:22-12:27
+11:22-12:27
     TList _a -> Bool
-adt05.lc 12:22-12:27
+12:22-12:27
     Bool
-adt05.lc 14:1-14:5
+14:1-14:5
     @Type -> forall a . Num a => Bool
-adt05.lc 14:8-14:15
+14:8-14:15
     forall a . TList a -> Bool
-adt05.lc 14:8-14:22
+14:8-14:22
     Bool
-adt05.lc 14:8-14:25
+14:8-14:25
     Bool -> Bool
-adt05.lc 14:8-14:39
+14:8-14:39
     Bool
-adt05.lc 14:16-14:22
+14:16-14:22
     forall a . TList a
-adt05.lc 14:23-14:25
+14:23-14:25
     Bool -> Bool -> Bool
-adt05.lc 14:26-14:32
+14:26-14:32
     forall a . TList a -> Bool
-adt05.lc 14:26-14:39
+14:26-14:39
     Bool
-adt05.lc 14:33-14:39
+14:33-14:39
     forall a . Num a => TList a

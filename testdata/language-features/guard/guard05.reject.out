@@ -1,24 +1,24 @@
 type error: can not unify
-  'Internals.lc:63:6:
+  <<installed-prelude-path>>/Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
   ()
-in guard05.reject.lc:1:9:
+in ./testdata/language-features/guard/guard05.reject.lc:1:9:
 value | () = "wrong"
         ^^
 ------------ trace
 !type error: can not unify
-  'Internals.lc:63:6:
+  <<installed-prelude-path>>/Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
   ()
-in guard05.reject.lc:1:9:
+in ./testdata/language-features/guard/guard05.reject.lc:1:9:
 value | () = "wrong"
         ^^
 ------------ tooltips
-guard05.reject.lc 1:9-1:11
+1:9-1:11
     ()
-guard05.reject.lc 1:14-1:21
+1:14-1:21
     String

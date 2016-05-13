@@ -11,21 +11,21 @@ fun = _lhs fun \(_ :: _) (a :: _) -> hlistNilCase _ (_rhs ()) a
 fun :: forall a . a -> MyUnit -> ()
 fun = \_ _ a -> hlistNilCase ' () (_rhs ()) a
 ------------ tooltips
-typesyn02.lc 1:6-1:12
+1:6-1:12
     Type
-typesyn02.lc 1:15-1:17
+1:15-1:17
     Type
-typesyn02.lc 3:8-3:9
+3:8-3:9
     _b
-typesyn02.lc 3:8-3:29
+3:8-3:29
     Type
-typesyn02.lc 3:13-3:19
+3:13-3:19
     Type
-typesyn02.lc 3:13-3:29
+3:13-3:29
     Type
-typesyn02.lc 3:23-3:29
+3:23-3:29
     Type | Type
-typesyn02.lc 4:1-4:4
+4:1-4:4
     forall a . a -> MyUnit -> ()
-typesyn02.lc 4:12-4:14
+4:12-4:14
     () | ()

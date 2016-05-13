@@ -6,17 +6,17 @@ value1
 value1 :: ()
 value1 = _rhs ()
 ------------ tooltips
-operator05.lc 1:1-1:7
+1:1-1:7
     ()
-operator05.lc 1:24-1:26
+1:24-1:26
     ()
-operator05.lc 2:13-2:15
+2:13-2:15
     ()
-operator05.lc 2:13-2:19
+2:13-2:19
     _a -> ()
-operator05.lc 2:13-2:22
+2:13-2:22
     ()
-operator05.lc 2:16-2:19
+2:16-2:19
     forall a b . a -> b -> ()
-operator05.lc 2:20-2:22
+2:20-2:22
     ()

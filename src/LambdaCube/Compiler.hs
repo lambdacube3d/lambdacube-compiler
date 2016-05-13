@@ -89,15 +89,15 @@ type ModuleFetcher m = Maybe FilePath -> Either FilePath MName -> m (Either Doc 
 ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m x)
 ioFetch paths' imp n = do
     preludePath <- (</> "lc") <$> liftIO getDataDir
-    let paths = paths' ++ [preludePath]
-        find ((x, mn): xs) = liftIO (readFileIfExists x) >>= maybe (find xs) (\src -> return $ Right (x, mn, liftIO src))
+    let paths = map (id &&& id) paths' ++ [(preludePath, "<<installed-prelude-path>>")]
+        find ((x, (x', mn)): xs) = liftIO (readFileIfExists x) >>= maybe (find xs) (\src -> return $ Right (x', mn, liftIO src))
         find [] = return $ Left $ "can't find" <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
-                                  <+> "in path" <+> hsep (map text (paths' ++ ["<<installed-prelude-path>>"]{-todo-}))
+                                  <+> "in path" <+> hsep (text . snd <$> paths)
     find $ nubBy ((==) `on` fst) $ map (first normalise . lcModuleFile) paths
   where
-    lcModuleFile path = case n of
-        Left n  -> (path </> n, fileNameToModuleName n)
-        Right n -> (path </> moduleNameToFileName n, n)
+    lcModuleFile (path, path') = case n of
+        Left n  -> (path </> n, (path' </> n, fileNameToModuleName n))
+        Right n -> (path </> moduleNameToFileName n, (path' </> moduleNameToFileName n, n))
 
 --------------------------------------------------------------------------------
 

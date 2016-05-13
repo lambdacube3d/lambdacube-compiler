@@ -12,15 +12,15 @@ value1 = _rhs 'a'
 value2 :: Char
 value2 = _rhs 'a'
 ------------ tooltips
-typesig01.lc 1:11-1:15
+1:11-1:15
     Type
-typesig01.lc 2:1-2:7
+2:1-2:7
     Char
-typesig01.lc 2:10-2:13
+2:10-2:13
     Char
-typesig01.lc 4:9-4:13
+4:9-4:13
     Type
-typesig01.lc 5:1-5:7
+5:1-5:7
     Char
-typesig01.lc 5:8-5:11
+5:8-5:11
     Char

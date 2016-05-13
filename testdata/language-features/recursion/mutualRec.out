@@ -89,45 +89,45 @@ x = _rhs (False : y)
 y :: [Bool]
 y = _rhs (True : x)
 ------------ tooltips
-mutualRec.lc 4:1-4:2
+4:1-4:2
     _f | _c | _c | _f | _c | _c | [Bool]
-mutualRec.lc 4:1-5:2
+4:1-5:2
     _b | _e | (_e, _d) | ([Bool], [Bool]) | ([Bool], [Bool]) | ([Bool]
     , [Bool]) | ([Bool], [Bool]) | ([Bool], [Bool])
-mutualRec.lc 4:5-4:10
+4:5-4:10
     Bool
-mutualRec.lc 4:5-4:11
+4:5-4:11
     [Bool] -> [Bool]
-mutualRec.lc 4:5-4:13
+4:5-4:13
     [Bool] | (([Bool]))
-mutualRec.lc 4:5-5:12
+4:5-5:12
     ([Bool], [Bool])
-mutualRec.lc 4:10-4:11
+4:10-4:11
     forall a . a -> [a] -> [a]
-mutualRec.lc 4:12-4:13
+4:12-4:13
     _e
-mutualRec.lc 5:1-5:2
+5:1-5:2
     _k | _h | _d | _k | _h | _d | [Bool]
-mutualRec.lc 5:5-5:9
+5:5-5:9
     Bool
-mutualRec.lc 5:5-5:10
+5:5-5:10
     [Bool] -> [Bool]
-mutualRec.lc 5:5-5:12
+5:5-5:12
     [Bool]
-mutualRec.lc 5:9-5:10
+5:9-5:10
     forall a . a -> [a] -> [a]
-mutualRec.lc 5:11-5:12
+5:11-5:12
     _d
-mutualRec.lc 7:1-7:5
+7:1-7:5
     Bool
-mutualRec.lc 7:8-8:34
+7:8-8:34
     Bool
-mutualRec.lc 7:13-7:14
+7:13-7:14
     [Bool]
-mutualRec.lc 8:30-8:34
+8:30-8:34
     Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at mutualRec.lc:7:13:
+Uncovered pattern(s) at ./testdata/language-features/recursion/mutualRec.lc:7:13:
 main = case x of
             ^
 Missing case(s):

@@ -31,31 +31,31 @@ value2
       "1"
       ((a == d) (fromInt a e 1) (fromInt a e 2)))
 ------------ tooltips
-case02.lc 1:1-1:7
+1:1-1:7
     forall a . (Eq a, Num a) => ()
-case02.lc 1:10-3:10
+1:10-3:10
     ()
-case02.lc 1:15-1:16
+1:15-1:16
     _b
-case02.lc 2:8-2:10
+2:8-2:10
     ()
-case02.lc 2:8-3:10
+2:8-3:10
     Bool -> ()
-case02.lc 3:8-3:10
+3:8-3:10
     ()
-case02.lc 5:1-5:7
+5:1-5:7
     forall a . (Eq a, Num a, Eq a, Num a) => String
-case02.lc 5:10-8:11
+5:10-8:11
     String
-case02.lc 5:15-5:16
+5:15-5:16
     _b
-case02.lc 6:8-6:11
+6:8-6:11
     String
-case02.lc 6:8-8:11
+6:8-8:11
     Bool -> String
-case02.lc 7:8-7:11
+7:8-7:11
     String
-case02.lc 7:8-8:11
+7:8-8:11
     Bool -> String | String
-case02.lc 8:8-8:11
+8:8-8:11
     String

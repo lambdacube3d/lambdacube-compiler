@@ -10,17 +10,17 @@ main
 main :: Bool
 main = _rhs True
 ------------ tooltips
-caseWhere.lc 4:1-4:5
+4:1-4:5
     Bool
-caseWhere.lc 4:8-7:14
+4:8-7:14
     Bool
-caseWhere.lc 4:13-4:17
+4:13-4:17
     Bool
-caseWhere.lc 5:9-5:10
+5:9-5:10
     _c
-caseWhere.lc 5:9-5:15
+5:9-5:15
     Bool
-caseWhere.lc 5:14-5:15
+5:14-5:15
     _d
-caseWhere.lc 7:13-7:14
+7:13-7:14
     _b

@@ -5,11 +5,11 @@ f = _lhs f \(_ :: _) -> _rhs "hello"
 f :: forall a . a -> String
 f = \a _ -> _rhs "hello"
 ------------ tooltips
-unreachable.lc 4:1-4:2
+4:1-4:2
     forall a . a -> String
-unreachable.lc 4:7-4:14
+4:7-4:14
     String
 ------------ warnings
-Source code is not reachable: unreachable.lc:5:7:
+Source code is not reachable: ./testdata/language-features/pattern/unreachable.lc:5:7:
 f _ = "world"
       ^^^^^^^

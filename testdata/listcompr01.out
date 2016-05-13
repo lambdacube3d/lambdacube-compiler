@@ -49,48 +49,48 @@ a
 main :: Bool
 main = _rhs True
 ------------ tooltips
-listcompr01.lc 1:6-1:21
+1:6-1:21
     Type
-listcompr01.lc 1:7-1:20
+1:7-1:20
     Type
-listcompr01.lc 1:8-1:13
+1:8-1:13
     Type
-listcompr01.lc 1:8-1:19
+1:8-1:19
     [Type]
-listcompr01.lc 1:14-1:19
+1:14-1:19
     Type | [Type]
-listcompr01.lc 2:1-2:2
+2:1-2:2
     [(Float, Float)]
-listcompr01.lc 2:5-2:35
+2:5-2:35
     [(Float, Float)]
-listcompr01.lc 2:6-2:11
+2:6-2:11
     (_f, _c) | [(_e, _b)]
-listcompr01.lc 2:6-2:34
+2:6-2:34
     [(_b, Float)]
-listcompr01.lc 2:7-2:8
+2:7-2:8
     _i
-listcompr01.lc 2:9-2:10
+2:9-2:10
     _f | ((_c))
-listcompr01.lc 2:17-2:22
+2:17-2:22
     [Float]
-listcompr01.lc 2:18-2:21
+2:18-2:21
     Float
-listcompr01.lc 2:29-2:34
+2:29-2:34
     [Float]
-listcompr01.lc 2:30-2:33
+2:30-2:33
     Float
-listcompr01.lc 4:9-4:13
+4:9-4:13
     Type
-listcompr01.lc 5:1-5:5
+5:1-5:5
     Bool
-listcompr01.lc 5:8-6:29
+5:8-6:29
     Bool
-listcompr01.lc 5:13-5:14
+5:13-5:14
     [(Float, Float)]
-listcompr01.lc 6:25-6:29
+6:25-6:29
     Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at listcompr01.lc:5:13:
+Uncovered pattern(s) at ./testdata/listcompr01.lc:5:13:
 main = case a of
             ^
 Missing case(s):

@@ -2,7 +2,7 @@ type error: can not unify
   [Char]
 with
   ()
-in list14.reject.lc:1:17:
+in ./testdata/language-features/basic-list/list14.reject.lc:1:17:
 value = 'h':'i':()
                 ^^
 ------------ trace
@@ -10,21 +10,21 @@ value = 'h':'i':()
   [Char]
 with
   ()
-in list14.reject.lc:1:17:
+in ./testdata/language-features/basic-list/list14.reject.lc:1:17:
 value = 'h':'i':()
                 ^^
 ------------ tooltips
-list14.reject.lc 1:9-1:12
+1:9-1:12
     Char
-list14.reject.lc 1:9-1:13
+1:9-1:13
     [Char] -> [Char]
-list14.reject.lc 1:12-1:13
+1:12-1:13
     forall a . a -> [a] -> [a]
-list14.reject.lc 1:13-1:16
+1:13-1:16
     Char
-list14.reject.lc 1:13-1:17
+1:13-1:17
     [Char] -> [Char]
-list14.reject.lc 1:16-1:17
+1:16-1:17
     forall a . a -> [a] -> [a]
-list14.reject.lc 1:17-1:19
+1:17-1:19
     ()

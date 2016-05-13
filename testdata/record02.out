@@ -116,67 +116,67 @@ z
       c
       (project ('RecordC b) d "c" e (project ('RecordC d) f "x" g (h v3))))
 ------------ tooltips
-record02.lc 1:1-1:3
+1:1-1:3
     RecordC ' ['RecItem "x" Float, 'RecItem "y" Float]
-record02.lc 1:6-1:19
+1:6-1:19
     RecordC ' ['RecItem "x" Float, 'RecItem "y" Float]
-record02.lc 1:7-1:8
+1:7-1:8
     String | RecItem
-record02.lc 1:7-1:14
+1:7-1:14
     [RecItem]
-record02.lc 1:9-1:12
+1:9-1:12
     Float
-record02.lc 1:9-1:18
+1:9-1:18
     HList (Float : recItemType ('RecItem "y" Float) : map recItemType ' [])
-record02.lc 1:13-1:14
+1:13-1:14
     String | RecItem | [RecItem]
-record02.lc 1:15-1:18
+1:15-1:18
     Float | ((Float))
-record02.lc 2:1-2:3
+2:1-2:3
     RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float]
-record02.lc 2:6-2:26
+2:6-2:26
     RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float]
-record02.lc 2:7-2:8
+2:7-2:8
     String | RecItem
-record02.lc 2:7-2:20
+2:7-2:20
     [RecItem]
-record02.lc 2:9-2:12
+2:9-2:12
     Float
-record02.lc 2:9-2:25
+2:9-2:25
     HList
       (Float
         : recItemType ('RecItem "y" Float) : map recItemType ' ['RecItem "z" Float])
-record02.lc 2:13-2:14
+2:13-2:14
     String | RecItem
-record02.lc 2:13-2:20
+2:13-2:20
     [RecItem]
-record02.lc 2:15-2:18
+2:15-2:18
     Float
-record02.lc 2:15-2:25
+2:15-2:25
     HList (Float : recItemType ('RecItem "z" Float) : map recItemType ' [])
-record02.lc 2:19-2:20
+2:19-2:20
     String | RecItem | [RecItem]
-record02.lc 2:21-2:25
+2:21-2:25
     Float | ((Float))
-record02.lc 3:1-3:3
+3:1-3:3
     RecordC
       ' ['RecItem "v1" (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float])
       , 'RecItem
         "v2"
         (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float])]
-record02.lc 3:6-3:20
+3:6-3:20
     RecordC
       ' ['RecItem "v1" (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float])
       , 'RecItem
         "v2"
         (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float])]
-record02.lc 3:7-3:9
+3:7-3:9
     String | RecItem
-record02.lc 3:7-3:16
+3:7-3:16
     [RecItem]
-record02.lc 3:10-3:12
+3:10-3:12
     RecordC ' ['RecItem "x" Float, 'RecItem "y" Float]
-record02.lc 3:10-3:19
+3:10-3:19
     HList
       (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float]
         : recItemType
@@ -184,36 +184,36 @@ record02.lc 3:10-3:19
               "v2"
               (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float]))
           : map recItemType ' [])
-record02.lc 3:14-3:16
+3:14-3:16
     String | RecItem | [RecItem]
-record02.lc 3:17-3:19
+3:17-3:19
     RecordC
       ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float] | ((RecordC
       ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float]))
-record02.lc 4:1-4:2
+4:1-4:2
     forall a
       . Num (MatVecScalarElem a)
         => forall (b :: [RecItem])
           . (isKeyC "x" a b, isKeyC "y" (MatVecScalarElem a) b) => RecordC b -> a
-record02.lc 4:7-4:8
+4:7-4:8
     _g
-record02.lc 4:7-4:10
+4:7-4:10
     _c
-record02.lc 4:7-4:13
+4:7-4:13
     MatVecScalarElem _d -> _d
-record02.lc 4:7-4:17
+4:7-4:17
     _e
-record02.lc 4:9-4:10
+4:9-4:10
     String
-record02.lc 4:11-4:13
+4:11-4:13
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-record02.lc 4:14-4:15
+4:14-4:15
     RecordC _e
-record02.lc 4:14-4:17
+4:14-4:17
     _b
-record02.lc 4:16-4:17
+4:16-4:17
     String
-record02.lc 5:1-5:2
+5:1-5:2
     forall a
       . Num (MatVecScalarElem a)
         => forall (b :: [RecItem])
@@ -223,33 +223,33 @@ record02.lc 5:1-5:2
                 => forall (d :: [RecItem])
                   . (isKeyC "z" (MatVecScalarElem a) d, isKeyC "v2" (RecordC d) c)
                     => RecordC c -> a
-record02.lc 5:7-5:8
+5:7-5:8
     _j
-record02.lc 5:7-5:11
+5:7-5:11
     _c
-record02.lc 5:7-5:13
+5:7-5:13
     _e
-record02.lc 5:7-5:16
+5:7-5:16
     MatVecScalarElem _f -> _f
-record02.lc 5:7-5:23
+5:7-5:23
     _i
-record02.lc 5:9-5:11
+5:9-5:11
     String
-record02.lc 5:12-5:13
+5:12-5:13
     String
-record02.lc 5:14-5:16
+5:14-5:16
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-record02.lc 5:17-5:18
+5:17-5:18
     RecordC _h
-record02.lc 5:17-5:21
+5:17-5:21
     _b
-record02.lc 5:17-5:23
+5:17-5:23
     _d
-record02.lc 5:19-5:21
+5:19-5:21
     String
-record02.lc 5:22-5:23
+5:22-5:23
     String
-record02.lc 7:1-7:2
+7:1-7:2
     forall a (b :: [RecItem])
       . isKeyC "x" a b
         => (RecordC
@@ -259,19 +259,19 @@ record02.lc 7:1-7:2
                 (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float])]
             -> RecordC b)
           -> a
-record02.lc 7:7-7:15
+7:7-7:15
     _c
-record02.lc 7:8-7:9
+7:8-7:9
     _e
-record02.lc 7:10-7:12
+7:10-7:12
     RecordC
       ' ['RecItem "v1" (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float])
       , 'RecItem
         "v2"
         (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float])]
-record02.lc 7:14-7:15
+7:14-7:15
     String
-record02.lc 8:1-8:2
+8:1-8:2
     forall a (b :: [RecItem])
       . isKeyC "v" a b
         => forall (c :: [RecItem])
@@ -285,61 +285,61 @@ record02.lc 8:1-8:2
                         (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float])]
                     -> RecordC d)
                   -> a
-record02.lc 8:7-8:19
+8:7-8:19
     _g
-record02.lc 8:8-8:9
+8:8-8:9
     _k
-record02.lc 8:8-8:15
+8:8-8:15
     _c
-record02.lc 8:8-8:17
+8:8-8:17
     _e
-record02.lc 8:10-8:12
+8:10-8:12
     RecordC
       ' ['RecItem "v1" (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float])
       , 'RecItem
         "v2"
         (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float])]
-record02.lc 8:14-8:15
+8:14-8:15
     String
-record02.lc 8:16-8:17
+8:16-8:17
     String
-record02.lc 8:18-8:19
+8:18-8:19
     String
-record02.lc 10:1-10:5
+10:1-10:5
     Bool
-record02.lc 10:8-12:15
+10:8-12:15
     Bool
-record02.lc 10:13-10:14
+10:13-10:14
     forall a
       . Num (MatVecScalarElem a)
         => forall (b :: [RecItem])
           . (isKeyC "x" a b, isKeyC "y" (MatVecScalarElem a) b) => RecordC b -> a
-record02.lc 10:13-10:17
+10:13-10:17
     _d
-record02.lc 10:13-10:20
+10:13-10:20
     MatVecScalarElem Float -> Float
-record02.lc 10:13-10:25
+10:13-10:25
     Float
-record02.lc 10:13-10:28
+10:13-10:28
     MatVecScalarElem Float -> Float
-record02.lc 10:13-10:33
+10:13-10:33
     Float
-record02.lc 10:15-10:17
+10:15-10:17
     RecordC ' ['RecItem "x" Float, 'RecItem "y" Float]
-record02.lc 10:18-10:20
+10:18-10:20
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-record02.lc 10:21-10:22
+10:21-10:22
     forall a
       . Num (MatVecScalarElem a)
         => forall (b :: [RecItem])
           . (isKeyC "x" a b, isKeyC "y" (MatVecScalarElem a) b) => RecordC b -> a
-record02.lc 10:21-10:25
+10:21-10:25
     _d
-record02.lc 10:23-10:25
+10:23-10:25
     RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float]
-record02.lc 10:26-10:28
+10:26-10:28
     forall a . Num (MatVecScalarElem a) => a -> MatVecScalarElem a -> a
-record02.lc 10:29-10:30
+10:29-10:30
     forall a
       . Num (MatVecScalarElem a)
         => forall (b :: [RecItem])
@@ -349,17 +349,17 @@ record02.lc 10:29-10:30
                 => forall (d :: [RecItem])
                   . (isKeyC "z" (MatVecScalarElem a) d, isKeyC "v2" (RecordC d) c)
                     => RecordC c -> a
-record02.lc 10:29-10:33
+10:29-10:33
     _h
-record02.lc 10:31-10:33
+10:31-10:33
     RecordC
       ' ['RecItem "v1" (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float])
       , 'RecItem
         "v2"
         (RecordC ' ['RecItem "x" Float, 'RecItem "y" Float, 'RecItem "z" Float])]
-record02.lc 11:13-11:17
+11:13-11:17
     Bool
-record02.lc 11:13-12:15
+11:13-12:15
     Bool -> Bool
-record02.lc 12:10-12:15
+12:10-12:15
     Bool

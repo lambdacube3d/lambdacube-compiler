@@ -103,85 +103,85 @@ not = \a -> case'Bool (\_ -> 'Bool) (_rhs True) (_rhs False) a
 || :: Bool -> Bool -> Bool
 || = \a b -> case'Bool (\_ -> 'Bool) (_rhs b) (_rhs True) a
 ------------ tooltips
-typeclass.lc 8:1-8:4
+8:1-8:4
     Bool -> Bool
-typeclass.lc 8:12-8:17
+8:12-8:17
     Bool
-typeclass.lc 8:12-9:17
+8:12-9:17
     Bool -> Bool
-typeclass.lc 9:13-9:17
+9:13-9:17
     Bool
-typeclass.lc 11:6-11:8
+11:6-11:8
     Bool -> Bool -> Bool
-typeclass.lc 11:13-11:14
+11:13-11:14
     _b
-typeclass.lc 11:13-12:19
+11:13-12:19
     Bool -> Bool
-typeclass.lc 12:14-12:19
+12:14-12:19
     Bool
-typeclass.lc 14:7-14:9
+14:7-14:9
     Bool -> Bool -> Bool
-typeclass.lc 14:14-14:15
+14:14-14:15
     _c
-typeclass.lc 14:14-15:17
+14:14-15:17
     Bool -> Bool
-typeclass.lc 15:13-15:17
+15:13-15:17
     Bool
-typeclass.lc 17:7-17:9
+17:7-17:9
     Type -> Constraint | Type -> Constraint | Constraint
-typeclass.lc 17:7-18:27
+17:7-18:27
     Type
-typeclass.lc 18:6-18:8
+18:6-18:8
     forall a . Eq a => a -> a -> Bool
-typeclass.lc 18:13-18:14
+18:13-18:14
     Type
-typeclass.lc 18:13-18:27
+18:13-18:27
     Type
-typeclass.lc 18:18-18:19
+18:18-18:19
     Type
-typeclass.lc 18:18-18:27
+18:18-18:27
     Type
-typeclass.lc 18:23-18:27
+18:23-18:27
     Type | Type
-typeclass.lc 20:3-20:5
+20:3-20:5
     forall a . Eq a => a -> a -> Bool
-typeclass.lc 20:10-20:13
+20:10-20:13
     Bool -> Bool
-typeclass.lc 20:10-20:22
+20:10-20:22
     Bool
-typeclass.lc 20:15-20:16
+20:15-20:16
     _f
-typeclass.lc 20:15-20:19
+20:15-20:19
     _e -> Bool
-typeclass.lc 20:15-20:21
+20:15-20:21
     Bool
-typeclass.lc 20:17-20:19
+20:17-20:19
     forall a . Eq a => a -> a -> Bool
-typeclass.lc 20:20-20:21
+20:20-20:21
     _c
-typeclass.lc 23:17-23:18
+23:17-23:18
     Bool
-typeclass.lc 23:17-24:23
+23:17-24:23
     Bool -> Bool
-typeclass.lc 24:18-24:21
+24:18-24:21
     Bool -> Bool
-typeclass.lc 24:18-24:23
+24:18-24:23
     Bool
-typeclass.lc 24:22-24:23
+24:22-24:23
     _b
-typeclass.lc 26:6-26:9
+26:6-26:9
     forall a b . [a] -> [b] -> Bool
-typeclass.lc 26:17-26:21
+26:17-26:21
     Bool
-typeclass.lc 26:17-28:22
+26:17-28:22
     [_a] -> Bool | Bool
-typeclass.lc 27:36-27:38
+27:36-27:38
     [_j]
-typeclass.lc 27:36-28:22
+27:36-28:22
     [_a] -> Bool | Bool
-typeclass.lc 27:39-27:42
+27:39-27:42
     _l
-typeclass.lc 27:43-27:45
+27:43-27:45
     [_g]
-typeclass.lc 28:17-28:22
+28:17-28:22
     Bool | Bool

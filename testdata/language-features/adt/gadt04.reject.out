@@ -1,7 +1,7 @@
-already defined Value at gadt04.reject.lc:6:3:
+already defined Value at ./testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
-and at gadt04.reject.lc:3:3:
+and at ./testdata/language-features/adt/gadt04.reject.lc:3:3:
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ trace
@@ -16,71 +16,71 @@ match'M
     -> (forall b (c :: String) -> a (M b c)) -> forall d -> a d -> a d
 'M2 :: Type -> String -> Type
 Value :: forall a . a -> forall (b :: String) . M2 a b
-!already defined Value at gadt04.reject.lc:6:3:
+!already defined Value at ./testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
-and at gadt04.reject.lc:3:3:
+and at ./testdata/language-features/adt/gadt04.reject.lc:3:3:
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ tooltips
-gadt04.reject.lc 2:6-2:7
+2:6-2:7
     Type -> String -> Type | Type -> String -> Type | Type | Type | Type
       -> String -> Type | Type | Type | Type
-gadt04.reject.lc 2:6-3:33
+2:6-3:33
     Type
-gadt04.reject.lc 2:11-2:15
+2:11-2:15
     Type
-gadt04.reject.lc 2:19-2:25
+2:19-2:25
     Type
-gadt04.reject.lc 2:19-2:33
+2:19-2:33
     Type
-gadt04.reject.lc 2:29-2:33
+2:29-2:33
     Type | Type
-gadt04.reject.lc 3:3-3:8
+3:3-3:8
     forall a . a -> forall (b :: String) . M a b | M _c _a
-gadt04.reject.lc 3:3-3:33
+3:3-3:33
     Type | Type | Type | Type
-gadt04.reject.lc 3:12-3:13
+3:12-3:13
     _b
-gadt04.reject.lc 3:12-3:33
+3:12-3:33
     Type
-gadt04.reject.lc 3:17-3:33
+3:17-3:33
     Type
-gadt04.reject.lc 3:28-3:29
+3:28-3:29
     Type -> String -> Type
-gadt04.reject.lc 3:28-3:31
+3:28-3:31
     String -> Type
-gadt04.reject.lc 3:28-3:33
+3:28-3:33
     Type | Type
-gadt04.reject.lc 3:30-3:31
+3:30-3:31
     Type | Type
-gadt04.reject.lc 3:30-3:33
+3:30-3:33
     M _c _a -> Type
-gadt04.reject.lc 3:32-3:33
+3:32-3:33
     _b | String
-gadt04.reject.lc 5:6-5:8
+5:6-5:8
     Type -> String -> Type
-gadt04.reject.lc 5:12-5:16
+5:12-5:16
     Type
-gadt04.reject.lc 5:20-5:26
+5:20-5:26
     Type
-gadt04.reject.lc 5:20-5:34
+5:20-5:34
     Type
-gadt04.reject.lc 5:30-5:34
+5:30-5:34
     Type | Type
-gadt04.reject.lc 6:12-6:13
+6:12-6:13
     _b
-gadt04.reject.lc 6:12-6:34
+6:12-6:34
     Type
-gadt04.reject.lc 6:17-6:34
+6:17-6:34
     Type
-gadt04.reject.lc 6:28-6:30
+6:28-6:30
     Type -> String -> Type
-gadt04.reject.lc 6:28-6:32
+6:28-6:32
     String -> Type
-gadt04.reject.lc 6:28-6:34
+6:28-6:34
     Type | Type
-gadt04.reject.lc 6:31-6:32
+6:31-6:32
     Type
-gadt04.reject.lc 6:33-6:34
+6:33-6:34
     _b

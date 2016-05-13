@@ -117,72 +117,72 @@ xy = primFix _ \a -> _rhs (False : snd a, True : fst a)
 y :: [Bool]
 y = _rhs (True : fst xy)
 ------------ tooltips
-mutualConst.lc 4:1-4:4
+4:1-4:4
     forall a b . (a, b) -> a
-mutualConst.lc 4:14-4:15
+4:14-4:15
     _k | _h | _d
-mutualConst.lc 5:1-5:4
+5:1-5:4
     forall a b . (a, b) -> b
-mutualConst.lc 5:14-5:15
+5:14-5:15
     _f | _c | _c
-mutualConst.lc 7:1-7:3
+7:1-7:3
     ([Bool], [Bool])
-mutualConst.lc 7:6-7:44
+7:6-7:44
     [Bool] -> ([Bool], [Bool])
-mutualConst.lc 7:6-7:53
+7:6-7:53
     ([Bool], [Bool])
-mutualConst.lc 7:15-7:34
+7:15-7:34
     ([Bool], [Bool])
-mutualConst.lc 7:16-7:21
+7:16-7:21
     Bool
-mutualConst.lc 7:16-7:22
+7:16-7:22
     [Bool] -> [Bool]
-mutualConst.lc 7:16-7:24
+7:16-7:24
     [Bool]
-mutualConst.lc 7:21-7:22
+7:21-7:22
     forall a . a -> [a] -> [a]
-mutualConst.lc 7:23-7:24
+7:23-7:24
     _c
-mutualConst.lc 7:26-7:30
+7:26-7:30
     Bool
-mutualConst.lc 7:26-7:31
+7:26-7:31
     [Bool] -> [Bool]
-mutualConst.lc 7:26-7:33
+7:26-7:33
     [Bool] | (([Bool]))
-mutualConst.lc 7:30-7:31
+7:30-7:31
     forall a . a -> [a] -> [a]
-mutualConst.lc 7:32-7:33
+7:32-7:33
     _e
-mutualConst.lc 7:37-7:40
+7:37-7:40
     forall a b . (a, b) -> a
-mutualConst.lc 7:37-7:43
+7:37-7:43
     _b
-mutualConst.lc 7:41-7:43
+7:41-7:43
     _d
-mutualConst.lc 7:46-7:49
+7:46-7:49
     forall a b . (a, b) -> b
-mutualConst.lc 7:46-7:52
+7:46-7:52
     [Bool]
-mutualConst.lc 7:50-7:52
+7:50-7:52
     ([Bool], [Bool])
-mutualConst.lc 9:2-9:3
+9:2-9:3
     _k | _h | _d | [Bool]
-mutualConst.lc 9:2-9:6
+9:2-9:6
     ([Bool], [Bool]) | ([Bool], [Bool]) | ([Bool], [Bool])
-mutualConst.lc 9:5-9:6
+9:5-9:6
     _f | _c | _c | [Bool]
-mutualConst.lc 9:10-9:12
+9:10-9:12
     ([Bool], [Bool])
-mutualConst.lc 11:1-11:5
+11:1-11:5
     Bool
-mutualConst.lc 11:8-12:34
+11:8-12:34
     Bool
-mutualConst.lc 11:13-11:14
+11:13-11:14
     [Bool]
-mutualConst.lc 12:30-12:34
+12:30-12:34
     Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at mutualConst.lc:11:13:
+Uncovered pattern(s) at ./testdata/language-features/recursion/mutualConst.lc:11:13:
 main = case x of
             ^
 Missing case(s):

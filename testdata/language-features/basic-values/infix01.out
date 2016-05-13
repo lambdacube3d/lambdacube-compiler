@@ -10,19 +10,19 @@ fun = \a b _ _ -> _rhs ()
 value :: forall a b . a -> b -> ()
 value = \a b _ _ -> _rhs ()
 ------------ tooltips
-infix01.lc 1:1-1:4
+1:1-1:4
     forall a b . a -> b -> ()
-infix01.lc 1:11-1:13
+1:11-1:13
     ()
-infix01.lc 3:1-3:6
+3:1-3:6
     forall a b . a -> b -> ()
-infix01.lc 3:13-3:14
+3:13-3:14
     _f
-infix01.lc 3:13-3:20
+3:13-3:20
     _a -> ()
-infix01.lc 3:13-3:22
+3:13-3:22
     ()
-infix01.lc 3:15-3:20
+3:15-3:20
     forall a b . a -> b -> ()
-infix01.lc 3:21-3:22
+3:21-3:22
     _c

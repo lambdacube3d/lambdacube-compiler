@@ -271,6 +271,12 @@ inferN_ tellTrace = infer  where
             = infer te $ x `SAppV` SLamV (SLamV (STyped (subst (n'+2) (Var 1) $ up1_ (n'+3) $ up 2 t, TType))) `SAppV` a `SAppV` b `SAppV` SVar siv v
 -}
         | SRHS x <- e = checkN (ERHS te) x t
+{- TODO
+        | SAnn v a <- e = do
+            let x = t
+            let same = checkSame te a x
+            if same then checkN te v x else  error $ "checkSame:\n" ++ ppShow a ++ "\nwith\n" ++ showEnvExp te (ET x TType)
+-}
         | SLHS n x <- e = checkN (ELHS n te) x t
         | SApp_ si h a b <- e = infer (CheckAppType si h t te b) a
         | SLam h a b <- e, Pi h' x y <- t, h == h' = do

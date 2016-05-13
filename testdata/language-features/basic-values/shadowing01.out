@@ -16,25 +16,25 @@ value
 value :: Char
 value = _rhs '7'
 ------------ tooltips
-shadowing01.lc 1:1-1:6
+1:1-1:6
     Char
-shadowing01.lc 2:11-2:14
+2:11-2:14
     Char
-shadowing01.lc 3:11-3:18
+3:11-3:18
     String
-shadowing01.lc 5:17-5:18
+5:17-5:18
     _b
-shadowing01.lc 6:17-6:21
+6:17-6:21
     Float
-shadowing01.lc 7:25-7:27
+7:25-7:27
     ()
-shadowing01.lc 8:25-8:28
+8:25-8:28
     Char
-shadowing01.lc 9:25-9:29
+9:25-9:29
     Float
-shadowing01.lc 10:20-10:27
+10:20-10:27
     String
-shadowing01.lc 11:14-11:16
+11:14-11:16
     ()
-shadowing01.lc 12:6-12:9
+12:6-12:9
     Char

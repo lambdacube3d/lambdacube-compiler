@@ -7,11 +7,11 @@ value = _lhs value (_rhs 12.2)
 greeting :: Char
 greeting = _rhs 'G'
 ------------ tooltips
-Hello03.lc 7:1-7:9
+7:1-7:9
     Char
-Hello03.lc 7:12-7:15
+7:12-7:15
     Char
-Hello03.lc 9:1-9:6
+9:1-9:6
     Float
-Hello03.lc 9:9-9:13
+9:9-9:13
     Float

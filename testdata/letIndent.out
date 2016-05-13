@@ -5,11 +5,11 @@ fun = _lhs fun \(a :: _) -> _rhs let b = fromInt 1; c = fromInt 2 in a
 fun :: forall a . a -> a
 fun = \a b -> _rhs b
 ------------ tooltips
-letIndent.lc 2:1-2:4
+2:1-2:4
     forall a . a -> a
-letIndent.lc 3:10-3:11
+3:10-3:11
     _b
-letIndent.lc 4:10-4:11
+4:10-4:11
     _b
-letIndent.lc 5:7-5:8
+5:7-5:8
     _d

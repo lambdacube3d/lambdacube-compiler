@@ -21,16 +21,16 @@ fun
     (_rhs '1')
     ((a == d) (fromInt a e 1) f)
 ------------ tooltips
-def03.lc 1:1-1:4
+1:1-1:4
     forall a . (Eq a, Num a, Eq a, Num a) => a -> Char
-def03.lc 1:9-1:12
+1:9-1:12
     Char
-def03.lc 1:9-2:12
+1:9-2:12
     Bool -> Char
-def03.lc 2:9-2:12
+2:9-2:12
     Char | Char
 ------------ warnings
-Uncovered pattern(s) at def03.lc:1:1:
+Uncovered pattern(s) at ./testdata/language-features/basic-values/def03.lc:1:1:
 fun 1 = '1'
 fun 2 = '2'
 Missing case(s):

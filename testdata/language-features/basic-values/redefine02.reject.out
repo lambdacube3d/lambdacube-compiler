@@ -1,9 +1,9 @@
-testdata/language-features/basic-values/redefine02.reject.lc:3:8:
+./testdata/language-features/basic-values/redefine02.reject.lc:3:8:
 expecting expression
 redefined x:
-redefine02.reject.lc:1:12:
+./testdata/language-features/basic-values/redefine02.reject.lc:1:12:
 unit = let x = ()
            ^
-redefine02.reject.lc:2:12:
+./testdata/language-features/basic-values/redefine02.reject.lc:2:12:
            x = ()
            ^

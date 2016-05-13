@@ -17,6 +17,7 @@ module LambdaCube.Compiler.InferMonad where
 
 import Data.Monoid
 import Data.List
+import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 
@@ -80,15 +81,16 @@ throwError' e = tell [IError e] >> throwError e
 mkInfoItem (RangeSI r) i = [Info r i]
 mkInfoItem _ _ = mempty
 
-listAllInfos m = h "trace"  (listTraceInfos m)
-             ++  h "tooltips" [ nest 4 $ shortForm $ pShow r <$$> hsep (intersperse "|" is) | (r, is) <- listTypeInfos m ]
-             ++  h "warnings" [ pShow w | ParseWarning w <- m ]
+listAllInfos f m
+    = h "trace"  (listTraceInfos m) ++ listAllInfos' f m
   where
     h x [] = []
     h x xs = ("------------" <+> x) : xs
 
-listAllInfos' m = h "tooltips" [ nest 4 $ shortForm $ pShow r <$$> hsep (intersperse "|" is) | (r, is) <- listTypeInfos m ]
-              ++  h "warnings" [ pShow w | ParseWarning w <- m ]
+listAllInfos' f m
+    =   h "tooltips" [ nest 4 $ shortForm $ showRangeWithoutFileName r <$$> hsep (intersperse "|" is)
+                     | (r, is) <- listTypeInfos m, maybe False (rangeFile r ==) f ]
+    ++  h "warnings" [ pShow w | ParseWarning w <- m ]
   where
     h x [] = []
     h x xs = ("------------" <+> x) : xs

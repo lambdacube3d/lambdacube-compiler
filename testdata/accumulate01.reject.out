@@ -1,3 +1,3 @@
-testdata/accumulate01.reject.lc:3:3:
+./testdata/accumulate01.reject.lc:3:3:
 expecting expression
 wrong indentation
