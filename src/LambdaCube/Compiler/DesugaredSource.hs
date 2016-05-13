@@ -20,7 +20,6 @@ import Data.Function
 import Data.Bits
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-import qualified Data.IntMap as IM
 import Control.Arrow hiding ((<+>))
 
 import LambdaCube.Compiler.Utils
@@ -562,39 +561,6 @@ instance DeBruijnify SIName Stmt where
         StmtLet sn e -> StmtLet sn (deBruijnify_ k v e)
         x@PrecDef{} -> x
         x -> error $ "deBruijnify @ " ++ ppShow x
-
--------------------------------------------------------------------------------- statement with dependencies
-
-data StmtNode = StmtNode
-    { snId          :: !Int
-    , snValue       :: Stmt
-    , snChildren    :: [StmtNode]
-    , snRevChildren :: [StmtNode]
-    }
-
-sortDefs :: [Stmt] -> [[Stmt]]
-sortDefs xs = map snValue <$> scc snId snChildren snRevChildren nodes
-  where
-    nodes = zipWith mkNode [0..] xs
-      where
-        mkNode i s = StmtNode i s (nubBy ((==) `on` snId) $ catMaybes $ (`Map.lookup` defMap) <$> need)
-                                  (fromMaybe [] $ IM.lookup i revMap)
-          where
-            need = Set.toList $ case s of
-                PrecDef{} -> mempty
-                StLet _ mt e -> foldMap names mt <> names e
-                Data _ ps t cs -> foldMap (names . snd) ps <> names t <> foldMap (names . snd) cs
-
-            names = foldName Set.singleton
-
-    revMap = IM.unionsWith (++) [IM.singleton (snId c) [n] | n <- nodes, c <- snChildren n]
-
-    defMap = Map.fromList [(s, n) | n <- nodes, s <- def $ snValue n]
-      where
-        def = \case
-            PrecDef{} -> mempty
-            StLet n _ _ -> [n]
-            Data n _ _ cs -> n: map fst cs
 
 -------------------------------------------------------------------------------- module
 
