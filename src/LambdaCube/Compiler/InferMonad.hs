@@ -17,7 +17,7 @@ module LambdaCube.Compiler.InferMonad where
 
 import Data.Monoid
 import Data.List
-import Data.Maybe
+--import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 
@@ -143,10 +143,13 @@ addLams ps t = foldr (const Lam) t ps
 
 lamify t x = addLams (fst $ getParams t) $ x $ downTo 0 $ arity t
 
+lamify' t x = addLams (fst $ getParams t) $ x $ downTo' 0 $ arity t
+
 arity :: Exp -> Int
 arity = length . fst . getParams
 
 downTo n m = map Var [n+m-1, n+m-2..n]
+downTo' n m = map Var [n, n+1..n+m-1]
 
 withEnv e = local $ second (<> e)
 
