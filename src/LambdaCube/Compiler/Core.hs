@@ -490,8 +490,8 @@ getFunDef t s f = case show s of
 
     "unsafeCoerce"      -> Just $ \case xs@(x@(hnf -> NonNeut): _{-2-}) -> x; xs -> f xs
     "reflCstr"          -> Just $ \case _ -> TT
-    "hlistNilCase"      -> Just $ \case ((hnf -> ConN FHCons _): x: _{-1-}) -> x; xs -> f xs
-    "hlistConsCase"     -> Just $ \case ((hnf -> ConN FHNil (b: a: _{-2-})): x: _{-3-}) -> x `app_` a `app_` b; xs -> f xs
+    "hlistNilCase"      -> Just $ \case ((hnf -> Con n@(ConName _ 0 _) _ _): x: _{-1-}) -> x; xs -> f xs
+    "hlistConsCase"     -> Just $ \case ((hnf -> Con n@(ConName _ 1 _) _ (b: a: _{-2-})): x: _{-3-}) -> x `app_` a `app_` b; xs -> f xs
 
     -- general compiler primitives
     "primAddInt"        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i + j); xs -> f xs
