@@ -210,6 +210,11 @@ data FNameTag
     -- functions
     | Fcoe | FparEval | Ft2C | FprimFix
     | Fparens | FtypeAnn | Fundefined | Fotherwise | FprimIfThenElse | FfromTo | FconcatMap | FfromInt | Fproject | Fswizzscalar | Fswizzvector
+
+    | FunsafeCoerce | FreflCstr | FhlistNilCase | FhlistConsCase
+    | FprimAddInt | FprimSubInt | FprimModInt | FprimSqrtFloat | FprimRound | FprimIntToFloat | FprimIntToNat | FprimCompareInt | FprimCompareFloat | FprimCompareChar | FprimCompareString
+    | FPrimGreaterThan | FPrimGreaterThanEqual | FPrimLessThan | FPrimLessThanEqual | FPrimEqualV | FPrimNotEqualV | FPrimEqual | FPrimNotEqual | FPrimSubS | FPrimSub | FPrimAddS | FPrimAdd | FPrimMulS | FPrimMul | FPrimDivS | FPrimDiv | FPrimModS | FPrimMod | FPrimNeg | FPrimAnd | FPrimOr | FPrimXor | FPrimNot
+
     -- other
     | F_rhs | F_section
     deriving (Eq, Ord, Show, Enum, Bounded)

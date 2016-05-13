@@ -462,76 +462,75 @@ instance MkDoc Neutral where
     MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 -}
 
-mkFunDef a@(show -> "primFix") t = fn
+mkFunDef a@(FTag FprimFix) t = fn
   where
     fn = FunName a 0 (DeltaDef (length $ fst $ getParams t) fx) t
     fx s xs = Neut $ Fun_ s fn xs $ case xs of
         f: _{-1-} -> RHS x where x = f `app_` Neut (Fun_ s fn xs $ RHS x)
         _ -> delta
 
-mkFunDef a t = fn
+mkFunDef a@(FTag tag) t = fn
   where
-    fn = FunName a 0 (maybe NoDef (DeltaDef (length $ fst $ getParams t) . const) $ getFunDef t a $ \xs -> Neut $ Fun fn xs delta) t
+    f xs = Neut $ Fun fn xs delta
+    fn = FunName a 0 (maybe NoDef (DeltaDef (length $ fst $ getParams t) . const) $ getFunDef tag) t
 
--- TODO: don't use show?
-getFunDef t s f = case show s of
-    "'EqCT"             -> Just $ \case (b: a: t: _)   -> cstr t a b
-    "'T2"               -> Just $ \case (b: a: _)      -> t2 a b
-    "'CW"               -> Just $ \case (a: _)         -> cw a
-    "t2C"               -> Just $ \case (b: a: _)      -> t2C a b
-    "coe"               -> Just $ \case (d: t: b: a: _) -> evalCoe a b t d
-    "parEval"           -> Just $ \case (b: a: t: _)   -> parEval t a b
-      where
-        parEval _ x@RHS{} _ = x
-        parEval _ _ x@RHS{} = x
-        parEval t a b       = ParEval t a b
+    getFunDef = \case
+        F'EqCT             -> Just $ \case (b: a: t: _)   -> cstr t a b
+        F'T2               -> Just $ \case (b: a: _)      -> t2 a b
+        F'CW               -> Just $ \case (a: _)         -> cw a
+        Ft2C               -> Just $ \case (b: a: _)      -> t2C a b
+        Fcoe               -> Just $ \case (d: t: b: a: _) -> evalCoe a b t d
+        FparEval           -> Just $ \case (b: a: t: _)   -> parEval t a b
+          where
+            parEval _ x@RHS{} _ = x
+            parEval _ _ x@RHS{} = x
+            parEval t a b       = ParEval t a b
 
-    "unsafeCoerce"      -> Just $ \case xs@(x@(hnf -> NonNeut): _{-2-}) -> x; xs -> f xs
-    "reflCstr"          -> Just $ \case _ -> TT
-    "hlistNilCase"      -> Just $ \case ((hnf -> Con n@(ConName _ 0 _) _ _): x: _{-1-}) -> x; xs -> f xs
-    "hlistConsCase"     -> Just $ \case ((hnf -> Con n@(ConName _ 1 _) _ (b: a: _{-2-})): x: _{-3-}) -> x `app_` a `app_` b; xs -> f xs
+        FunsafeCoerce      -> Just $ \case xs@(x@(hnf -> NonNeut): _{-2-}) -> x; xs -> f xs
+        FreflCstr          -> Just $ \case _ -> TT
+        FhlistNilCase      -> Just $ \case ((hnf -> Con n@(ConName _ 0 _) _ _): x: _{-1-}) -> x; xs -> f xs
+        FhlistConsCase     -> Just $ \case ((hnf -> Con n@(ConName _ 1 _) _ (b: a: _{-2-})): x: _{-3-}) -> x `app_` a `app_` b; xs -> f xs
 
-    -- general compiler primitives
-    "primAddInt"        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i + j); xs -> f xs
-    "primSubInt"        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i - j); xs -> f xs
-    "primModInt"        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i `mod` j); xs -> f xs
-    "primSqrtFloat"     -> Just $ \case (HFloat i: _)          -> HFloat $ sqrt i; xs -> f xs
-    "primRound"         -> Just $ \case (HFloat i: _)          -> HInt $ round i; xs -> f xs
-    "primIntToFloat"    -> Just $ \case (HInt i: _)            -> HFloat $ fromIntegral i; xs -> f xs
-    "primIntToNat"      -> Just $ \case (HInt i: _)            -> ENat $ fromIntegral i; xs -> f xs
-    "primCompareInt"    -> Just $ \case (HInt y: HInt x: _)    -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareFloat"  -> Just $ \case (HFloat y: HFloat x: _) -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareChar"   -> Just $ \case (HChar y: HChar x: _)  -> mkOrdering $ x `compare` y; xs -> f xs
-    "primCompareString" -> Just $ \case (HString y: HString x: _) -> mkOrdering $ x `compare` y; xs -> f xs
+        -- general compiler primitives
+        FprimAddInt        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i + j); xs -> f xs
+        FprimSubInt        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i - j); xs -> f xs
+        FprimModInt        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i `mod` j); xs -> f xs
+        FprimSqrtFloat     -> Just $ \case (HFloat i: _)          -> HFloat $ sqrt i; xs -> f xs
+        FprimRound         -> Just $ \case (HFloat i: _)          -> HInt $ round i; xs -> f xs
+        FprimIntToFloat    -> Just $ \case (HInt i: _)            -> HFloat $ fromIntegral i; xs -> f xs
+        FprimIntToNat      -> Just $ \case (HInt i: _)            -> ENat $ fromIntegral i; xs -> f xs
+        FprimCompareInt    -> Just $ \case (HInt y: HInt x: _)    -> mkOrdering $ x `compare` y; xs -> f xs
+        FprimCompareFloat  -> Just $ \case (HFloat y: HFloat x: _) -> mkOrdering $ x `compare` y; xs -> f xs
+        FprimCompareChar   -> Just $ \case (HChar y: HChar x: _)  -> mkOrdering $ x `compare` y; xs -> f xs
+        FprimCompareString -> Just $ \case (HString y: HString x: _) -> mkOrdering $ x `compare` y; xs -> f xs
 
-    -- LambdaCube 3D specific primitives
-    "PrimGreaterThan"   -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (>) x y -> r; xs -> f xs
-    "PrimGreaterThanEqual"
-                        -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (>=) x y -> r; xs -> f xs
-    "PrimLessThan"      -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (<)  x y -> r; xs -> f xs
-    "PrimLessThanEqual" -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (<=) x y -> r; xs -> f xs
-    "PrimEqualV"        -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (==) x y -> r; xs -> f xs
-    "PrimNotEqualV"     -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (/=) x y -> r; xs -> f xs
-    "PrimEqual"         -> Just $ \case (y: x: _{-3-}) | Just r <- twoOpBool (==) x y -> r; xs -> f xs
-    "PrimNotEqual"      -> Just $ \case (y: x: _{-3-}) | Just r <- twoOpBool (/=) x y -> r; xs -> f xs
-    "PrimSubS"          -> Just $ \case (y: x: _{-4-}) | Just r <- twoOp (-) x y -> r; xs -> f xs
-    "PrimSub"           -> Just $ \case (y: x: _{-2-}) | Just r <- twoOp (-) x y -> r; xs -> f xs
-    "PrimAddS"          -> Just $ \case (y: x: _{-4-}) | Just r <- twoOp (+) x y -> r; xs -> f xs
-    "PrimAdd"           -> Just $ \case (y: x: _{-2-}) | Just r <- twoOp (+) x y -> r; xs -> f xs
-    "PrimMulS"          -> Just $ \case (y: x: _{-4-}) | Just r <- twoOp (*) x y -> r; xs -> f xs
-    "PrimMul"           -> Just $ \case (y: x: _{-2-}) | Just r <- twoOp (*) x y -> r; xs -> f xs
-    "PrimDivS"          -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
-    "PrimDiv"           -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
-    "PrimModS"          -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
-    "PrimMod"           -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
-    "PrimNeg"           -> Just $ \case (x: _{-1-}) | Just r <- oneOp negate x -> r; xs -> f xs
-    "PrimAnd"           -> Just $ \case (EBool y: EBool x: _) -> EBool (x && y); xs -> f xs
-    "PrimOr"            -> Just $ \case (EBool y: EBool x: _) -> EBool (x || y); xs -> f xs
-    "PrimXor"           -> Just $ \case (EBool y: EBool x: _) -> EBool (x /= y); xs -> f xs
-    "PrimNot"           -> Just $ \case (EBool x: _: _: (hnf -> TNat): _) -> EBool $ not x; xs -> f xs
+        -- LambdaCube 3D specific primitives
+        FPrimGreaterThan   -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (>) x y -> r; xs -> f xs
+        FPrimGreaterThanEqual
+                           -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (>=) x y -> r; xs -> f xs
+        FPrimLessThan      -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (<)  x y -> r; xs -> f xs
+        FPrimLessThanEqual -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (<=) x y -> r; xs -> f xs
+        FPrimEqualV        -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (==) x y -> r; xs -> f xs
+        FPrimNotEqualV     -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (/=) x y -> r; xs -> f xs
+        FPrimEqual         -> Just $ \case (y: x: _{-3-}) | Just r <- twoOpBool (==) x y -> r; xs -> f xs
+        FPrimNotEqual      -> Just $ \case (y: x: _{-3-}) | Just r <- twoOpBool (/=) x y -> r; xs -> f xs
+        FPrimSubS          -> Just $ \case (y: x: _{-4-}) | Just r <- twoOp (-) x y -> r; xs -> f xs
+        FPrimSub           -> Just $ \case (y: x: _{-2-}) | Just r <- twoOp (-) x y -> r; xs -> f xs
+        FPrimAddS          -> Just $ \case (y: x: _{-4-}) | Just r <- twoOp (+) x y -> r; xs -> f xs
+        FPrimAdd           -> Just $ \case (y: x: _{-2-}) | Just r <- twoOp (+) x y -> r; xs -> f xs
+        FPrimMulS          -> Just $ \case (y: x: _{-4-}) | Just r <- twoOp (*) x y -> r; xs -> f xs
+        FPrimMul           -> Just $ \case (y: x: _{-2-}) | Just r <- twoOp (*) x y -> r; xs -> f xs
+        FPrimDivS          -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
+        FPrimDiv           -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
+        FPrimModS          -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
+        FPrimMod           -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
+        FPrimNeg           -> Just $ \case (x: _{-1-}) | Just r <- oneOp negate x -> r; xs -> f xs
+        FPrimAnd           -> Just $ \case (EBool y: EBool x: _) -> EBool (x && y); xs -> f xs
+        FPrimOr            -> Just $ \case (EBool y: EBool x: _) -> EBool (x || y); xs -> f xs
+        FPrimXor           -> Just $ \case (EBool y: EBool x: _) -> EBool (x /= y); xs -> f xs
+        FPrimNot           -> Just $ \case (EBool x: _: _: (hnf -> TNat): _) -> EBool $ not x; xs -> f xs
 
-    _ -> Nothing
-  where
+        _ -> Nothing
 
     twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Maybe Exp
     twoOpBool f (HFloat x)  (HFloat y)  = Just $ EBool $ f x y
@@ -556,6 +555,9 @@ getFunDef t s f = case show s of
     twoOp_ _ _ _ _ = Nothing
 
     modF x y = x - fromIntegral (floor (x / y)) * y
+
+mkFunDef a t = FunName a 0 NoDef t
+
 
 evalCaseFun _ a ps (Con n@(ConName _ i _) _ vs)
     | i /= (-1) = foldlrev app_ (ps !!! (i + 1)) vs
