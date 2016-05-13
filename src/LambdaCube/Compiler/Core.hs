@@ -240,6 +240,7 @@ conTypeName :: ConName -> TyConName
 conTypeName (ConName _ _ t) = case snd $ getParams t of TyCon n _ -> n
 
 mkFun_ md (FunName _ _ (DeltaDef ar f) _) as _ | length as == ar = f md as
+mkFun_ md f@(FunName _ _ (ExpDef e) _) xs _ = Neut $ Fun_ md f xs $ hnf $ foldlrev app_ e xs
 mkFun_ md f xs y = Neut $ Fun_ md f xs $ hnf y
 
 mkFun :: FunName -> [Exp] -> Exp -> Exp
@@ -411,14 +412,6 @@ instance MkDoc Exp where
         Neut x          -> mkDoc pr x
         Let a b         -> shLet_ (pShow a) (pShow b)
         RHS x           -> text "_rhs" `DApp` mkDoc pr x
-
-showNth n = show n ++ f (n `div` 10 `mod` 10) (n `mod` 10)
-  where
-    f 1 _ = "th"
-    f _ 1 = "st"
-    f _ 2 = "nd"
-    f _ 3 = "rd"
-    f _ _ = "th"
 
 pattern FFix f <- Fun (FunName (FTag FprimFix) _ _ _) [f, _] _
 

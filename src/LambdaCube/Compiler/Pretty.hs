@@ -410,3 +410,13 @@ instance PShow a => PShow (Set.Set a) where
 --instance (PShow s, PShow a) => PShow (Map s a) where
 --    pShow = braces . vcat . map (\(k, t) -> pShow k <> P.colon <+> pShow t) . Map.toList
 
+--------------------------------------------------------
+
+showNth n = show n ++ f (n `div` 10 `mod` 10) (n `mod` 10)
+  where
+    f 1 _ = "th"
+    f _ 1 = "st"
+    f _ 2 = "nd"
+    f _ 3 = "rd"
+    f _ _ = "th"
+
