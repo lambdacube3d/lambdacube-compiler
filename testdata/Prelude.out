@@ -49,58 +49,58 @@ pi = _lhs pi (_rhs 3.141592653589793)
 zip :: forall (a :: _) (b :: _) . [a] -> [b] -> [(a, b)]
 zip
   = primFix
-    \(a :: forall (b :: _) (c :: _) . [b] -> [c] -> [(b, c)]) -> _lhs
+    \(a :: _) -> _lhs
       zip
-      \(d :: _) (e :: _) -> case'List
+      \(b :: _) (c :: _) -> case'List
         (\(_ :: _) -> _)
         (_rhs [])
-        (\(f :: _) (g :: _) -> case'List
+        (\(d :: _) (e :: _) -> case'List
           (\(_ :: _) -> _)
           (_rhs [])
-          (\(h :: _) (i :: _) -> _rhs ((f, h) : a g i))
-          e)
-        d
+          (\(f :: _) (g :: _) -> _rhs ((d, f) : a e g))
+          c)
+        b
 
 unzip :: forall (a :: _) (b :: _) . [(a, b)] -> ([a], [b])
 unzip
   = primFix
-    \(a :: forall (b :: _) (c :: _) . [(b, c)] -> ([b], [c])) -> _lhs
+    \(a :: _) -> _lhs
       unzip
-      \(d :: _) -> case'List
+      \(b :: _) -> case'List
         (\(_ :: _) -> _)
         (_rhs ([], []))
-        (\(e :: _) (f :: _) -> hlistConsCase
+        (\(c :: _) (d :: _) -> hlistConsCase
           _
-          (\(g :: _) (h :: _) -> hlistConsCase
+          (\(e :: _) (f :: _) -> hlistConsCase
             _
-            (\(i :: _) (j :: _) -> hlistNilCase
+            (\(g :: _) (h :: _) -> hlistNilCase
               _
               (_rhs
                 let
-                  k = a f;
-                  l
-                    = (\(n :: _) -> hlistConsCase
+                  i = a d;
+                  j
+                    = (\(l :: _) -> hlistConsCase
                         _
-                        (\(_ :: _) (o :: _) -> hlistConsCase
+                        (\(_ :: _) (m :: _) -> hlistConsCase
                           _
-                          (\(p :: _) (q :: _) -> hlistNilCase _ p q)
-                          o)
-                        n)
-                      k;
-                  m
-                    = (\(r :: _) -> hlistConsCase
+                          (\(n :: _) (o :: _) -> hlistNilCase _ n o)
+                          m)
+                        l)
+                      i;
+                  k
+                    = (\(p :: _) -> hlistConsCase
                         _
-                        (\(s :: _) (t :: _) -> hlistConsCase
+                        (\(q :: _) (r :: _) -> hlistConsCase
                           _
-                          (\(_ :: _) (u :: _) -> hlistNilCase _ s u)
-                          t)
-                        r)
-                      k
-                  in (g : m, i : l))
-              j)
-            h)
-          e)
-        d
+                          (\(_ :: _) (s :: _) -> hlistNilCase _ q s)
+                          r)
+                        p)
+                      i
+                  in (e : k, g : j))
+              h)
+            f)
+          c)
+        b
 
 filter
   = primFix
@@ -213,10 +213,7 @@ sortBy
 
 iterate :: forall (a :: _) . (a -> a) -> a -> [a]
 iterate
-  = primFix
-    \(a :: forall (b :: _) . (b -> b) -> b -> [b]) -> _lhs
-      iterate
-      \(c :: _) (d :: _) -> _rhs (d : a c (c d))
+  = primFix \(a :: _) -> _lhs iterate \(b :: _) (c :: _) -> _rhs (c : a b (b c))
 
 fst
   = _lhs
@@ -287,33 +284,30 @@ project
     . forall (c :: String) -> isKeyC c a b => RecordC b -> a
 project
   = primFix
-    \(a
-        :: forall (b :: _) (c :: [RecItem])
-          . forall (d :: String) -> isKeyC d b c => RecordC c -> b)
-      -> _lhs
+    \(a :: _) -> _lhs
       project
-      \ @(e :: _) @(f :: _) (g :: _) @(_ :: _) (h :: _) -> case'List
+      \ @(b :: _) @(c :: _) (d :: _) @(_ :: _) (e :: _) -> case'List
         (\(_ :: _) -> _)
         (_rhs undefined)
-        (\(i :: _) (j :: _) -> case'RecItem
+        (\(f :: _) (g :: _) -> case'RecItem
           (\(_ :: _) -> _)
-          (\(k :: _) (_ :: _) -> case'RecordC
+          (\(h :: _) (_ :: _) -> case'RecordC
             (\(_ :: _) -> _)
-            (\(l :: _) -> case'Bool
+            (\(i :: _) -> case'Bool
               (\(_ :: _) -> _)
               (_rhs
                 (a
-                  @e
-                  @j
-                  g
-                  @(undefined @('CW (isKeyC g e j)))
+                  @b
+                  @g
+                  d
+                  @(undefined @('CW (isKeyC d b g)))
                   (RecordCons
-                    (sndTup (unsafeCoerce @(_ :: _) @('HList (e : map recItemType j)) l)))))
-              (_rhs (fstTup (unsafeCoerce @(_ :: _) @('HList (e : map recItemType j)) l)))
-              (g == k))
-            h)
-          i)
-        f
+                    (sndTup (unsafeCoerce @(_ :: _) @('HList (b : map recItemType g)) i)))))
+              (_rhs (fstTup (unsafeCoerce @(_ :: _) @('HList (b : map recItemType g)) i)))
+              (d == h))
+            e)
+          f)
+        c
 
 rgb = _lhs rgb \(a :: _) (b :: _) (c :: _) -> _rhs (V4 a b c 1.0)
 
@@ -711,7 +705,7 @@ scale = _lhs scale \(a :: _) (b :: _) -> _rhs (b * V4 a a a 1.0)
 fromTo :: Float -> Float -> [Float]
 fromTo
   = primFix
-    \(a :: Float -> Float -> [Float]) -> _lhs
+    \(a :: _) -> _lhs
       fromTo
       \(b :: _) (c :: _) -> case'Bool
         (\(_ :: _) -> _)
@@ -722,17 +716,17 @@ fromTo
 (!!) :: forall (a :: _) . [a] -> Int -> a
 (!!)
   = primFix
-    \(a :: forall (b :: _) . [b] -> Int -> b) -> _lhs
+    \(a :: _) -> _lhs
       (!!)
-      \(c :: _) (d :: _) -> case'List
+      \(b :: _) (c :: _) -> case'List
         (\(_ :: _) -> _)
         (_rhs undefined)
-        (\(e :: _) (f :: _) -> case'Bool
+        (\(d :: _) (e :: _) -> case'Bool
           (\(_ :: _) -> _)
-          (_rhs (a f (d - fromInt 1)))
-          (_rhs e)
-          (fromInt 0 == d))
-        c
+          (_rhs (a e (c - fromInt 1)))
+          (_rhs d)
+          (fromInt 0 == c))
+        b
 ------------ core code
 !! :: forall a . [a] -> Int -> a
 !!

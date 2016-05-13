@@ -127,8 +127,7 @@ desugarValueDef p e = sequence
     dns = reverse $ getPVars p
     n = mangleNames dns
 
---getLet (StmtLet x dx) = Just (x, dx)
-getLet (StLet x mt dx) = Just (x, mt, dx)
+getLet (StmtLet x dx) = Just (x, dx)
 getLet _ = Nothing
 
 fst' (x, _) = x -- TODO
@@ -137,27 +136,18 @@ desugarMutual :: {-MonadWriter [ParseCheck] m => -} [Stmt] -> [Stmt]
 desugarMutual [x@Primitive{}] = [x]
 desugarMutual [x@Data{}] = [x]
 desugarMutual [x@PrecDef{}] = [x]
-desugarMutual [StLet n nt nd] = [StLet n nt $ addFix n nt nd]
---desugarMutual [StmtLet n nd] = [StmtLet n $ addFix n nd]
-desugarMutual (traverse getLet -> Just (unzip3 -> (ns, ts, ds))) = fst' $ runWriter $ do
---desugarMutual (traverse getLet -> Just (unzip -> (ns, ds))) = fst' $ runWriter $ do
+desugarMutual [StLet n nt nd] = [StLet n nt $ addFix n nd]
+--desugarMutual [StmtLet n nd] = [StmtLet n $ addFix n nd]      -- TODO
+desugarMutual (traverse getLet -> Just (unzip -> (ns, ds))) = fst' $ runWriter $ do
     ss <- compileStmt'_ sLHS SRHS SRHS =<< desugarValueDef (foldr cHCons cHNil $ PVarSimp <$> ns) (SGlobal xy)
-    return $
---        StLet xy ty (addFix xy $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
-        StLet xy ty (addFix xy ty $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
+    return $ StmtLet xy (addFix xy $ mkLets' SLet ss $ foldr HCons HNil ds) : ss
 
   where
-    ty = Nothing -- TODO:  Just $ HList $ foldr BCons BNil $ const (Wildcard SType) <$> ts
     xy = mangleNames ns
 desugarMutual xs = error "desugarMutual"
 
-addFix n nt x
-    | usedS n x = SBuiltin FprimFix `SAppV` SLam Visible (maybe (Wildcard SType) id nt) (deBruijnify [n] x)
-
-{-
 addFix n x
     | usedS n x = SBuiltin FprimFix `SAppV` SLamV (deBruijnify [n] x)
--}
     | otherwise = x
 
 mangleNames xs = SIName (foldMap sourceInfo xs) $ "_" ++ intercalate "_" (sName <$> xs)

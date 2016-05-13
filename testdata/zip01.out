@@ -3,17 +3,17 @@ main is not found
 zip2 :: forall (a :: _) (b :: _) . [a] -> [b] -> [(a, b)]
 zip2
   = primFix
-    \(a :: forall (b :: _) (c :: _) . [b] -> [c] -> [(b, c)]) -> _lhs
+    \(a :: _) -> _lhs
       zip2
-      \(d :: _) (e :: _) -> case'List
+      \(b :: _) (c :: _) -> case'List
         (\(_ :: _) -> _)
         (_rhs [])
-        (\(f :: _) (g :: _) -> case'List
+        (\(d :: _) (e :: _) -> case'List
           (\(_ :: _) -> _)
           (_rhs [])
-          (\(h :: _) (i :: _) -> _rhs ((f, h) : a g i))
-          e)
-        d
+          (\(f :: _) (g :: _) -> _rhs ((d, f) : a e g))
+          c)
+        b
 ------------ core code
 zip2 :: forall a b . [a] -> [b] -> [(a, b)]
 zip2

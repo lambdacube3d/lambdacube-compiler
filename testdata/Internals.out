@@ -231,62 +231,62 @@ negate
 (==) :: forall a . Eq a => a -> a -> Bool
 (==)
   = primFix
-    \(a :: forall b . Eq b => b -> b -> Bool) -> _lhs
+    \(a :: _) -> _lhs
       (==)
-      \ @c @(_ :: _) -> match'String
+      \ @b @(_ :: _) -> match'String
         (\(_ :: _) -> _)
         (_rhs
           let
-            d = _lhs (==) \(e :: _) (f :: _) -> _rhs (isEQ (primCompareString e f))
-            in d)
-        c
+            c = _lhs (==) \(d :: _) (e :: _) -> _rhs (isEQ (primCompareString d e))
+            in c)
+        b
         (match'Char
           (\(_ :: _) -> _)
           (_rhs
-            let g = _lhs (==) \(h :: _) (i :: _) -> _rhs (isEQ (primCompareChar h i)) in g)
-          c
+            let f = _lhs (==) \(g :: _) (h :: _) -> _rhs (isEQ (primCompareChar g h)) in f)
+          b
           (match'Int
             (\(_ :: _) -> _)
             (_rhs
-              let j = _lhs (==) \(k :: _) (l :: _) -> _rhs (isEQ (primCompareInt k l)) in j)
-            c
+              let i = _lhs (==) \(j :: _) (k :: _) -> _rhs (isEQ (primCompareInt j k)) in i)
+            b
             (match'Float
               (\(_ :: _) -> _)
               (_rhs
-                let m = _lhs (==) \(n :: _) (o :: _) -> _rhs (isEQ (primCompareFloat n o)) in m)
-              c
+                let l = _lhs (==) \(m :: _) (n :: _) -> _rhs (isEQ (primCompareFloat m n)) in l)
+              b
               (match'Bool
                 (\(_ :: _) -> _)
                 (_rhs
                   let
-                    p
+                    o
                       = _lhs
                         (==)
-                        \(q :: _) (r :: _) -> case'Bool
+                        \(p :: _) (q :: _) -> case'Bool
                           (\(_ :: _) -> _)
-                          (case'Bool (\(_ :: _) -> _) (_rhs True) (_rhs False) r)
-                          (case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs True) r)
-                          q
-                    in p)
-                c
+                          (case'Bool (\(_ :: _) -> _) (_rhs True) (_rhs False) q)
+                          (case'Bool (\(_ :: _) -> _) (_rhs False) (_rhs True) q)
+                          p
+                    in o)
+                b
                 (match'Nat
                   (\(_ :: _) -> _)
                   (_rhs
                     let
-                      s
+                      r
                         = _lhs
                           (==)
-                          \(t :: _) (u :: _) -> case'Nat
+                          \(s :: _) (t :: _) -> case'Nat
                             (\(_ :: _) -> _)
-                            (case'Nat (\(_ :: _) -> _) (_rhs True) (\(_ :: _) -> _rhs False) u)
-                            (\(v :: _) -> case'Nat
+                            (case'Nat (\(_ :: _) -> _) (_rhs True) (\(_ :: _) -> _rhs False) t)
+                            (\(u :: _) -> case'Nat
                               (\(_ :: _) -> _)
                               (_rhs False)
-                              (\(w :: _) -> _rhs (a v w))
-                              u)
-                            t
-                      in s)
-                  c
+                              (\(v :: _) -> _rhs (a u v))
+                              t)
+                            s
+                      in r)
+                  b
                   (_rhs undefined))))))
 
 infix 4 ==

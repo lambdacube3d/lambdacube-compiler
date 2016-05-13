@@ -1196,17 +1196,17 @@ rasterizePrimitives
 allSame :: forall (a :: _) . [a] -> Constraint
 allSame
   = primFix
-    \(a :: forall (b :: _) . [b] -> Constraint) -> _lhs
+    \(a :: _) -> _lhs
       allSame
-      \(c :: _) -> case'List
+      \(b :: _) -> case'List
         (\(_ :: _) -> _)
         (_rhs 'CUnit)
-        (\(d :: _) (e :: _) -> case'List
+        (\(c :: _) (d :: _) -> case'List
           (\(_ :: _) -> _)
           (_rhs 'CUnit)
-          (\(f :: _) (g :: _) -> _rhs ('T2 (d `'EqCTt` f) (a (f : g))))
-          e)
-        c
+          (\(e :: _) (f :: _) -> _rhs ('T2 (c `'EqCTt` e) (a (e : f))))
+          d)
+        b
 
 sameLayerCounts
   = _lhs sameLayerCounts \(a :: _) -> _rhs (allSame (map 'ImageLC a))

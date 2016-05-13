@@ -72,7 +72,7 @@ from = primFix \(a :: _) -> _lhs from \(b :: _) -> _rhs (b : a (b + fromInt 1))
 primes :: [Int]
 primes
   = primFix
-    \(a :: [Int]) -> _lhs
+    \(a :: _) -> _lhs
       primes
       (_rhs
         (fromInt 2
