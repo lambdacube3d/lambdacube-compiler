@@ -500,7 +500,8 @@ handleStmt = \case
   Primitive n t_ -> do
         t <- inferType n $ trSExp' t_
         tellType (sourceInfo n) t
-        addToEnv n $ flip ET t $ lamify' t $ Neut . DFunN_ (FName n) t
+        let fn = mkFunDef (FName n) t
+        addToEnv n $ flip ET t $ lamify' t $ \xs -> Neut $ Fun fn xs delta
   StLet n mt t_ -> do
         let t__ = maybe id (flip SAnn) mt t_
         ET x t <- inferTerm n $ trSExp' t__

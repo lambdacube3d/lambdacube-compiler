@@ -148,16 +148,24 @@ pattern CaseFun a b c   = Neut (CaseFun_ a b c)
 pattern TyCaseFun a b c = Neut (TyCaseFun_ a b c)
 pattern Var a           = Neut (Var_ a)
 pattern App a b        <- Neut (App_ (Neut -> a) b)
-pattern DFun a t b      = Neut (DFunN a t b)
+pattern DFun a b        = Neut (DFunN a b)
 
 -- unreducable function application
-pattern UFun a b <- Neut (Fun (FunName (FTag a) _ _ t) b NoRHS)
+pattern UFun a b <- Neut (Fun (FunName (FTag a) _ _ _) b NoRHS)
 
--- saturated delta function application
-pattern DFunN a t xs = DFunN_ (FTag a) t xs
+-- saturated function application
+pattern DFunN a xs <- Fun (FunName (FTag a) _ _ _) xs _
+  where DFunN a xs =  Fun (mkFunDef' (FTag a)) xs delta
 
-pattern DFunN_ a t xs <- Fun (FunName' a t) xs _
-  where DFunN_ a t xs =  Fun (FunName' a t) xs delta
+mkFunDef' a@(FTag f) = mkFunDef a $ funTy f
+
+funTy = \case
+    F'EqCT      -> TType :~> Var 0 :~> Var 1 :~> TConstraint
+    Fcoe        -> TType :~> TType :~> CW (CstrT TType (Var 1) (Var 0)) :~> Var 2 :~> Var 2
+    FparEval    -> TType :~> Var 0 :~> Var 1 :~> Var 2
+    F'T2        -> TConstraint :~> TConstraint :~> TConstraint
+    F'CW        -> TConstraint :~> TType
+    Ft2C        -> Unit :~> Unit :~> Unit
 
 conParams (conTypeName -> TyConName _ _ _ _ (CaseFunName _ _ pars)) = pars
 mkConPars n (snd . getParams . hnf -> TyCon (TyConName _ _ _ _ (CaseFunName _ _ pars)) xs) = take (min n pars) $ reverse xs
@@ -199,11 +207,11 @@ pattern CEmpty s    <- ConN FCEmpty (HString s: _)
   where CEmpty s    =  tCon FCEmpty 1 (TString :~> TConstraint) [HString s]
 
 pattern CstrT t a b     = Neut (CstrT' t a b)
-pattern CstrT' t a b    = DFunN F'EqCT (TType :~> Var 0 :~> Var 1 :~> TConstraint) [b, a, t]
-pattern Coe a b w x     = DFun Fcoe (TType :~> TType :~> CW (CstrT TType (Var 1) (Var 0)) :~> Var 2 :~> Var 2) [x,w,b,a]
-pattern ParEval t a b   = DFun FparEval (TType :~> Var 0 :~> Var 1 :~> Var 2) [b, a, t]
-pattern T2 a b          = DFun F'T2 (TConstraint :~> TConstraint :~> TConstraint) [b, a]
-pattern CW a            = DFun F'CW (TConstraint :~> TType) [a]
+pattern CstrT' t a b    = DFunN F'EqCT [b, a, t]
+pattern Coe a b w x     = DFun Fcoe [x,w,b,a]
+pattern ParEval t a b   = DFun FparEval [b, a, t]
+pattern T2 a b          = DFun F'T2 [b, a]
+pattern CW a            = DFun F'CW [a]
 pattern CSplit a b c   <- UFun F'Split [c, b, a]
 
 pattern HLit a <- (hnf -> ELit a)
@@ -454,10 +462,6 @@ instance MkDoc Neutral where
     MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 -}
 
-pattern FunName' a t <- FunName a _ _ t
-  where FunName' a t = mkFunDef a t
-
-
 mkFunDef a@(show -> "primFix") t = fn
   where
     fn = FunName a 0 (DeltaDef (length $ fst $ getParams t) fx) t
@@ -469,6 +473,7 @@ mkFunDef a t = fn
   where
     fn = FunName a 0 (maybe NoDef (DeltaDef (length $ fst $ getParams t) . const) $ getFunDef t a $ \xs -> Neut $ Fun fn xs delta) t
 
+-- TODO: don't use show?
 getFunDef t s f = case show s of
     "'EqCT"             -> Just $ \case (b: a: t: _)   -> cstr t a b
     "'T2"               -> Just $ \case (b: a: _)      -> t2 a b
@@ -612,7 +617,7 @@ nonNeut Neut{} = False
 nonNeut _ = True
 
 t2C (hnf -> TT) (hnf -> TT) = TT
-t2C a b = DFun Ft2C (Unit :~> Unit :~> Unit) [b, a]
+t2C a b = DFun Ft2C [b, a]
 
 cw (hnf -> CUnit) = Unit
 cw (hnf -> CEmpty a) = Empty a
