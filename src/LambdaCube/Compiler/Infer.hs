@@ -356,7 +356,7 @@ inferN_ tellTrace = infer  where
             | ELHS n te' <- te -> refocus (ELHS n $ EBind2_ si BMeta tt_ te') eet
             | Unit <- tt    -> refocus te $ subst 0 TT eet
             | Empty msg <- tt -> throwError' $ ETypeError (text msg) si
-            | CW (hnf -> T2 x y) <- tt, let te' = EBind2_ si BMeta (up 1 $ cw y) $ EBind2_ si BMeta (cw x) te
+            | CW (hnf -> T2 _ x y) <- tt, let te' = EBind2_ si BMeta (up 1 $ cw y) $ EBind2_ si BMeta (cw x) te
                             -> refocus te' $ subst 2 (t2C (Var 1) (Var 0)) $ up 2 eet
             | CW (hnf -> CstrT t a b) <- tt, Just r <- cst (ET a t) b -> r
             | CW (hnf -> CstrT t a b) <- tt, Just r <- cst (ET b t) a -> r

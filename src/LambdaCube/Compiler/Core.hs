@@ -149,6 +149,7 @@ pattern TyCaseFun a b c = Neut (TyCaseFun_ a b c)
 pattern Var a           = Neut (Var_ a)
 pattern App a b        <- Neut (App_ (Neut -> a) b)
 pattern DFun a b        = Neut (DFunN a b)
+pattern DFun_ s a b        = Neut (DFunN_ s a b)
 
 -- unreducable function application
 pattern UFun a b <- Neut (Fun (FunName (FTag a) _ _ _) b NoRHS)
@@ -156,6 +157,9 @@ pattern UFun a b <- Neut (Fun (FunName (FTag a) _ _ _) b NoRHS)
 -- saturated function application
 pattern DFunN a xs <- Fun (FunName (FTag a) _ _ _) xs _
   where DFunN a xs =  Fun (mkFunDef' (FTag a)) xs delta
+
+pattern DFunN_ s a xs <- Fun_ s (FunName (FTag a) _ _ _) xs _
+  where DFunN_ s a xs =  Fun_ s (mkFunDef' (FTag a)) xs delta
 
 mkFunDef' a@(FTag f) = mkFunDef a $ funTy f
 
@@ -210,8 +214,9 @@ pattern CstrT t a b     = Neut (CstrT' t a b)
 pattern CstrT' t a b    = DFunN F'EqCT [b, a, t]
 pattern Coe a b w x     = DFun Fcoe [x,w,b,a]
 pattern ParEval t a b   = DFun FparEval [b, a, t]
-pattern T2 a b          = DFun F'T2 [b, a]
+pattern T2 s a b        = DFun_ s F'T2 [b, a]
 pattern CW a            = DFun F'CW [a]
+pattern CW_ s a         = DFun_ s F'CW [a]
 pattern CSplit a b c   <- UFun F'Split [c, b, a]
 
 pattern HLit a <- (hnf -> ELit a)
@@ -464,73 +469,72 @@ instance MkDoc Neutral where
 
 mkFunDef a@(FTag FprimFix) t = fn
   where
-    fn = FunName a 0 (DeltaDef (length $ fst $ getParams t) fx) t
-    fx s xs = Neut $ Fun_ s fn xs $ case xs of
-        f: _{-1-} -> RHS x where x = f `app_` Neut (Fun_ s fn xs $ RHS x)
-        _ -> delta
+    fn = FunName a 0 (DeltaDef 2 fx) t
+    fx s xs@(f: _) = x where x = Neut $ Fun_ s fn xs $ RHS $ f `app_` x
 
 mkFunDef a@(FTag tag) t = fn
   where
-    f xs = Neut $ Fun fn xs delta
-    fn = FunName a 0 (maybe NoDef (DeltaDef (length $ fst $ getParams t) . const) $ getFunDef tag) t
+    fn = FunName a 0 (maybe NoDef (DeltaDef (length $ fst $ getParams t)) $ getFunDef tag) t
 
-    getFunDef = \case
-        F'EqCT             -> Just $ \case (b: a: t: _)   -> cstr t a b
-        F'T2               -> Just $ \case (b: a: _)      -> t2 a b
-        F'CW               -> Just $ \case (a: _)         -> cw a
-        Ft2C               -> Just $ \case (b: a: _)      -> t2C a b
-        Fcoe               -> Just $ \case (d: t: b: a: _) -> evalCoe a b t d
-        FparEval           -> Just $ \case (b: a: t: _)   -> parEval t a b
+    getFunDef tag = case tag of
+        F'EqCT             -> Just $ \s -> \case (b: a: t: _)   -> cstr t a b
+        F'T2               -> Just $ \s -> \case (b: a: _)      -> t2_ s a b
+        F'CW               -> Just $ \s -> \case (a: _)         -> cw_ s a
+        Ft2C               -> Just $ \s -> \case (b: a: _)      -> t2C a b
+        Fcoe               -> Just $ \s -> \case (d: t: b: a: _) -> evalCoe a b t d
+        FparEval           -> Just $ \s -> \case (b: a: t: _)   -> parEval t a b
           where
             parEval _ x@RHS{} _ = x
             parEval _ _ x@RHS{} = x
             parEval t a b       = ParEval t a b
 
-        FunsafeCoerce      -> Just $ \case xs@(x@(hnf -> NonNeut): _{-2-}) -> x; xs -> f xs
-        FreflCstr          -> Just $ \case _ -> TT
-        FhlistNilCase      -> Just $ \case ((hnf -> Con n@(ConName _ 0 _) _ _): x: _{-1-}) -> x; xs -> f xs
-        FhlistConsCase     -> Just $ \case ((hnf -> Con n@(ConName _ 1 _) _ (b: a: _{-2-})): x: _{-3-}) -> x `app_` a `app_` b; xs -> f xs
+        FunsafeCoerce      -> Just $ \s -> \case xs@(x@(hnf -> NonNeut): _{-2-}) -> x; xs -> f s xs
+        FreflCstr          -> Just $ \s -> \case _ -> TT
+        FhlistNilCase      -> Just $ \s -> \case ((hnf -> Con n@(ConName _ 0 _) _ _): x: _{-1-}) -> x; xs -> f s xs
+        FhlistConsCase     -> Just $ \s -> \case ((hnf -> Con n@(ConName _ 1 _) _ (b: a: _{-2-})): x: _{-3-}) -> x `app_` a `app_` b; xs -> f s xs
 
         -- general compiler primitives
-        FprimAddInt        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i + j); xs -> f xs
-        FprimSubInt        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i - j); xs -> f xs
-        FprimModInt        -> Just $ \case (HInt j: HInt i: _)    -> HInt (i `mod` j); xs -> f xs
-        FprimSqrtFloat     -> Just $ \case (HFloat i: _)          -> HFloat $ sqrt i; xs -> f xs
-        FprimRound         -> Just $ \case (HFloat i: _)          -> HInt $ round i; xs -> f xs
-        FprimIntToFloat    -> Just $ \case (HInt i: _)            -> HFloat $ fromIntegral i; xs -> f xs
-        FprimIntToNat      -> Just $ \case (HInt i: _)            -> ENat $ fromIntegral i; xs -> f xs
-        FprimCompareInt    -> Just $ \case (HInt y: HInt x: _)    -> mkOrdering $ x `compare` y; xs -> f xs
-        FprimCompareFloat  -> Just $ \case (HFloat y: HFloat x: _) -> mkOrdering $ x `compare` y; xs -> f xs
-        FprimCompareChar   -> Just $ \case (HChar y: HChar x: _)  -> mkOrdering $ x `compare` y; xs -> f xs
-        FprimCompareString -> Just $ \case (HString y: HString x: _) -> mkOrdering $ x `compare` y; xs -> f xs
+        FprimAddInt        -> Just $ \s -> \case (HInt j: HInt i: _)    -> HInt (i + j); xs -> f s xs
+        FprimSubInt        -> Just $ \s -> \case (HInt j: HInt i: _)    -> HInt (i - j); xs -> f s xs
+        FprimModInt        -> Just $ \s -> \case (HInt j: HInt i: _)    -> HInt (i `mod` j); xs -> f s xs
+        FprimSqrtFloat     -> Just $ \s -> \case (HFloat i: _)          -> HFloat $ sqrt i; xs -> f s xs
+        FprimRound         -> Just $ \s -> \case (HFloat i: _)          -> HInt $ round i; xs -> f s xs
+        FprimIntToFloat    -> Just $ \s -> \case (HInt i: _)            -> HFloat $ fromIntegral i; xs -> f s xs
+        FprimIntToNat      -> Just $ \s -> \case (HInt i: _)            -> ENat $ fromIntegral i; xs -> f s xs
+        FprimCompareInt    -> Just $ \s -> \case (HInt y: HInt x: _)    -> mkOrdering $ x `compare` y; xs -> f s xs
+        FprimCompareFloat  -> Just $ \s -> \case (HFloat y: HFloat x: _) -> mkOrdering $ x `compare` y; xs -> f s xs
+        FprimCompareChar   -> Just $ \s -> \case (HChar y: HChar x: _)  -> mkOrdering $ x `compare` y; xs -> f s xs
+        FprimCompareString -> Just $ \s -> \case (HString y: HString x: _) -> mkOrdering $ x `compare` y; xs -> f s xs
 
         -- LambdaCube 3D specific primitives
-        FPrimGreaterThan   -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (>) x y -> r; xs -> f xs
+        FPrimGreaterThan   -> Just $ \s -> \case (y: x: _{-7-}) | Just r <- twoOpBool (>) x y -> r; xs -> f s xs
         FPrimGreaterThanEqual
-                           -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (>=) x y -> r; xs -> f xs
-        FPrimLessThan      -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (<)  x y -> r; xs -> f xs
-        FPrimLessThanEqual -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (<=) x y -> r; xs -> f xs
-        FPrimEqualV        -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (==) x y -> r; xs -> f xs
-        FPrimNotEqualV     -> Just $ \case (y: x: _{-7-}) | Just r <- twoOpBool (/=) x y -> r; xs -> f xs
-        FPrimEqual         -> Just $ \case (y: x: _{-3-}) | Just r <- twoOpBool (==) x y -> r; xs -> f xs
-        FPrimNotEqual      -> Just $ \case (y: x: _{-3-}) | Just r <- twoOpBool (/=) x y -> r; xs -> f xs
-        FPrimSubS          -> Just $ \case (y: x: _{-4-}) | Just r <- twoOp (-) x y -> r; xs -> f xs
-        FPrimSub           -> Just $ \case (y: x: _{-2-}) | Just r <- twoOp (-) x y -> r; xs -> f xs
-        FPrimAddS          -> Just $ \case (y: x: _{-4-}) | Just r <- twoOp (+) x y -> r; xs -> f xs
-        FPrimAdd           -> Just $ \case (y: x: _{-2-}) | Just r <- twoOp (+) x y -> r; xs -> f xs
-        FPrimMulS          -> Just $ \case (y: x: _{-4-}) | Just r <- twoOp (*) x y -> r; xs -> f xs
-        FPrimMul           -> Just $ \case (y: x: _{-2-}) | Just r <- twoOp (*) x y -> r; xs -> f xs
-        FPrimDivS          -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
-        FPrimDiv           -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ (/) div x y -> r; xs -> f xs
-        FPrimModS          -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
-        FPrimMod           -> Just $ \case (y: x: _{-5-}) | Just r <- twoOp_ modF mod x y -> r; xs -> f xs
-        FPrimNeg           -> Just $ \case (x: _{-1-}) | Just r <- oneOp negate x -> r; xs -> f xs
-        FPrimAnd           -> Just $ \case (EBool y: EBool x: _) -> EBool (x && y); xs -> f xs
-        FPrimOr            -> Just $ \case (EBool y: EBool x: _) -> EBool (x || y); xs -> f xs
-        FPrimXor           -> Just $ \case (EBool y: EBool x: _) -> EBool (x /= y); xs -> f xs
-        FPrimNot           -> Just $ \case (EBool x: _: _: (hnf -> TNat): _) -> EBool $ not x; xs -> f xs
+                           -> Just $ \s -> \case (y: x: _{-7-}) | Just r <- twoOpBool (>=) x y -> r; xs -> f s xs
+        FPrimLessThan      -> Just $ \s -> \case (y: x: _{-7-}) | Just r <- twoOpBool (<)  x y -> r; xs -> f s xs
+        FPrimLessThanEqual -> Just $ \s -> \case (y: x: _{-7-}) | Just r <- twoOpBool (<=) x y -> r; xs -> f s xs
+        FPrimEqualV        -> Just $ \s -> \case (y: x: _{-7-}) | Just r <- twoOpBool (==) x y -> r; xs -> f s xs
+        FPrimNotEqualV     -> Just $ \s -> \case (y: x: _{-7-}) | Just r <- twoOpBool (/=) x y -> r; xs -> f s xs
+        FPrimEqual         -> Just $ \s -> \case (y: x: _{-3-}) | Just r <- twoOpBool (==) x y -> r; xs -> f s xs
+        FPrimNotEqual      -> Just $ \s -> \case (y: x: _{-3-}) | Just r <- twoOpBool (/=) x y -> r; xs -> f s xs
+        FPrimSubS          -> Just $ \s -> \case (y: x: _{-4-}) | Just r <- twoOp (-) x y -> r; xs -> f s xs
+        FPrimSub           -> Just $ \s -> \case (y: x: _{-2-}) | Just r <- twoOp (-) x y -> r; xs -> f s xs
+        FPrimAddS          -> Just $ \s -> \case (y: x: _{-4-}) | Just r <- twoOp (+) x y -> r; xs -> f s xs
+        FPrimAdd           -> Just $ \s -> \case (y: x: _{-2-}) | Just r <- twoOp (+) x y -> r; xs -> f s xs
+        FPrimMulS          -> Just $ \s -> \case (y: x: _{-4-}) | Just r <- twoOp (*) x y -> r; xs -> f s xs
+        FPrimMul           -> Just $ \s -> \case (y: x: _{-2-}) | Just r <- twoOp (*) x y -> r; xs -> f s xs
+        FPrimDivS          -> Just $ \s -> \case (y: x: _{-5-}) | Just r <- twoOp_ (/) div x y -> r; xs -> f s xs
+        FPrimDiv           -> Just $ \s -> \case (y: x: _{-5-}) | Just r <- twoOp_ (/) div x y -> r; xs -> f s xs
+        FPrimModS          -> Just $ \s -> \case (y: x: _{-5-}) | Just r <- twoOp_ modF mod x y -> r; xs -> f s xs
+        FPrimMod           -> Just $ \s -> \case (y: x: _{-5-}) | Just r <- twoOp_ modF mod x y -> r; xs -> f s xs
+        FPrimNeg           -> Just $ \s -> \case (x: _{-1-}) | Just r <- oneOp negate x -> r; xs -> f s xs
+        FPrimAnd           -> Just $ \s -> \case (EBool y: EBool x: _) -> EBool (x && y); xs -> f s xs
+        FPrimOr            -> Just $ \s -> \case (EBool y: EBool x: _) -> EBool (x || y); xs -> f s xs
+        FPrimXor           -> Just $ \s -> \case (EBool y: EBool x: _) -> EBool (x /= y); xs -> f s xs
+        FPrimNot           -> Just $ \s -> \case (EBool x: _: _: (hnf -> TNat): _) -> EBool $ not x; xs -> f s xs
 
         _ -> Nothing
+
+    f s xs = Neut $ Fun_ s fn xs delta
 
     twoOpBool :: (forall a . Ord a => a -> a -> Bool) -> Exp -> Exp -> Maybe Exp
     twoOpBool f (HFloat x)  (HFloat y)  = Just $ EBool $ f x y
@@ -621,16 +625,20 @@ nonNeut _ = True
 t2C (hnf -> TT) (hnf -> TT) = TT
 t2C a b = DFun Ft2C [b, a]
 
-cw (hnf -> CUnit) = Unit
-cw (hnf -> CEmpty a) = Empty a
-cw a = CW a
+cw_ _ (hnf -> CUnit) = Unit
+cw_ _ (hnf -> CEmpty a) = Empty a
+cw_ s a = CW_ s a
 
-t2 (hnf -> CUnit) a = a
-t2 a (hnf -> CUnit) = a
-t2 (hnf -> CEmpty a) (hnf -> CEmpty b) = CEmpty (a <> b)
-t2 (hnf -> CEmpty s) _ = CEmpty s
-t2 _ (hnf -> CEmpty s) = CEmpty s
-t2 a b = T2 a b
+cw a = cw_ (getFreeVars a) a
+
+t2_ _ (hnf -> CUnit) a = a
+t2_ _ a (hnf -> CUnit) = a
+t2_ _ (hnf -> CEmpty a) (hnf -> CEmpty b) = CEmpty (a <> b)
+t2_ _ (hnf -> CEmpty s) _ = CEmpty s
+t2_ _ _ (hnf -> CEmpty s) = CEmpty s
+t2_ s a b = T2 s a b
+
+t2 a b = t2_ (getFreeVars a <> getFreeVars b) a b
 
 app_ :: Exp -> Exp -> Exp
 app_ a b = app__ (getFreeVars a <> getFreeVars b) a b
