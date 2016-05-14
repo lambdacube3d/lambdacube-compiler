@@ -328,19 +328,21 @@ instance Subst Exp Exp where
       where
         f i (Neut n) = substNeut n
           where
+            substNeut e | dbGE i e = Neut e
             substNeut e = case e of
                 Var_ k              -> case compare k i of GT -> Var $ k - 1; LT -> Var k; EQ -> up (i - i0) x
-                CaseFun__ fs s as n -> if dbGE_ i fs then Neut e else evalCaseFun (adjustDB i fs) s (f i <$> as) (substNeut n)
-                TyCaseFun__ fs s as n -> if dbGE_ i fs then Neut e else evalTyCaseFun_ (adjustDB i fs) s (f i <$> as) (substNeut n)
-                App__ fs a b        -> if dbGE_ i fs then Neut e else app__ (adjustDB i fs) (substNeut a) (f i b)
-                Fun_ md fn xs v     -> if dbGE_ i md then Neut e else mkFun_ (adjustDB i md) fn (f i <$> xs) $ f i v
+                CaseFun__ fs s as n -> evalCaseFun (adjustDB i fs) s (f i <$> as) (substNeut n)
+                TyCaseFun__ fs s as n -> evalTyCaseFun_ (adjustDB i fs) s (f i <$> as) (substNeut n)
+                App__ fs a b        -> app__ (adjustDB i fs) (substNeut a) (f i b)
+                Fun_ md fn xs v     -> mkFun_ (adjustDB i md) fn (f i <$> xs) $ f i v
+        f i e | dbGE i e = e
         f i e = case e of
-            Lam_ md b       -> if dbGE_ i md then e else Lam_ (adjustDB i md) (f (i+1) b)
-            Con_ md s n as  -> if dbGE_ i md then e else Con_ (adjustDB i md) s n $ f i <$> as
-            Pi_ md h a b    -> if dbGE_ i md then e else Pi_ (adjustDB i md) h (f i a) (f (i+1) b)
-            TyCon_ md s as  -> if dbGE_ i md then e else TyCon_ (adjustDB i md) s $ f i <$> as
-            Let_ md a b     -> if dbGE_ i md then e else Let_ (adjustDB i md) (subst_ i dx x a) (f (i+1) b)
-            RHS a           -> if dbGE i a then e else RHS $ hnf $ f i a
+            Lam_ md b       -> Lam_ (adjustDB i md) (f (i+1) b)
+            Con_ md s n as  -> Con_ (adjustDB i md) s n $ f i <$> as
+            Pi_ md h a b    -> Pi_ (adjustDB i md) h (f i a) (f (i+1) b)
+            TyCon_ md s as  -> TyCon_ (adjustDB i md) s $ f i <$> as
+            Let_ md a b     -> Let_ (adjustDB i md) (subst_ i dx x a) (f (i+1) b)
+            RHS a           -> RHS $ hnf $ f i a
             x               -> x
 
         adjustDB i md = if usedVar i md then delVar i md <> shiftFreeVars (i-i0) dx else delVar i md
