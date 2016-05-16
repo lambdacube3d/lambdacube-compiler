@@ -23,16 +23,18 @@ import LambdaCube.Compiler.DeBruijn hiding (up)
 
 -- expression
 data Exp_
-    = Lam_ Exp
-    | Var_ Int
+    = Var_ Int
+    | Y_ Exp
+    | Int_ Int
+    | Lam_ Exp
+
     | App_ Exp Exp
     | Seq_ Exp Exp
     | Con_ String Int [Exp]
     | Case_ Exp [(String, Exp)]
-    | Int_ Int
     | Op1_ Op1 Exp
     | Op2_ Op2 Exp Exp
-    | Y_ Exp
+
     | Ups_ [Up] Exp
 --    deriving (Eq)
 
@@ -43,7 +45,14 @@ data Op2 = Add | Sub | Mod | LessEq | EqInt
     deriving (Eq, Show)
 
 -- cached free variables set
-data Exp = Exp FreeVars Exp_
+data Exp = Exp' FreeVars Exp_
+
+pattern Exp a b <- Exp' a b
+  where Exp a b =  compact a b
+
+compact a b@Ups_{} = Exp' a b
+compact a b | a == FreeVars (2^maxFreeVar a - 1) = Exp' a b
+            | otherwise = tracePShow (a, Exp' undefined b) $ Exp' a b
 
 -- state of the machine
 data MSt = MSt [(FreeVars, Exp)]  -- TODO: use finger tree instead of list
@@ -53,20 +62,20 @@ data MSt = MSt [(FreeVars, Exp)]  -- TODO: use finger tree instead of list
 --------------------------------------------------------------------- toolbox: pretty print
 
 instance PShow Exp where
-    pShow x = case {-pushUps-} x of
-        Var i -> DVar i
-        App a b -> DApp (pShow a) (pShow b)
-        Seq a b -> DOp "`seq`" (Infix 1) (pShow a) (pShow b)
-        Lam e -> shLam_ True $ pShow e
-        Con s i xs -> foldl DApp (text s) $ pShow <$> xs
-        Int i -> pShow i
-        Op1 o x -> text (show o) `DApp` pShow x
-        Op2 EqInt x y -> DOp "==" (Infix 4) (pShow x) (pShow y)
-        Op2 Add x y -> DOp "+" (InfixL 6) (pShow x) (pShow y)
-        Op2 o x y -> text (show o) `DApp` pShow x `DApp` pShow y
-        Y e -> "Y" `DApp` pShow e
-        Case e xs -> DPreOp (-20) (ComplexAtom "case" (-10) (pShow e) (SimpleAtom "of")) $ foldr1 DSemi [DArr_ "->" (text a) (pShow b) | (a, b) <- xs]
-        Ups u xs -> DPreOp (-20) (SimpleAtom $ show u) $ pShow xs
+    pShow x = case pushUps x of
+        Var_ i -> DVar i
+        App_ a b -> DApp (pShow a) (pShow b)
+        Seq_ a b -> DOp "`seq`" (Infix 1) (pShow a) (pShow b)
+        Lam_ e -> shLam_ True $ pShow e
+        Con_ s i xs -> foldl DApp (text s) $ pShow <$> xs
+        Int_ i -> pShow i
+        Op1_ o x -> text (show o) `DApp` pShow x
+        Op2_ EqInt x y -> DOp "==" (Infix 4) (pShow x) (pShow y)
+        Op2_ Add x y -> DOp "+" (InfixL 6) (pShow x) (pShow y)
+        Op2_ o x y -> text (show o) `DApp` pShow x `DApp` pShow y
+        Y_ e -> "Y" `DApp` pShow e
+        Case_ e xs -> DPreOp (-20) (ComplexAtom "case" (-10) (pShow e) (SimpleAtom "of")) $ foldr1 DSemi [DArr_ "->" (text a) (pShow b) | (a, b) <- xs]
+        Ups_ u xs -> DPreOp (-20) (SimpleAtom $ show u) $ pShow xs
 
 shLam_ usedVar b = DFreshName usedVar $ showLam (DVar 0) b
 
@@ -94,34 +103,37 @@ instance PShow MSt where
 instance HasFreeVars Exp where
     getFreeVars (Exp fv _) = fv
 
-upss [] e = e
-upss u e = Ups u e
+upss [] (getUs -> (_, e)) = e
+upss u (getUs -> (_, e)) = Ups u e
 
-dup2 f (Ups a ax) (Ups b bx) = Ups_ s $ Exp (getFreeVars az <> getFreeVars bz) $ f az bz  where
-    (s, [a', b']) = deltaUps [a, b]
+upss_ [] (Exp _ e) = e
+upss_ u e = Ups_ u e
+
+dup2 f ax bx = upss_ s $ Exp (getFreeVars az <> getFreeVars bz) $ f az bz  where
+    (s, [a', b']) = deltaUps [ax, bx]
     az = upss a' ax
     bz = upss b' bx
-dup2 f a b = f a b
-dup1 f (Ups a ax) = Ups_ a $ Exp (getFreeVars ax) $ f ax
+
+dup1 f (Ups a ax) = upss_ a $ Exp (getFreeVars ax) $ f ax
 dup1 f x = f x
 
 getUs (Ups x y) = (x, y)
 getUs y = ([], y)
 
 dupCon f [] = f []
-dupCon f [Ups a ax] = Ups_ a $ Exp (getFreeVars ax) $ f [ax]
-dupCon f (unzip . map getUs -> (b, bx)) = Ups_ s $ Exp (foldMap getFreeVars bz) $ f bz  where
-    (s, b') = deltaUps b
+--dupCon f [Ups a ax] = Ups_ a $ Exp (getFreeVars ax) $ f [ax]
+dupCon f bx = upss_ s $ Exp (foldMap getFreeVars bz) $ f bz  where
+    (s, b') = deltaUps bx
     bz = zipWith upss b' bx
 
-dupCase f (getUs -> (a, ax)) (unzip -> (ss, unzip . map getUs -> (b, bx)))
-    = Ups_ s $ Exp (getFreeVars az <> foldMap getFreeVars bz) $ f az $ zip ss bz
+dupCase f ax (unzip -> (ss, bx))
+    = upss_ s $ Exp (getFreeVars az <> foldMap getFreeVars bz) $ f az $ zip ss bz
   where
-    (s, a': b') = deltaUps $ a: b
+    (s, a': b') = deltaUps $ ax: bx
     az = upss a' ax
     bz = zipWith upss b' bx
 
-dupLam f (Ups a ax) = Ups_ (ff a) $ Exp (shiftFreeVars (-1) $ getFreeVars ax') $ f ax'
+dupLam f (Ups a ax) = upss_ (ff a) $ Exp (shiftFreeVars (-1) $ getFreeVars ax') $ f ax'
   where
     ax' = case a of
         Up 0 n: _ -> up (Up 0 1) ax
@@ -164,20 +176,14 @@ rearr (Up l n) = rearrangeFreeVars (RFUp n) l
 
 upsFreeVars xs s = foldr rearr s xs
 
-pushUps (Ups us e) = foldr pushUp e us
-pushUps e = e
-
-showUps us = foldr f [] us where
-    f (Up l n) is = take n [l..] ++ map (n+) is
+showUps us n = foldr f (replicate n True) us where
+    f (Up l n) is = take l is ++ replicate n False ++ drop l is
 
 --sectUps' a b = sect (showUps a) (showUps b) -- sectUps 0 a 0 b
 
-sect [] _ = []
-sect _ [] = []
-sect (x:xs) (y:ys)
-    | x == y = x: sect xs ys
-    | x < y  = sect xs (y: ys)
-    | x > y  = sect (x: xs) ys
+sect [] xs = xs
+sect xs [] = xs
+sect (x:xs) (y:ys) = (x || y): sect xs ys
 
 {- TODO
 sectUps _ u _ [] = []
@@ -198,32 +204,43 @@ diffUps [] [] = []
 diffUps (Up l n: us) (Up l' n': us') = insertUp (Up l' (l - l')) $ diffUps us (Up (l + n) (l' + n' - l - n): us')
 -}
 
-diffUps = diffUps' 0
+diffUps a b = diffUps' 0 (back a) (back b)
 
 diffUps' n u [] = (+(-n)) <$> u
+diffUps' n [] _ = []
 diffUps' n (x: xs) (y: ys)
     | x < y = (x - n): diffUps' n xs (y: ys)
     | x == y = diffUps' (n+1) xs ys
+
+back = map fst . filter (not . snd) . zip [0..]
 
 mkUps = f 0
   where
     f i [] = []
     f i (x: xs) = insertUp (Up (x-i) 1) $ f (i+1) xs
 
-deltaUps us = (mkUps s, [mkUps $ showUps u `diffUps` s | u <- us])
+deltaUps = deltaUps_ . map (crk . getUs)
+
+deltaUps_ (map $ uncurry showUps -> us) = (mkUps $ back s, [mkUps $ u `diffUps` s | u <- us])
   where
-    s = foldr1 sect $ showUps <$> us
+    s = foldr1 sect $ us
+
+crk (s, e) = (s, maxFreeVar $ getFreeVars e)
+
+maxFreeVar (FreeVars i) = f 0 i where
+    f i 0 = i
+    f i n = f (i+1) (n `div` 2)
 
 joinUps a b = foldr insertUp b a
 
-diffUpsTest xs | and $ zipWith (\a b -> s `joinUps` a == b) ys xs = "ok"
+diffUpsTest xs | and $ zipWith (\a (b, _) -> s `joinUps` a == b) ys xs = show (s, ys)
   where
-    (s, ys) = deltaUps xs
+    (s, ys) = deltaUps_ xs
 
 diffUpsTest' = diffUpsTest [x,y] --diffUpsTest x y
   where
-    x = [Up 1 2, Up 3 4, Up 8 2]
-    y = [Up 2 2, Up 5 1, Up 6 2, Up 7 2]
+    x = ([Up 1 2, Up 3 4, Up 8 2], 20)
+    y = ([Up 2 2, Up 5 1, Up 6 2, Up 7 2], 18)
 
 insertUp u@(Up l 0) us = us
 insertUp u@(Up l n) [] = [u]
@@ -236,9 +253,13 @@ addUp (Up _ 0) e = e
 addUp u (Exp s (Ups_ us e)) = Exp (rearr u s) $ Ups_ (insertUp u us) e
 addUp u e = Ups [u] e
 
-pushUp u@(Up i num) e@(Exp s x)
-    | dbGE i s = e
-    | otherwise = Exp (rearrangeFreeVars (RFUp num) i s) $ case x of
+pushUps :: Exp -> Exp_
+pushUps (Ups us (Exp _ e)) = foldr pushUp e us
+pushUps (Exp _ e) = e
+
+pushUp u@(Up i num) x
+--    | dbGE i s = e
+    | otherwise = case x of
         App_ a b -> App_ (f a) (f b)
         Seq_ a b -> Seq_ (f a) (f b)
         Con_ cn s xs -> Con_ cn s (f <$> xs)
@@ -283,8 +304,8 @@ down i x = Just $ down_ i x
 
 down_ i e@(Exp s x)
     | dbGE i s = e
-down_ i (Ups us e) = f i us e where
-    f i [] e = error $ "-- - -  -- " ++ show i ++ "     " ++ ppShow e ++ "\n" ++ ppShow (pushUps e) --"show down_ i e
+down_ i0 e0@(Ups us e) = f i0 us e where
+    f i [] e = error $ "-- - -  -- " ++ show (i0, i) ++ "     " ++ ppShow e0 ++ "\n" ++ ppShow e --(pushUps e) --"show down_ i e
     f i (u@(Up j n): us) e
         | i < j = addUp (Up (j-1) n) $ f i us e
         | i >= j + n = addUp u $ f (i-n) us e
@@ -304,7 +325,7 @@ down_ i e@(Exp s x) = Exp (delVar i s) $ case x of
 
 tryRemoves xs = tryRemoves_ (Var <$> freeVars xs)
 tryRemoves_ [] dt = dt
-tryRemoves_ ((pushUps -> Var i): vs) dt
+tryRemoves_ ((pushUps -> Var_ i): vs) dt
     | Just dt' <- tryRemove_ i dt
     = tryRemoves_ (catMaybes $ down i <$> vs) dt'
     | otherwise = tryRemoves_ vs dt
@@ -352,8 +373,8 @@ instance MachineMonad Identity where
     collectSizeStat _ = return ()
 
 instance MachineMonad IO where
---    traceStep s = return ()
-    traceStep = putStrLn
+    traceStep s = return ()
+--    traceStep = putStrLn
     collectSizeStat s = return ()
 
 instance MachineMonad (Writer [Int]) where
@@ -378,11 +399,11 @@ runMachinePure e = putStr $ unlines $ ppShow t: []
 step :: MachineMonad m => MSt -> m MSt
 step dt@(MSt t e vs) = case pushUps e of
 
-    Int{} -> return dt
+    Int_{} -> return dt
 
-    Lam{} -> return dt
+    Lam_{} -> return dt
 
-    Con cn i xs
+    Con_ cn i xs
         | lz /= 0 -> return $ MSt (ups' 1 lz t) (Con cn i xs') $ zs ++ vs  -- share complex constructor arguments
         | otherwise -> return dt
       where
@@ -392,43 +413,43 @@ step dt@(MSt t e vs) = case pushUps e of
         f i (x: xs) | simple x = (up (Up 0 lz) x, []): f i xs
                     | otherwise = (Var i, [up (Up 0 (lz - i - 1)) x]): f (i+1) xs
 
-    Var i -> lookupHNF "var" (\e _ -> e) i dt
+    Var_ i -> lookupHNF "var" (\e _ -> e) i dt
 
-    Seq a b -> case pushUps a of
-        Int{} -> stepMsg "seq" $ MSt t b vs
-        Lam{} -> stepMsg "seq" $ tryRemoves (getFreeVars a) $ MSt t b vs
-        Con{} -> stepMsg "seq" $ tryRemoves (getFreeVars a) $ MSt t b vs
-        Var i -> lookupHNF' "seqvar" (\e (pushUps -> Seq _ b) -> b) i dt
-        _     -> stepMsg "seqexp" $ MSt (ups' 1 1 t) (Seq (Var 0) $ up (Up 0 1) b) $  a: vs
+    Seq_ a b -> case pushUps a of
+        Int_{} -> stepMsg "seq" $ MSt t b vs
+        Lam_{} -> stepMsg "seq" $ tryRemoves (getFreeVars a) $ MSt t b vs
+        Con_{} -> stepMsg "seq" $ tryRemoves (getFreeVars a) $ MSt t b vs
+        Var_ i -> lookupHNF' "seqvar" (\e (pushUps -> Seq_ _ b) -> b) i dt
+        _      -> stepMsg "seqexp" $ MSt (ups' 1 1 t) (Seq (Var 0) $ up (Up 0 1) b) $  a: vs
 
     -- TODO: handle recursive constants
-    Y (pushUps -> Lam x) -> stepMsg "Y" $ MSt (ups' 1 1 t) x $ e: vs
+    Y_ (pushUps -> Lam_ x) -> stepMsg "Y" $ MSt (ups' 1 1 t) x $ e: vs
 
-    App a b -> case pushUps a of
-        Lam x | usedVar 0 x
-                -> stepMsg "app" $ MSt (ups' 1 1 t) x $ b: vs
-        Lam x   -> stepMsg "appdel" $ tryRemoves (getFreeVars b) $ MSt t x vs
-        Var i   -> lookupHNF' "appvar" (\e (pushUps -> App _ y) -> App e y) i dt
-        _       -> stepMsg "appexp" $ MSt (ups' 1 1 t) (App (Var 0) $ up (Up 0 1) b) $  a: vs
+    App_ a b -> case pushUps a of
+        Lam_ x | usedVar 0 x
+                 -> stepMsg "app" $ MSt (ups' 1 1 t) x $ b: vs
+        Lam_ x   -> stepMsg "appdel" $ tryRemoves (getFreeVars b) $ MSt t x vs
+        Var_ i   -> lookupHNF' "appvar" (\e (pushUps -> App_ _ y) -> App e y) i dt
+        _        -> stepMsg "appexp" $ MSt (ups' 1 1 t) (App (Var 0) $ up (Up 0 1) b) $  a: vs
 
-    Case a cs -> case pushUps a of
-        Con cn i es -> stepMsg "case" $ tryRemoves (foldMap (getFreeVars . snd) $ delElem i cs) $ (MSt t (foldl App (snd $ cs !! i) es) vs)
-        Var i -> lookupHNF' "casevar" (\e (pushUps -> Case _ cs) -> Case e cs) i dt
-        _     -> stepMsg "caseexp" $ MSt (ups' 1 1 t) (Case (Var 0) $ second (up (Up 0 1)) <$> cs) $ a: vs
+    Case_ a cs -> case pushUps a of
+        Con_ cn i es -> stepMsg "case" $ tryRemoves (foldMap (getFreeVars . snd) $ delElem i cs) $ (MSt t (foldl App (snd $ cs !! i) es) vs)
+        Var_ i -> lookupHNF' "casevar" (\e (pushUps -> Case_ _ cs) -> Case e cs) i dt
+        _      -> stepMsg "caseexp" $ MSt (ups' 1 1 t) (Case (Var 0) $ second (up (Up 0 1)) <$> cs) $ a: vs
 
-    Op2 op x y -> case (pushUps x, pushUps y) of
-        (Int e, Int f) -> return $ MSt t (int op e f) vs
+    Op2_ op x y -> case (pushUps x, pushUps y) of
+        (Int_ e, Int_ f) -> return $ MSt t (int op e f) vs
           where
             int Add a b = Int $ a + b
             int Sub a b = Int $ a - b
             int Mod a b = Int $ a `mod` b
             int LessEq a b = if a <= b then T else F
             int EqInt a b = if a == b then T else F
-        (Var i, _) -> lookupHNF' "op2-1var" (\e (pushUps -> Op2 op _ y) -> Op2 op e y) i dt
-        (_, Var i) -> lookupHNF' "op2-2var" (\e (pushUps -> Op2 op x _) -> Op2 op x e) i dt
-        (Int{}, _) -> stepMsg "op2" $ MSt (ups' 1 1 t) (Op2 op x (Var 0)) $ y: vs
-        (_, Int{}) -> stepMsg "op2" $ MSt (ups' 1 1 t) (Op2 op (Var 0) y) $ x: vs
-        _          -> stepMsg "op2" $ MSt (ups' 1 2 t) (Op2 op (Var 0) (Var 1)) $ x: y: vs
+        (Var_ i, _) -> lookupHNF' "op2-1var" (\e (pushUps -> Op2_ op _ y) -> Op2 op e y) i dt
+        (_, Var_ i) -> lookupHNF' "op2-2var" (\e (pushUps -> Op2_ op x _) -> Op2 op x e) i dt
+        (Int_{}, _) -> stepMsg "op2" $ MSt (ups' 1 1 t) (Op2 op x (Var 0)) $ y: vs
+        (_, Int_{}) -> stepMsg "op2" $ MSt (ups' 1 1 t) (Op2 op (Var 0) y) $ x: vs
+        _           -> stepMsg "op2" $ MSt (ups' 1 2 t) (Op2 op (Var 0) (Var 1)) $ x: y: vs
 
 stepMsg :: MachineMonad m => String -> MSt -> m MSt
 stepMsg msg dt = do
