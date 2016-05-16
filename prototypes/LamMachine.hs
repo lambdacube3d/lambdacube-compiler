@@ -53,7 +53,7 @@ data MSt = MSt [(FreeVars, Exp)]  -- TODO: use finger tree instead of list
 --------------------------------------------------------------------- toolbox: pretty print
 
 instance PShow Exp where
-    pShow x = case pushUps x of
+    pShow x = case {-pushUps-} x of
         Var i -> DVar i
         App a b -> DApp (pShow a) (pShow b)
         Seq a b -> DOp "`seq`" (Infix 1) (pShow a) (pShow b)
@@ -66,6 +66,7 @@ instance PShow Exp where
         Op2 o x y -> text (show o) `DApp` pShow x `DApp` pShow y
         Y e -> "Y" `DApp` pShow e
         Case e xs -> DPreOp (-20) (ComplexAtom "case" (-10) (pShow e) (SimpleAtom "of")) $ foldr1 DSemi [DArr_ "->" (text a) (pShow b) | (a, b) <- xs]
+        Ups u xs -> DPreOp (-20) (SimpleAtom $ show u) $ pShow xs
 
 shLam_ usedVar b = DFreshName usedVar $ showLam (DVar 0) b
 
@@ -123,9 +124,9 @@ dupCase f (getUs -> (a, ax)) (unzip -> (ss, unzip . map getUs -> (b, bx)))
 dupLam f (Ups a ax) = Ups_ (ff a) $ Exp (shiftFreeVars (-1) $ getFreeVars ax') $ f ax'
   where
     ax' = case a of
-        Up 0 n: _ -> up (Up 0 n) ax
+        Up 0 n: _ -> up (Up 0 1) ax
         _ -> ax
-    ff (Up 0 n: us) = incUp (-1) <$> us
+    ff (Up 0 n: us) = insertUp (Up 0 $ n - 1) $ incUp (-1) <$> us
     ff us = incUp (-1) <$> us
 dupLam f x = f x
 
@@ -169,7 +170,7 @@ pushUps e = e
 showUps us = foldr f [] us where
     f (Up l n) is = take n [l..] ++ map (n+) is
 
-sectUps' a b = sect (showUps a) (showUps b) -- sectUps 0 a 0 b
+--sectUps' a b = sect (showUps a) (showUps b) -- sectUps 0 a 0 b
 
 sect [] _ = []
 sect _ [] = []
@@ -224,6 +225,7 @@ diffUpsTest' = diffUpsTest [x,y] --diffUpsTest x y
     x = [Up 1 2, Up 3 4, Up 8 2]
     y = [Up 2 2, Up 5 1, Up 6 2, Up 7 2]
 
+insertUp u@(Up l 0) us = us
 insertUp u@(Up l n) [] = [u]
 insertUp u@(Up l n) us_@(u'@(Up l' n'): us)
     | l < l' = u: us_
@@ -282,7 +284,7 @@ down i x = Just $ down_ i x
 down_ i e@(Exp s x)
     | dbGE i s = e
 down_ i (Ups us e) = f i us e where
-    f i [] e = down_ i e
+    f i [] e = error $ "-- - -  -- " ++ show i ++ "     " ++ ppShow e ++ "\n" ++ ppShow (pushUps e) --"show down_ i e
     f i (u@(Up j n): us) e
         | i < j = addUp (Up (j-1) n) $ f i us e
         | i >= j + n = addUp u $ f (i-n) us e
@@ -350,8 +352,8 @@ instance MachineMonad Identity where
     collectSizeStat _ = return ()
 
 instance MachineMonad IO where
-    traceStep s = return ()
---    traceStep = putStrLn
+--    traceStep s = return ()
+    traceStep = putStrLn
     collectSizeStat s = return ()
 
 instance MachineMonad (Writer [Int]) where
