@@ -42,12 +42,12 @@ data Op2 = Add | Sub | Mod | LessEq | EqInt
     deriving (Eq, Show)
 
 -- cached free variables set
-data Exp = Exp {dbUps :: [Up], maxFreeVars :: Int, expexp :: Exp_ }
+data Exp = Exp {dbUps :: [Up], _maxFreeVars :: Int, expexp :: Exp_ }
 
 -- state of the machine
-data MSt = MSt Exp   -- TODO: use finger tree instead of lets?
+data MSt = MSt Exp
                Exp
-               [Exp]  -- TODO: use finger tree instead of list?
+               [Exp]
 
 --------------------------------------------------------------------- toolbox: pretty print
 
@@ -90,7 +90,7 @@ showLet x y = DLet' x y
 
 --------------------------------------------------------------------- toolbox: free variables
 
-maxFreeVars' (Exp xs s _) = foldl' f s xs
+maxFreeVars (Exp xs s _) = foldl' f s xs
   where
     f m (Up l n) = n + m
 
@@ -115,14 +115,6 @@ insertUp_ s u@(Up l n) us_@(u'@(Up l' n'): us)
     | l < l' = u: us_
     | l >= l' && l <= l' + n' = Up l' (n' + n): us
     | otherwise = u': insertUp_ s (Up (l-n') n) us
-
--- TODO: remove
-insertUp (Up l 0) us = us
-insertUp u [] = [u]
-insertUp u@(Up l n) us_@(u'@(Up l' n'): us)
-    | l < l' = u: us_
-    | l >= l' && l <= l' + n' = Up l' (n' + n): us
-    | otherwise = u': insertUp (Up (l-n') n) us
 
 -- TODO: remove if possible
 fvs (Exp us fv _) = gen 0 $ foldr f [fv] us  where
@@ -149,7 +141,7 @@ down i0 e0@(Exp us fv e) = f i0 us where
 
 upss u (Exp _ i e) = Exp u i e
 
-dup2 f ax bx = Exp s (maxFreeVars' az `max` maxFreeVars' bz) $ f az bz  where
+dup2 f ax bx = Exp s (maxFreeVars az `max` maxFreeVars bz) $ f az bz  where
     (s, [a', b']) = deltaUps [ax, bx]
     az = upss a' ax
     bz = upss b' bx
@@ -158,23 +150,25 @@ dup1 :: (Exp -> Exp_) -> Exp -> Exp
 dup1 f (Exp a b x) = Exp a b $ f $ Exp [] b x
 
 dupCon f [] = Exp [] 0 $ f []
-dupCon f bx = Exp s (maximum $ maxFreeVars' <$> bz) $ f bz  where
+dupCon f bx = Exp s (maximum $ maxFreeVars <$> bz) $ f bz  where
     (s, b') = deltaUps bx
     bz = zipWith upss b' bx
 
 dupCase f ax (unzip -> (ss, bx))
-    = Exp s (maxFreeVars' az `max` maximum (maxFreeVars' <$> bz)) $ f az $ zip ss bz
+    = Exp s (maxFreeVars az `max` maximum (maxFreeVars <$> bz)) $ f az $ zip ss bz
   where
     (s, a': b') = deltaUps $ ax: bx
     az = upss a' ax
     bz = zipWith upss b' bx
 
-dupLam f e@(Exp a fv ax) = Exp (ff a) (max 0 $ fv - 1) $ f $ Exp (gg a) fv ax
+dupLam f e@(Exp a fv ax) = Exp (ff a) fv' $ f $ Exp (gg a) fv ax
   where
+    fv' = max 0 $ fv - 1
+
     gg (Up 0 n: _) = [Up 0 1]
     gg _ = []
 
-    ff (Up 0 n: us) = insertUp (Up 0 $ n - 1) $ incUp (-1) <$> us
+    ff (Up 0 n: us) = insertUp_ fv' (Up 0 $ n - 1) $ incUp (-1) <$> us
     ff us = incUp (-1) <$> us
 
 pattern Int i <- Exp _ _ (Int_ i)
@@ -213,64 +207,55 @@ incUp t (Up l n) = Up (l+t) n
 showUps us n = foldr f (replicate n True) us where
     f (Up l n) is = take l is ++ replicate n False ++ drop l is
 
---sectUps' a b = sect (showUps a) (showUps b) -- sectUps 0 a 0 b
-
-sect [] xs = xs
-sect xs [] = xs
-sect (x:xs) (y:ys) = (x || y): sect xs ys
-
-{- TODO
-sectUps _ u _ [] = []
-sectUps _ [] _ u = []
-sectUps k us_@(Up l n: us) k' us_'@(Up l' n': us')
-    | k + l + n <= k' + l' = sectUps (k + n) us k' us_'
-    | k' + l' + n' <= k + l = sectUps k us_ (k' + n') us'
-    | otherwise = insertUp (Up l'' n'') $ sectUps (k + n - c) (Up b c: us) (k' + n' - c') (Up b c': us')
-  where
-    l'' = max l l'
-    b = min (l + n) (l' + n')
-    n'' = b - l''
-    c = l + n - b
-    c' = l' + n' - b
-
-diffUps [] u = u
-diffUps [] [] = []
-diffUps (Up l n: us) (Up l' n': us') = insertUp (Up l' (l - l')) $ diffUps us (Up (l + n) (l' + n' - l - n): us')
--}
-
-diffUps a b = diffUps' 0 (back a) (back b)
-
-diffUps' n u [] = (+(-n)) <$> u
-diffUps' n [] _ = []
-diffUps' n (x: xs) (y: ys)
-    | x < y = (x - n): diffUps' n xs (y: ys)
-    | x == y = diffUps' (n+1) xs ys
-
-back = map fst . filter (not . snd) . zip [0..]
-
-mkUps = f 0
-  where
-    f i [] = []
-    f i (x: xs) = insertUp (Up (x-i) 1) $ f (i+1) xs
-
 deltaUps = deltaUps_ . map crk
-
-deltaUps_ (map $ uncurry showUps -> us) = (mkUps $ back s, [mkUps $ u `diffUps` s | u <- us])
   where
-    s = foldr1 sect $ us
+    crk (Exp u e _) = (u, e)
 
-crk (Exp u e _) = (u, e)
+    deltaUps_ (map toLadder -> xs) = (fromLadder $ negL s, [fromLadder $ dLadders 0 (negL u) (negL s) | u <- xs])
+      where
+        s = foldr1 iLadders xs
 
-joinUps a b = foldr insertUp b a
+    toLadder (us, k) = add1 0 $ f 0 us  where
+        f s (Up l n: us) = (l+s): (l+s+n): f (s+n) us
+        f s [] = k+s: []
 
-diffUpsTest xs | and $ zipWith (\a (b, _) -> s `joinUps` a == b) ys xs = show (s, ys)
-  where
-    (s, ys) = deltaUps_ xs
+    iLadders :: [Int] -> [Int] -> [Int]
+    iLadders x [] = x
+    iLadders [] x = x
+    iLadders x@(a: b: us) x'@(a': b': us')
+        | b <= a' = addL a b $ iLadders us x'
+        | b' <= a = addL a' b' $ iLadders x us'
+        | otherwise = addL (min a a') c $ iLadders (addL c b us) (addL c b' us')
+      where
+        c = min b b'
 
-diffUpsTest' = diffUpsTest [x,y] --diffUpsTest x y
-  where
-    x = ([Up 1 2, Up 3 4, Up 8 2], 20)
-    y = ([Up 2 2, Up 5 1, Up 6 2, Up 7 2], 18)
+    addL a b cs | a == b = cs
+    addL a b [] = a: b: []
+    addL a b (c: cs) | b == c = a: cs
+                     | otherwise = a: b: c: cs
+
+    fromLadder :: [Int] -> [Up]
+    fromLadder = f 0 where
+        f s (a: b: cs) = Up (a-s) (b-a): f (s+b-a) cs
+        f s [] = []
+
+    add1 a (b: cs) | a == b = cs
+                   | otherwise = a: b: cs
+
+    dLadders :: Int -> [Int] -> [Int] -> [Int]
+    dLadders s x [] = map (+(-s)) x
+    dLadders s [] x = [] -- impossible?
+    dLadders s x@(a: b: us) x'@(a': b': us')
+        | a' >= b = addL (a - s) (b - s) $ dLadders s us x'
+        | a' < a || b' < a' || b < a = error "dLadders"
+        | otherwise = addL (a - s) (a' - s) $ dLadders (s + sd) (addL c b us) (addL c b' us')
+      where
+        c = min b b'
+        sd = c - a'
+
+    negL [] = []
+    negL xs = init $ add1 0 xs
+
 
 getLets (Let x y) = x: getLets y
 getLets x = [x]
@@ -494,3 +479,57 @@ primes = 2:3: filter (\n -> and $ map (\p -> n `mod` p /= 0) (takeWhile (\x -> x
 
 main = primes !! 3000
 -}
+
+
+
+-------------------------------------------------------------
+
+{- alternative presentation
+
+sect [] xs = xs
+sect xs [] = xs
+sect (x:xs) (y:ys) = (x || y): sect xs ys
+
+diffUps a b = diffUps' 0 (back a) (back b)
+
+diffUps' n u [] = (+(-n)) <$> u
+diffUps' n [] _ = []
+diffUps' n (x: xs) (y: ys)
+    | x < y = (x - n): diffUps' n xs (y: ys)
+    | x == y = diffUps' (n+1) xs ys
+
+back = map fst . filter (not . snd) . zip [0..]
+
+mkUps = f 0
+  where
+    f i [] = []
+    f i (x: xs) = insertUp (Up (x-i) 1) $ f (i+1) xs
+
+deltaUps_ (map $ uncurry showUps -> us) = (mkUps $ back s, [mkUps $ u `diffUps` s | u <- us])
+  where
+    s = foldr1 sect $ us
+
+joinUps a b = foldr insertUp b a
+
+diffUpsTest xs
+    | and $ zipWith (\a (b, _) -> s `joinUps` a == b) ys xs = show (s, ys)
+    | otherwise = error $ unlines $ map (show . toLadder) xs ++ "----": map show xs ++ "-----": show s: show s_: "-----": map show ys ++ "------": map (show . joinUps s) ys
+  where
+    (s, ys) = deltaUps_ xs
+    s_ = foldr1 iLadders $ toLadder <$> xs
+
+diffUpsTest' = diffUpsTest [x,y] --diffUpsTest x y
+
+x = ([Up 1 2, Up 3 4, Up 8 2], 20)
+y = ([Up 2 2, Up 5 1, Up 6 2, Up 7 2], 18)
+
+-- TODO: remove
+insertUp (Up l 0) us = us
+insertUp u [] = [u]
+insertUp u@(Up l n) us_@(u'@(Up l' n'): us)
+    | l < l' = u: us_
+    | l >= l' && l <= l' + n' = Up l' (n' + n): us
+    | otherwise = u': insertUp (Up (l-n') n) us
+
+-}
+
