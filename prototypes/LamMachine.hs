@@ -216,13 +216,13 @@ dLadders s x@(a: b: us) x'@(a': b': us')
 tryRemoves xs = tryRemoves_ (Var <$> xs)
 
 tryRemoves_ [] dt = dt
-tryRemoves_ (Var i: vs) dt = maybe (tryRemoves_ vs dt) (tryRemoves_ $ catMaybes $ down i <$> vs) $ tryRemove_ i dt
+tryRemoves_ (Var i: vs) dt = maybe (tryRemoves_ vs dt) (\(is, st) -> tryRemoves_ (is ++ catMaybes (down i <$> vs)) st) $ tryRemove_ i dt
+  where
+    tryRemove_ i (MSt xs e es) = (\a b (is, c) -> (is, MSt a b c)) <$> down (i+1) xs <*> down i e <*> downDown i es
 
-tryRemove_ i (MSt xs e es) = MSt <$> down (i+1) xs <*> down i e <*> downDown i es
-
-downDown i [] = Just []
-downDown 0 (_: xs) = Just xs
-downDown i (x: xs) = (:) <$> down (i-1) x <*> downDown (i-1) xs
+    downDown i [] = Just ([], [])
+    downDown 0 (x: xs) = Just (Var <$> fvs x, xs)
+    downDown i (x: xs) = (\x (is, xs) -> (up 0 1 <$> is, x: xs)) <$> down (i-1) x <*> downDown (i-1) xs
 
 ----------------------------------------------------------- machine code begins here
 
@@ -316,7 +316,7 @@ steps nostep {-ready-} bind cont dt@(MSt t e vs) = case e of
 
         shiftR (MSt (Let x xs) e es) = MSt xs x $ e: es
 
-        tryRemove i st = maybe (end st) (bind "remove" end) $ tryRemove_ i st
+        tryRemove i st = {-maybe (end st)-} (bind "remove" end) $ tryRemoves [i] st
 
     -- lookup & step
     lookupHNF' :: StepTag -> (Exp -> Exp -> Exp) -> Int -> MSt -> e
