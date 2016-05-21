@@ -54,11 +54,11 @@ instance PShow Exp where
         Lam e       -> shLam $ pShow e
         Con s i xs  -> foldl DApp (text s) $ pShow <$> xs
         Int i       -> pShow i
+        Y e         -> "Y" `DApp` pShow e
         Op1 o x     -> text (show o) `DApp` pShow x
         Op2 EqInt x y -> DOp "==" (Infix 4) (pShow x) (pShow y)
         Op2 Add x y -> DOp "+" (InfixL 6) (pShow x) (pShow y)
         Op2 o x y   -> text (show o) `DApp` pShow x `DApp` pShow y
-        Y e         -> "Y" `DApp` pShow e
         Case cn e xs -> DPreOp (-20) (ComplexAtom "case" (-10) (pShow e) (SimpleAtom "of"))
                         $ foldr1 DSemi [DArr_ "->" (text a) (pShow b) | (a, b) <- zip cn xs]
 
@@ -276,6 +276,7 @@ steps nostep {-ready-} bind cont dt@(MSt t e vs) = case e of
         Lam x   -> step "appdel" $ tryRemoves (fvs b) $ MSt t x vs
         Var i   -> lookupHNF' "appvar" (\e (App _ y) -> App e y) i dt
         _       -> step "appexp" $ MSt (up 1 1 t) (App (Var 0) $ up 0 1 b) $  a: vs
+--        _       -> bind "appexp" (lookupHNF' "app1var" (\e (App _ y) -> App e y) 0) $ MSt (up 1 1 t) (App (Var 0) $ up 0 1 b) $  a: vs
 
     Case cn a cs -> case a of
         Con cn i es -> step "case" $ tryRemoves (nub $ foldMap fvs $ delElem i cs) $ (MSt t (foldl App (cs !! i) es) vs)
@@ -306,21 +307,21 @@ steps nostep {-ready-} bind cont dt@(MSt t e vs) = case e of
 
     -- lookup var in head normal form
     lookupHNF_ :: (MSt -> e) -> StepTag -> (Exp -> Exp -> Exp) -> Int -> MSt -> e
-    lookupHNF_ end msg f i dt = bind "shiftL" (hnf shiftLookup) $ iterate shiftL dt !! (i+1)
+    lookupHNF_ end msg f i dt = bind msg (hnf shiftLookup) $ iterate shiftL dt !! (i+1)
       where
         shiftLookup dt@(MSt _ e _)
             = case iterate shiftR dt !! (i+1) of
                 MSt xs z es -> bind "shiftR" (tryRemove i) $ MSt xs (f (up 0 (i+1) e) z) es
-
-        shiftL (MSt xs x (e: es)) = MSt (Let x xs) e es
-
-        shiftR (MSt (Let x xs) e es) = MSt xs x $ e: es
 
         tryRemove i st = {-maybe (end st)-} (bind "remove" end) $ tryRemoves [i] st
 
     -- lookup & step
     lookupHNF' :: StepTag -> (Exp -> Exp -> Exp) -> Int -> MSt -> e
     lookupHNF' msg f i dt = lookupHNF_ rec msg f i dt
+
+    shiftL (MSt xs x (e: es)) = MSt (Let x xs) e es
+
+    shiftR (MSt (Let x xs) e es) = MSt xs x $ e: es
 
     simple = \case
         Var{} -> True
