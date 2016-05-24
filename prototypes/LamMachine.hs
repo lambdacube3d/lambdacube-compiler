@@ -54,6 +54,7 @@ data Env
     = ELet Exp
     | ELet1 Exp
     | EApp1 !Int Exp
+    | ECase !Int [String] [Exp]
     deriving Eq
 
 --------------------------------------------------------------------- toolbox: pretty print
@@ -84,6 +85,7 @@ instance PShow MSt where
             ELet x -> Let x y
             ELet1 x -> Let y x
             EApp1 i x -> HNF i $ App y x
+            ECase i cns xs -> HNF i $ Case cns y xs
 
 shUps a b = DPreOp (-20) (SimpleAtom $ show a) b
 shUps' a x b = DPreOp (-20) (SimpleAtom $ show a ++ show x) b
@@ -174,6 +176,7 @@ tryRemoves_ (Var' i: vs) dt = maybe (tryRemoves_ vs dt) (\(is, st) -> tryRemoves
     downDown i (ELet x: xs) = (\x (is, xs) -> (up 0 1 <$> is, ELet x: xs)) <$> down (i-1) x <*> downDown (i-1) xs
     downDown i (ELet1 x: xs) = (\x (is, xs) -> (is, ELet1 x: xs)) <$> down (i+1) x <*> downDown i xs
     downDown i (EApp1 j x: xs) = (\x (is, xs) -> (is, EApp1 j x: xs)) <$> down i x <*> downDown i xs
+    downDown i (ECase j cns x: xs) = (\x (is, xs) -> (is, ECase j cns x: xs)) <$> traverse (down i) x <*> downDown i xs
 
 ----------------------------------------------------------- machine code begins here
 
@@ -222,10 +225,8 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
     Y (Lam x)   -> step "Y" $ MSt x $ ELet e: vs
 
     App a b -> case a of
-        Lam x | usedVar 0 x
-                -> step "app"    $ MSt x $ ELet b: vs
-        Lam x   -> step "appdel" $ tryRemoves (fvs b) $ MSt x vs
---        Var i   -> lookupHNF' "appvar" (\e (App _ y) -> App e y) i dt
+        Lam x | usedVar 0 x -> step "app"    $ MSt x $ ELet b: vs
+              | otherwise   -> step "appdel" $ tryRemoves (fvs b) $ MSt x vs
         _       -> bind "app1" (hnf "app1 hnf" (step "appexp" . focus)) $ MSt a $ EApp1 lev b: vs
       where
         focus (MSt b xs) = MSt (App b c) xs'
@@ -234,10 +235,15 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
             f (EApp1 _ c: xs) = (c, xs)
             f (ELet x: (f -> (c, xs))) = (up 0 1 c, ELet x: xs)
 
-    Case cn a cs -> case a of
+    Case cns a cs -> case a of
         Con cn i es -> step "case" $ tryRemoves (nub $ foldMap fvs $ delElem i cs) $ MSt (foldl App (cs !! i) es) vs
-        Var i   -> lookupHNF' "casevar" (\e (Case cn _ cs) -> Case cn e cs) i dt
-        _       -> step "caseexp" $ MSt (Case cn (Var 0) $ up 0 1 <$> cs) $ ELet a: vs
+        _       -> bind "case1" (hnf "case hnf" (step "caseexp" . focus)) $ MSt a $ ECase lev cns cs: vs
+      where
+        focus (MSt b xs) = MSt (Case cns b c) xs'
+          where
+            (c, xs') = f xs
+            f (ECase _ _ c: xs) = (c, xs)
+            f (ELet x: (f -> (c, xs))) = (up 0 1 <$> c, ELet x: xs)
 
     Op2 op x y -> case (x, y) of
         (Int e, Int f) -> step "op-done" $ MSt (int op e f) vs
@@ -283,6 +289,7 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
     shiftL path 0 (MSt x (ELet e: es)) = (path, MSt e $ ELet1 x: es)
     shiftL path n (MSt x (ELet e: es)) = shiftL (TELet: path) (n-1) $ MSt (Let e x) es
     shiftL path n (MSt x (EApp1 i e: es)) = shiftL (TEApp1: path) n $ MSt (HNF i $ App x e) es
+    shiftL path n (MSt x (ECase i cns e: es)) = shiftL (TECase: path) n $ MSt (HNF i $ Case cns x e) es
     shiftL path n (MSt x (ELet1 e: es)) = shiftL (TELet1: path) n $ MSt (Let x e) es
     shiftL path n st = error $ "shiftL: " ++ show (path, n) ++ "\n" ++ ppShow st
 
@@ -295,6 +302,7 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
     shiftR [] st = st
     shiftR (TELet: n) (y, MSt (Let e x) es) = shiftR n (up 0 1 y, MSt x $ ELet e: es)
     shiftR (TEApp1: n) (y, MSt (HNF l (App x e)) es) = shiftR n (y, MSt x $ EApp1 l e: es)
+    shiftR (TECase: n) (y, MSt (HNF l (Case cns x e)) es) = shiftR n (y, MSt x $ ECase l cns e: es)
     shiftR (TELet1: n) (y, MSt (Let x e) es) = shiftR n (y, MSt x $ ELet1 e: es)
     shiftR path x = error $ "shiftR: " ++ show path ++ "\n" ++ ppShow x
 
@@ -305,7 +313,7 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
 
     delElem i xs = take i xs ++ drop (i+1) xs
 
-data TE = TELet | TELet1 | TEApp1
+data TE = TELet | TELet1 | TEApp1 | TECase
     deriving Show
 
 ---------------------------------------------------------------------------------------- examples
