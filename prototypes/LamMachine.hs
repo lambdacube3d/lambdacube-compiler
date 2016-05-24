@@ -47,7 +47,13 @@ data Exp = Exp_ !FV !Exp_
     deriving Eq
 
 -- state of the machine
-data MSt = MSt Exp Exp ![Exp]
+data MSt = MSt Exp ![Env]
+    deriving Eq
+
+data Env
+    = ELet Exp
+    | ELet1 Exp
+    | EApp1 !Int Exp
     deriving Eq
 
 --------------------------------------------------------------------- toolbox: pretty print
@@ -72,7 +78,12 @@ instance PShow Exp where
                         $ foldr1 DSemi [DArr_ "->" (text a) (pShow b) | (a, b) <- zip cn xs]
 
 instance PShow MSt where
-    pShow (MSt as b bs) = pShow $ foldl (flip Let) (Let (HNF (-1) b) as) bs
+    pShow (MSt b bs) = pShow $ foldl f (HNF (-1) b) bs
+      where
+        f y = \case
+            ELet x -> Let x y
+            ELet1 x -> Let y x
+            EApp1 i x -> HNF i $ App y x
 
 shUps a b = DPreOp (-20) (SimpleAtom $ show a) b
 shUps' a x b = DPreOp (-20) (SimpleAtom $ show a ++ show x) b
@@ -116,14 +127,11 @@ pattern Seq a b     = Op2 SeqOp a b
 infixl 4 `App`
 
 initSt :: Exp -> MSt
-initSt e = MSt (Var 0) e []
+initSt e = MSt e []
 
 -- for statistics
 size :: MSt -> Int
-size (MSt xs _ ys) = length (getLets xs) + length ys
-  where
-    getLets (Let x y) = x: getLets y
-    getLets x = [x]
+size (MSt _ ys) = length ys
 
 delta2 (Exp_ ua a) (Exp_ ub b) = (s, Exp_ (delFV ua s) a, Exp_ (delFV ub s) b)
   where
@@ -159,11 +167,13 @@ tryRemoves xs = tryRemoves_ (Var' <$> xs)
 tryRemoves_ [] dt = dt
 tryRemoves_ (Var' i: vs) dt = maybe (tryRemoves_ vs dt) (\(is, st) -> tryRemoves_ (is ++ catMaybes (down i <$> vs)) st) $ tryRemove_ i dt
   where
-    tryRemove_ i (MSt xs e es) = (\a b (is, c) -> (is, MSt a b c)) <$> down (i+1) xs <*> down i e <*> downDown i es
+    tryRemove_ i (MSt e es) = (\b (is, c) -> (is, MSt b c)) <$> down i e <*> downDown i es
 
     downDown i [] = Just ([], [])
-    downDown 0 (x: xs) = Just (Var' <$> fvs x, xs)
-    downDown i (x: xs) = (\x (is, xs) -> (up 0 1 <$> is, x: xs)) <$> down (i-1) x <*> downDown (i-1) xs
+    downDown 0 (ELet x: xs) = Just (Var' <$> fvs x, xs)
+    downDown i (ELet x: xs) = (\x (is, xs) -> (up 0 1 <$> is, ELet x: xs)) <$> down (i-1) x <*> downDown (i-1) xs
+    downDown i (ELet1 x: xs) = (\x (is, xs) -> (is, ELet1 x: xs)) <$> down (i+1) x <*> downDown i xs
+    downDown i (EApp1 j x: xs) = (\x (is, xs) -> (is, EApp1 j x: xs)) <$> down i x <*> downDown i xs
 
 ----------------------------------------------------------- machine code begins here
 
@@ -184,13 +194,13 @@ type GenSteps e
 type StepTag = String
 
 steps :: forall e . Int -> GenSteps e
-steps lev nostep {-ready-} bind cont dt@(MSt t e vs) = case e of
+steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
 
     Int{} -> nostep dt --ready "hnf int"
     Lam{} -> nostep dt --ready "hnf lam"
 
     Con cn i xs
-        | lz > 0 -> step "copy con" $ MSt (up 1 lz t) (Con cn i xs') $ zs ++ vs  -- share complex constructor arguments
+        | lz > 0 -> step "copy con" $ MSt (Con cn i xs') $ (ELet <$> zs) ++ vs  -- share complex constructor arguments
         | otherwise -> nostep dt --ready "hnf con"
       where
         lz = Nat $ length zs
@@ -202,30 +212,35 @@ steps lev nostep {-ready-} bind cont dt@(MSt t e vs) = case e of
     Var i -> lookupHNF_ nostep "var" const i dt
 
     Seq a b -> case a of
-        Int{}   -> step "seq" $ MSt t b vs
-        Lam{}   -> step "seq" $ tryRemoves (fvs a) $ MSt t b vs
-        Con{}   -> step "seq" $ tryRemoves (fvs a) $ MSt t b vs
+        Int{}   -> step "seq" $ MSt b vs
+        Lam{}   -> step "seq" $ tryRemoves (fvs a) $ MSt b vs
+        Con{}   -> step "seq" $ tryRemoves (fvs a) $ MSt b vs
         Var i   -> lookupHNF' "seqvar" (\e (Seq _ b) -> b) i dt
-        _       -> step "seqexp" $ MSt (up 1 1 t) (Seq (Var 0) $ up 0 1 b) $  a: vs
+        _       -> step "seqexp" $ MSt (Seq (Var 0) $ up 0 1 b) $ ELet a: vs
 
     -- TODO: handle recursive constants
-    Y (Lam x)   -> step "Y" $ MSt (up 1 1 t) x $ e: vs
+    Y (Lam x)   -> step "Y" $ MSt x $ ELet e: vs
 
     App a b -> case a of
         Lam x | usedVar 0 x
-                -> step "app"    $ MSt (up 1 1 t) x $ b: vs
-        Lam x   -> step "appdel" $ tryRemoves (fvs b) $ MSt t x vs
-        Var i   -> lookupHNF' "appvar" (\e (App _ y) -> App e y) i dt
-        _       -> step "appexp" $ MSt (up 1 1 t) (App (Var 0) $ up 0 1 b) $  a: vs
---        _       -> bind "appexp" (lookupHNF' "app1var" (\e (App _ y) -> App e y) 0) $ MSt (up 1 1 t) (App (Var 0) $ up 0 1 b) $  a: vs
+                -> step "app"    $ MSt x $ ELet b: vs
+        Lam x   -> step "appdel" $ tryRemoves (fvs b) $ MSt x vs
+--        Var i   -> lookupHNF' "appvar" (\e (App _ y) -> App e y) i dt
+        _       -> bind "app1" (hnf "app1 hnf" (step "appexp" . focus)) $ MSt a $ EApp1 lev b: vs
+      where
+        focus (MSt b xs) = MSt (App b c) xs'
+          where
+            (c, xs') = f xs
+            f (EApp1 _ c: xs) = (c, xs)
+            f (ELet x: (f -> (c, xs))) = (up 0 1 c, ELet x: xs)
 
     Case cn a cs -> case a of
-        Con cn i es -> step "case" $ tryRemoves (nub $ foldMap fvs $ delElem i cs) $ (MSt t (foldl App (cs !! i) es) vs)
+        Con cn i es -> step "case" $ tryRemoves (nub $ foldMap fvs $ delElem i cs) $ MSt (foldl App (cs !! i) es) vs
         Var i   -> lookupHNF' "casevar" (\e (Case cn _ cs) -> Case cn e cs) i dt
-        _       -> step "caseexp" $ MSt (up 1 1 t) (Case cn (Var 0) $ up 0 1 <$> cs) $ a: vs
+        _       -> step "caseexp" $ MSt (Case cn (Var 0) $ up 0 1 <$> cs) $ ELet a: vs
 
     Op2 op x y -> case (x, y) of
-        (Int e, Int f) -> step "op-done" $ MSt t (int op e f) vs
+        (Int e, Int f) -> step "op-done" $ MSt (int op e f) vs
           where
             int Add a b = Int $ a + b
             int Sub a b = Int $ a - b
@@ -234,27 +249,30 @@ steps lev nostep {-ready-} bind cont dt@(MSt t e vs) = case e of
             int EqInt a b = if a == b then T else F
         (Var i, _) -> lookupHNF' "op2-1var" (\e (Op2 op _ y) -> Op2 op e y) i dt
         (_, Var i) -> lookupHNF' "op2-2var" (\e (Op2 op x _) -> Op2 op x e) i dt
-        (Int{}, _) -> step "op2" $ MSt (up 1 1 t) (Op2 op x (Var 0)) $ y: vs
-        (_, Int{}) -> step "op2" $ MSt (up 1 1 t) (Op2 op (Var 0) y) $ x: vs
-        _          -> step "op2" $ MSt (up 1 2 t) (Op2 op (Var 0) (Var 1)) $ x: y: vs
+        (Int{}, _) -> step "op2" $ MSt (Op2 op x (Var 0)) $ ELet y: vs
+        (_, Int{}) -> step "op2" $ MSt (Op2 op (Var 0) y) $ ELet x: vs
+        _          -> step "op2" $ MSt (Op2 op (Var 0) (Var 1)) $ ELet x: ELet y: vs
   where
     rec i = steps i nostep bind cont
 
     step :: StepTag -> MSt -> e
     step t = bind t (rec lev)
 
-    hnf :: (MSt -> e) -> MSt -> e
-    hnf f = cont "hnf" f (rec $ 1 + lev)
+    hnf :: StepTag -> (MSt -> e) -> MSt -> e
+    hnf t f = cont t f (rec $ 1 + lev)
 
-    hnfTag (MSt a b c) = MSt a (HNF lev b) c
+    hnfTag (MSt b c) = MSt (HNF lev b) c
 
     -- lookup var in head normal form
     lookupHNF_ :: (MSt -> e) -> StepTag -> (Exp -> Exp -> Exp) -> Nat -> MSt -> e
-    lookupHNF_ end msg f i@(Nat i') dt = bind msg (hnf shiftLookup) $ iterate shiftL (hnfTag dt) !! (i'+1)
+    lookupHNF_ end msg f i@(Nat i') dt = bind msg (hnf "lookup" shiftLookup) dt'
       where
-        shiftLookup dt@(MSt _ e _)
-            = case iterate shiftR dt !! (i'+1) of
-                MSt xs (HNF lev z) es -> bind "shiftR" (tryRemove i) $ MSt xs (f (up 0 (i+1) e) z) es
+        (path, dt') = shiftL [] i' $ hnfTag dt
+
+        shiftLookup st
+            = case boot (shiftR path . pakol') st of
+                (q, MSt (HNF lev z) es) -> bind "shiftR" (tryRemove i) $ MSt (f (up 0 1 q) z) es
+                st -> error $ "sl: " ++ ppShow st
 
         tryRemove i st = {-maybe (end st)-} (bind "remove" end) $ tryRemoves [i] st
 
@@ -262,9 +280,23 @@ steps lev nostep {-ready-} bind cont dt@(MSt t e vs) = case e of
     lookupHNF' :: StepTag -> (Exp -> Exp -> Exp) -> Nat -> MSt -> e
     lookupHNF' msg f i dt = lookupHNF_ (rec lev) msg f i dt
 
-    shiftL (MSt xs x (e: es)) = MSt (Let x xs) e es
+    shiftL path 0 (MSt x (ELet e: es)) = (path, MSt e $ ELet1 x: es)
+    shiftL path n (MSt x (ELet e: es)) = shiftL (TELet: path) (n-1) $ MSt (Let e x) es
+    shiftL path n (MSt x (EApp1 i e: es)) = shiftL (TEApp1: path) n $ MSt (HNF i $ App x e) es
+    shiftL path n (MSt x (ELet1 e: es)) = shiftL (TELet1: path) n $ MSt (Let x e) es
+    shiftL path n st = error $ "shiftL: " ++ show (path, n) ++ "\n" ++ ppShow st
 
-    shiftR (MSt (Let x xs) e es) = MSt xs x $ e: es
+    boot c (MSt e (ELet x: xs)) = boot (c . pakol) (MSt (Let x e) xs)
+    boot c st = c st
+
+    pakol (MSt (Let x e) (ELet1 y: xs)) = MSt e (ELet1 (up 1 1 y): ELet x: xs)
+    pakol' (MSt x (ELet1 y: xs)) = (x, MSt y (ELet x: xs))
+
+    shiftR [] st = st
+    shiftR (TELet: n) (y, MSt (Let e x) es) = shiftR n (up 0 1 y, MSt x $ ELet e: es)
+    shiftR (TEApp1: n) (y, MSt (HNF l (App x e)) es) = shiftR n (y, MSt x $ EApp1 l e: es)
+    shiftR (TELet1: n) (y, MSt (Let x e) es) = shiftR n (y, MSt x $ ELet1 e: es)
+    shiftR path x = error $ "shiftR: " ++ show path ++ "\n" ++ ppShow x
 
     simple = \case
         Var{} -> True
@@ -273,9 +305,14 @@ steps lev nostep {-ready-} bind cont dt@(MSt t e vs) = case e of
 
     delElem i xs = take i xs ++ drop (i+1) xs
 
+data TE = TELet | TELet1 | TEApp1
+    deriving Show
+
 ---------------------------------------------------------------------------------------- examples
 
-runMachinePure = putStrLn . ppShow . hnf
+pPrint = putStrLn . ppShow
+
+runMachinePure = pPrint . hnf
 
 pattern F = Con "False" 0 []
 pattern T = Con "True" 1 []
@@ -291,9 +328,9 @@ if_ b t f = caseBool b f t
 
 not_ x = caseBool x T F
 
-test = hnf (id_ `App` id_ `App` id_ `App` id_ `App` Int 13)
+test = id_ `App` id_ `App` id_ `App` id_ `App` Int 13
 
-test' = hnf (id_ `App` (id_ `App` Int 14))
+test' = id_ `App` (id_ `App` Int 14)
 
 foldr_ f e = Y $ Lam $ Lam $ caseList (Var 0) (up 0 2 e) (Lam $ Lam $ up 0 4 f `App` Var 1 `App` (Var 3 `App` Var 0))
 
@@ -345,8 +382,8 @@ main = primes !! 3000
 -}
 
 tests
-    =   test == hnf (Int 13)
-    &&  test' == hnf (Int 14)
+    =   hnf test == hnf (Int 13)
+    &&  hnf test' == hnf (Int 14)
     &&  hnf (Lam (Int 4) `App` Int 3) == hnf (Int 4)
     &&  hnf (t' 10) == hnf (Int 55)
     &&  hnf (t'' 10) == hnf (Int 55)

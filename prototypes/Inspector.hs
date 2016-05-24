@@ -92,7 +92,7 @@ main = do
             (LeftArrow, st@(_, _:_:_)) -> cycle' $ iterate goLeft st !! 100
             (RightArrow, st@(_:_, _)) -> cycle' $ iterate goRight st !! 100
             (IntArg n, _) -> cycle' ([], stepList $ t' n)
-            (ProgramChange, _) -> cycle' ([], stepList $ t'' 0)
+            (ProgramChange, _) -> cycle' ([], stepList $ test) --t'' 0)
             _ ->  cycle False st
 
     cycle' st@(h, (_, x): _) = do
