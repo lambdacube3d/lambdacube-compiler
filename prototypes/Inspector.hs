@@ -33,7 +33,8 @@ data StepTree a b
   deriving Show
 
 stepTree :: MSt -> StepTree StepTag MSt
-stepTree = fst . steps (runState $ return NoStep)
+stepTree = fst . steps 0
+                       (runState $ return NoStep)
                        (\t c -> runState $ Step t <$> get <*> state c)
                        (\t c2 c1 -> runState $ Steps t <$> state c1 <*> state c2)
 
@@ -91,7 +92,7 @@ main = do
             (LeftArrow, st@(_, _:_:_)) -> cycle' $ iterate goLeft st !! 100
             (RightArrow, st@(_:_, _)) -> cycle' $ iterate goRight st !! 100
             (IntArg n, _) -> cycle' ([], stepList $ t' n)
-            (ProgramChange, _) -> cycle' ([], stepList $ t'' 1000)
+            (ProgramChange, _) -> cycle' ([], stepList $ t'' 0)
             _ ->  cycle False st
 
     cycle' st@(h, (_, x): _) = do

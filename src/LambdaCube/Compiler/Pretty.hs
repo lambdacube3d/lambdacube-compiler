@@ -280,6 +280,7 @@ isOpName _ = False
 red         = DFormat P.dullred
 green       = DFormat P.dullgreen
 blue        = DFormat P.dullblue
+white       = DFormat P.white
 onred       = DFormat P.ondullred
 ongreen     = DFormat P.ondullgreen
 onblue      = DFormat P.ondullblue

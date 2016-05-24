@@ -192,7 +192,7 @@ delta = ELit (LString "<<delta function>>") -- TODO: build an error call
 
 pattern TConstraint <- TTyCon0 F'Constraint where TConstraint = tTyCon0 F'Constraint $ error "cs 1"
 pattern Unit        <- TTyCon0 F'Unit      where Unit        = tTyCon0 F'Unit [Unit]
-pattern TInt        <- TTyCon0 F'Int       --where TInt        = tTyCon0 F'Int $ error "cs 1"
+pattern TInt        <- TTyCon0 F'Int       where TInt        = tTyCon0 F'Int $ error "cs 1"
 pattern TNat        <- TTyCon0 F'Nat       where TNat        = tTyCon0 F'Nat $ error "cs 3"
 pattern TBool       <- TTyCon0 F'Bool      where TBool       = tTyCon0 F'Bool $ error "cs 4"
 pattern TFloat      <- TTyCon0 F'Float     where TFloat      = tTyCon0 F'Float $ error "cs 5"
