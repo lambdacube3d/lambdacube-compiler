@@ -55,6 +55,8 @@ data Env
     | ELet1 Exp
     | EApp1 !Int Exp
     | ECase !Int [String] [Exp]
+    | EOp2_1 !Int Op2 Exp
+    | EOp2_2 !Int Op2 Exp
     deriving Eq
 
 --------------------------------------------------------------------- toolbox: pretty print
@@ -86,6 +88,8 @@ instance PShow MSt where
             ELet1 x -> Let y x
             EApp1 i x -> HNF i $ App y x
             ECase i cns xs -> HNF i $ Case cns y xs
+            EOp2_1 i op x -> HNF i $ Op2 op y x
+            EOp2_2 i op x -> HNF i $ Op2 op x y
 
 shUps a b = DPreOp (-20) (SimpleAtom $ show a) b
 shUps' a x b = DPreOp (-20) (SimpleAtom $ show a ++ show x) b
@@ -177,6 +181,8 @@ tryRemoves_ (Var' i: vs) dt = maybe (tryRemoves_ vs dt) (\(is, st) -> tryRemoves
     downDown i (ELet1 x: xs) = (\x (is, xs) -> (is, ELet1 x: xs)) <$> down (i+1) x <*> downDown i xs
     downDown i (EApp1 j x: xs) = (\x (is, xs) -> (is, EApp1 j x: xs)) <$> down i x <*> downDown i xs
     downDown i (ECase j cns x: xs) = (\x (is, xs) -> (is, ECase j cns x: xs)) <$> traverse (down i) x <*> downDown i xs
+    downDown i (EOp2_1 j op x: xs) = (\x (is, xs) -> (is, EOp2_1 j op x: xs)) <$> down i x <*> downDown i xs
+    downDown i (EOp2_2 j op x: xs) = (\x (is, xs) -> (is, EOp2_2 j op x: xs)) <$> down i x <*> downDown i xs
 
 ----------------------------------------------------------- machine code begins here
 
@@ -253,11 +259,21 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
             int Mod a b = Int $ a `mod` b
             int LessEq a b = if a <= b then T else F
             int EqInt a b = if a == b then T else F
-        (Var i, _) -> lookupHNF' "op2-1var" (\e (Op2 op _ y) -> Op2 op e y) i dt
-        (_, Var i) -> lookupHNF' "op2-2var" (\e (Op2 op x _) -> Op2 op x e) i dt
-        (Int{}, _) -> step "op2" $ MSt (Op2 op x (Var 0)) $ ELet y: vs
-        (_, Int{}) -> step "op2" $ MSt (Op2 op (Var 0) y) $ ELet x: vs
-        _          -> step "op2" $ MSt (Op2 op (Var 0) (Var 1)) $ ELet x: ELet y: vs
+        (Int{}, _) -> bind "op2_2 ready" (hnf "op2_2 hnf" (step "op2_2" . focus2)) $ MSt y $ EOp2_2 lev op x: vs
+        _          -> bind "op2_1 ready" (hnf "op2_1 hnf" (step "op2_1" . focus1)) $ MSt x $ EOp2_1 lev op y: vs
+      where
+        focus1 (MSt b xs) = MSt (Op2 op b c) xs'
+          where
+            (c, xs') = f xs
+            f (EOp2_1 _ _ c: xs) = (c, xs)
+            f (ELet x: (f -> (c, xs))) = (up 0 1 c, ELet x: xs)
+
+        focus2 (MSt b xs) = MSt (Op2 op c b) xs'
+          where
+            (c, xs') = f xs
+            f (EOp2_2 _ _ c: xs) = (c, xs)
+            f (ELet x: (f -> (c, xs))) = (up 0 1 c, ELet x: xs)
+
   where
     rec i = steps i nostep bind cont
 
@@ -290,6 +306,8 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
     shiftL path n (MSt x (ELet e: es)) = shiftL (TELet: path) (n-1) $ MSt (Let e x) es
     shiftL path n (MSt x (EApp1 i e: es)) = shiftL (TEApp1: path) n $ MSt (HNF i $ App x e) es
     shiftL path n (MSt x (ECase i cns e: es)) = shiftL (TECase: path) n $ MSt (HNF i $ Case cns x e) es
+    shiftL path n (MSt x (EOp2_1 i op e: es)) = shiftL (TEOp2_1: path) n $ MSt (HNF i $ Op2 op x e) es
+    shiftL path n (MSt x (EOp2_2 i op e: es)) = shiftL (TEOp2_2: path) n $ MSt (HNF i $ Op2 op e x) es
     shiftL path n (MSt x (ELet1 e: es)) = shiftL (TELet1: path) n $ MSt (Let x e) es
     shiftL path n st = error $ "shiftL: " ++ show (path, n) ++ "\n" ++ ppShow st
 
@@ -303,6 +321,8 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
     shiftR (TELet: n) (y, MSt (Let e x) es) = shiftR n (up 0 1 y, MSt x $ ELet e: es)
     shiftR (TEApp1: n) (y, MSt (HNF l (App x e)) es) = shiftR n (y, MSt x $ EApp1 l e: es)
     shiftR (TECase: n) (y, MSt (HNF l (Case cns x e)) es) = shiftR n (y, MSt x $ ECase l cns e: es)
+    shiftR (TEOp2_1: n) (y, MSt (HNF l (Op2 op x e)) es) = shiftR n (y, MSt x $ EOp2_1 l op e: es)
+    shiftR (TEOp2_2: n) (y, MSt (HNF l (Op2 op e x)) es) = shiftR n (y, MSt x $ EOp2_2 l op e: es)
     shiftR (TELet1: n) (y, MSt (Let x e) es) = shiftR n (y, MSt x $ ELet1 e: es)
     shiftR path x = error $ "shiftR: " ++ show path ++ "\n" ++ ppShow x
 
@@ -313,7 +333,7 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
 
     delElem i xs = take i xs ++ drop (i+1) xs
 
-data TE = TELet | TELet1 | TEApp1 | TECase
+data TE = TELet | TELet1 | TEApp1 | TECase | TEOp2_1 | TEOp2_2
     deriving Show
 
 ---------------------------------------------------------------------------------------- examples
