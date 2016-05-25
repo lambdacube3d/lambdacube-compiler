@@ -218,61 +218,65 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
         f i (x: xs) | simple x = (up 0 lz x, []): f i xs
                     | otherwise = (Var' i, [up 0 (lz - i - 1) x]): f (i+1) xs
 
-    Var i -> lookupHNF_ nostep "var" const i dt
+    Var i -> lookupHNF i dt
 
-    Seq a b -> case a of
-        Int{}   -> step "seq" $ MSt b vs
-        Lam{}   -> step "seq" $ tryRemoves (fvs a) $ MSt b vs
-        Con{}   -> step "seq" $ tryRemoves (fvs a) $ MSt b vs
-        Var i   -> lookupHNF' "seqvar" (\e (Seq _ b) -> b) i dt
-        _       -> step "seqexp" $ MSt (Seq (Var 0) $ up 0 1 b) $ ELet a: vs
+    Seq a b -> hnf "seq hnf" focus $ MSt a $ EOp2_1 lev SeqOp b: vs
+      where
+        focus (MSt a xs) = case a of
+            Int{}   -> step "seq" $ MSt b vs
+            Lam{}   -> step "seq" $ tryRemoves (fvs a) $ MSt b vs
+            Con{}   -> step "seq" $ tryRemoves (fvs a) $ MSt b vs
+            _       -> nostep $ MSt (Seq a b) vs
+          where
+            (b, vs) = f xs
+            f (EOp2_1 _ SeqOp c: xs) = (c, xs)
+            f (ELet x: (f -> (c, xs))) = (up 0 1 c, ELet x: xs)
 
     -- TODO: handle recursive constants
     Y (Lam x)   -> step "Y" $ MSt x $ ELet e: vs
 
-    App a b -> case a of
-        Lam x | usedVar 0 x -> step "app"    $ MSt x $ ELet b: vs
-              | otherwise   -> step "appdel" $ tryRemoves (fvs b) $ MSt x vs
-        _       -> bind "app1" (hnf "app1 hnf" (step "appexp" . focus)) $ MSt a $ EApp1 lev b: vs
+    App a b -> hnf "app hnf" focus $ MSt a $ EApp1 lev b: vs
       where
-        focus (MSt b xs) = MSt (App b c) xs'
+        focus (MSt a xs) = case a of
+            Lam x | usedVar 0 x -> step "app"    $ MSt x $ ELet b: vs
+                  | otherwise   -> step "appdel" $ tryRemoves (fvs b) $ MSt x vs
+            _     -> nostep $ MSt (App a b) vs
           where
-            (c, xs') = f xs
+            (b, vs) = f xs
             f (EApp1 _ c: xs) = (c, xs)
             f (ELet x: (f -> (c, xs))) = (up 0 1 c, ELet x: xs)
 
-    Case cns a cs -> case a of
-        Con cn i es -> step "case" $ tryRemoves (nub $ foldMap fvs $ delElem i cs) $ MSt (foldl App (cs !! i) es) vs
-        _       -> bind "case1" (hnf "case hnf" (step "caseexp" . focus)) $ MSt a $ ECase lev cns cs: vs
+    Case cns a cs -> hnf "case hnf" focus $ MSt a $ ECase lev cns cs: vs
       where
-        focus (MSt b xs) = MSt (Case cns b c) xs'
+        focus (MSt a xs) = case a of
+            Con cn i es -> step "case" $ tryRemoves (nub $ foldMap fvs $ delElem i cs) $ MSt (foldl App (cs !! i) es) vs
+            _           -> nostep $ MSt (Case cns a cs) vs
           where
-            (c, xs') = f xs
-            f (ECase _ _ c: xs) = (c, xs)
-            f (ELet x: (f -> (c, xs))) = (up 0 1 <$> c, ELet x: xs)
+            ((cns, cs), vs) = f xs
+            f (ECase _ cns cs: xs) = ((cns, cs), xs)
+            f (ELet x: (f -> (c, xs))) = (second (up 0 1 <$>) c, ELet x: xs)
 
-    Op2 op x y -> case (x, y) of
-        (Int e, Int f) -> step "op-done" $ MSt (int op e f) vs
-          where
-            int Add a b = Int $ a + b
-            int Sub a b = Int $ a - b
-            int Mod a b = Int $ a `mod` b
-            int LessEq a b = if a <= b then T else F
-            int EqInt a b = if a == b then T else F
-        (Int{}, _) -> bind "op2_2 ready" (hnf "op2_2 hnf" (step "op2_2" . focus2)) $ MSt y $ EOp2_2 lev op x: vs
-        _          -> bind "op2_1 ready" (hnf "op2_1 hnf" (step "op2_1" . focus1)) $ MSt x $ EOp2_1 lev op y: vs
+    Op2 op x y -> hnf "op2_1 hnf" focus1 $ MSt x $ EOp2_1 lev op y: vs
       where
-        focus1 (MSt b xs) = MSt (Op2 op b c) xs'
+        focus1 (MSt x xs) = hnf "op2_2 hnf" focus2 $ MSt y $ EOp2_2 lev op x: vs
           where
-            (c, xs') = f xs
-            f (EOp2_1 _ _ c: xs) = (c, xs)
-            f (ELet x: (f -> (c, xs))) = (up 0 1 c, ELet x: xs)
+            ((op, y), vs) = f xs
+            f (EOp2_1 _ op y: xs) = ((op, y), xs)
+            f (ELet x: (f -> (c, xs))) = (second (up 0 1) c, ELet x: xs)
 
-        focus2 (MSt b xs) = MSt (Op2 op c b) xs'
+        focus2 (MSt y xs) = case (x, y) of
+            (Int e, Int f) -> step "op-done" $ MSt (int op e f) vs
+              where
+                int Add a b = Int $ a + b
+                int Sub a b = Int $ a - b
+                int Mod a b = Int $ a `mod` b
+                int LessEq a b = if a <= b then T else F
+                int EqInt a b = if a == b then T else F
+            _          -> nostep $ MSt (Op2 op x y) vs
           where
-            (c, xs') = f xs
-            f (EOp2_2 _ _ c: xs) = (c, xs)
-            f (ELet x: (f -> (c, xs))) = (up 0 1 c, ELet x: xs)
+            ((op, x), vs) = f xs
+            f (EOp2_2 _ op x: xs) = ((op, x), xs)
+            f (ELet x: (f -> (c, xs))) = (second (up 0 1) c, ELet x: xs)
 
   where
     rec i = steps i nostep bind cont
@@ -286,45 +290,40 @@ steps lev nostep {-ready-} bind cont dt@(MSt e vs) = case e of
     hnfTag (MSt b c) = MSt (HNF lev b) c
 
     -- lookup var in head normal form
-    lookupHNF_ :: (MSt -> e) -> StepTag -> (Exp -> Exp -> Exp) -> Nat -> MSt -> e
-    lookupHNF_ end msg f i@(Nat i') dt = bind msg (hnf "lookup" shiftLookup) dt'
+    lookupHNF :: Nat -> MSt -> e
+    lookupHNF i@(Nat i') dt = hnf "var lookup" shiftLookup dt'
       where
         (path, dt') = shiftL [] i' $ hnfTag dt
 
         shiftLookup st
             = case boot (shiftR path . pakol') st of
-                (q, MSt (HNF lev z) es) -> bind "shiftR" (tryRemove i) $ MSt (f (up 0 1 q) z) es
+                (q, MSt HNF{} es) -> bind "remove" nostep $ tryRemoves [i] $ MSt (up 0 1 q) es
                 st -> error $ "sl: " ++ ppShow st
 
-        tryRemove i st = {-maybe (end st)-} (bind "remove" end) $ tryRemoves [i] st
+        boot c (MSt e (ELet x: xs)) = boot (c . pakol) (MSt (Let x e) xs)
+        boot c st = c st
 
-    -- lookup & step
-    lookupHNF' :: StepTag -> (Exp -> Exp -> Exp) -> Nat -> MSt -> e
-    lookupHNF' msg f i dt = lookupHNF_ (rec lev) msg f i dt
+        pakol (MSt (Let x e) (ELet1 y: xs)) = MSt e (ELet1 (up 1 1 y): ELet x: xs)
 
-    shiftL path 0 (MSt x (ELet e: es)) = (path, MSt e $ ELet1 x: es)
-    shiftL path n (MSt x (ELet e: es)) = shiftL (TELet: path) (n-1) $ MSt (Let e x) es
-    shiftL path n (MSt x (EApp1 i e: es)) = shiftL (TEApp1: path) n $ MSt (HNF i $ App x e) es
-    shiftL path n (MSt x (ECase i cns e: es)) = shiftL (TECase: path) n $ MSt (HNF i $ Case cns x e) es
-    shiftL path n (MSt x (EOp2_1 i op e: es)) = shiftL (TEOp2_1: path) n $ MSt (HNF i $ Op2 op x e) es
-    shiftL path n (MSt x (EOp2_2 i op e: es)) = shiftL (TEOp2_2: path) n $ MSt (HNF i $ Op2 op e x) es
-    shiftL path n (MSt x (ELet1 e: es)) = shiftL (TELet1: path) n $ MSt (Let x e) es
-    shiftL path n st = error $ "shiftL: " ++ show (path, n) ++ "\n" ++ ppShow st
+        pakol' (MSt x (ELet1 y: xs)) = (x, MSt y (ELet x: xs))
 
-    boot c (MSt e (ELet x: xs)) = boot (c . pakol) (MSt (Let x e) xs)
-    boot c st = c st
+        shiftL path 0 (MSt x (ELet e: es)) = (path, MSt e $ ELet1 x: es)
+        shiftL path n (MSt x (ELet e: es)) = shiftL (TELet: path) (n-1) $ MSt (Let e x) es
+        shiftL path n (MSt x (EApp1 i e: es)) = shiftL (TEApp1: path) n $ MSt (HNF i $ App x e) es
+        shiftL path n (MSt x (ECase i cns e: es)) = shiftL (TECase: path) n $ MSt (HNF i $ Case cns x e) es
+        shiftL path n (MSt x (EOp2_1 i op e: es)) = shiftL (TEOp2_1: path) n $ MSt (HNF i $ Op2 op x e) es
+        shiftL path n (MSt x (EOp2_2 i op e: es)) = shiftL (TEOp2_2: path) n $ MSt (HNF i $ Op2 op e x) es
+        shiftL path n (MSt x (ELet1 e: es)) = shiftL (TELet1: path) n $ MSt (Let x e) es
+        shiftL path n st = error $ "shiftL: " ++ show (path, n) ++ "\n" ++ ppShow st
 
-    pakol (MSt (Let x e) (ELet1 y: xs)) = MSt e (ELet1 (up 1 1 y): ELet x: xs)
-    pakol' (MSt x (ELet1 y: xs)) = (x, MSt y (ELet x: xs))
-
-    shiftR [] st = st
-    shiftR (TELet: n) (y, MSt (Let e x) es) = shiftR n (up 0 1 y, MSt x $ ELet e: es)
-    shiftR (TEApp1: n) (y, MSt (HNF l (App x e)) es) = shiftR n (y, MSt x $ EApp1 l e: es)
-    shiftR (TECase: n) (y, MSt (HNF l (Case cns x e)) es) = shiftR n (y, MSt x $ ECase l cns e: es)
-    shiftR (TEOp2_1: n) (y, MSt (HNF l (Op2 op x e)) es) = shiftR n (y, MSt x $ EOp2_1 l op e: es)
-    shiftR (TEOp2_2: n) (y, MSt (HNF l (Op2 op e x)) es) = shiftR n (y, MSt x $ EOp2_2 l op e: es)
-    shiftR (TELet1: n) (y, MSt (Let x e) es) = shiftR n (y, MSt x $ ELet1 e: es)
-    shiftR path x = error $ "shiftR: " ++ show path ++ "\n" ++ ppShow x
+        shiftR [] st = st
+        shiftR (TELet: n) (y, MSt (Let e x) es) = shiftR n (up 0 1 y, MSt x $ ELet e: es)
+        shiftR (TEApp1: n) (y, MSt (HNF l (App x e)) es) = shiftR n (y, MSt x $ EApp1 l e: es)
+        shiftR (TECase: n) (y, MSt (HNF l (Case cns x e)) es) = shiftR n (y, MSt x $ ECase l cns e: es)
+        shiftR (TEOp2_1: n) (y, MSt (HNF l (Op2 op x e)) es) = shiftR n (y, MSt x $ EOp2_1 l op e: es)
+        shiftR (TEOp2_2: n) (y, MSt (HNF l (Op2 op e x)) es) = shiftR n (y, MSt x $ EOp2_2 l op e: es)
+        shiftR (TELet1: n) (y, MSt (Let x e) es) = shiftR n (y, MSt x $ ELet1 e: es)
+        shiftR path x = error $ "shiftR: " ++ show path ++ "\n" ++ ppShow x
 
     simple = \case
         Var{} -> True
