@@ -47,8 +47,12 @@ stepList (initSt -> st) = ("Start", st): f (stepTree st)
 
 
 data Command = UpArrow | DownArrow | LeftArrow | RightArrow
-    | IntArg Int | ProgramChange
+    | IntArg Int | ProgramChange | ViewChange
     deriving (Eq, Show)
+
+type MSt' = (String, MSt)
+
+data St = St Bool ([MSt'], [MSt'])
 
 getCommand pr msg = do
   putStr $ (if pr then "\n" else "\CR") ++ "-------------- " ++ msg ++ " --------> "
@@ -63,6 +67,7 @@ getCommand pr msg = do
      c -> clear c
     d | '0' <= d && d <= '9' -> readI [d]
     'n' -> ret ProgramChange
+    'v' -> ret ViewChange
     c -> clear c
   where
     ret a = {-putStr ("  --  " ++ show a) >> -} return a
@@ -82,23 +87,28 @@ main = do
         putStrLn $ ppShow $ hnf $ case b of
             "lazy" -> t' $ read n
             "seq" -> t'' $ read n
-    _ -> cycle True mempty
-  where
-    cycle (pr :: Bool) st = do
-        n <- getCommand pr $ message st
-        case (n, st) of
-            (DownArrow, st@(_, _:_:_)) -> cycle' $ goLeft st
-            (UpArrow, st@(_:_, _)) -> cycle' $ goRight st
-            (LeftArrow, st@(_, _:_:_)) -> cycle' $ iterate goLeft st !! 100
-            (RightArrow, st@(_:_, _)) -> cycle' $ iterate goRight st !! 100
-            (IntArg n, _) -> cycle' ([], stepList $ t' n)
-            (ProgramChange, _) -> cycle' ([], stepList $ t'' 100)
-            _ ->  cycle False st
+    _ -> cycle_ True $ St False mempty
 
-    cycle' st@(h, (_, x): _) = do
-        putStr $ "\n" ++ ppShow x
-        cycle True st
-    cycle' st = cycle True st
+main' x = cycle' $ St False ([], stepList x)
+
+cycle' st@(St vi (h, (_, x): _)) = do
+    putStr $ "\n" ++ show (viewShow vi x)
+    cycle_ True st
+cycle' st = cycle_ True st
+
+cycle_ (pr :: Bool) s@(St vi st) = do
+    n <- getCommand pr $ message st
+    case (n, st) of
+        (DownArrow, st@(_, _:_:_)) -> cycle' $ f s goLeft
+        (UpArrow, st@(_:_, _)) -> cycle' $ f s goRight
+        (LeftArrow, st@(_, _:_:_)) -> cycle' $ f s ((!! 100) . iterate goLeft)
+        (RightArrow, st@(_:_, _)) -> cycle' $ f s ((!! 100) . iterate goRight)
+        (IntArg n, _) -> cycle' $ f s $ const ([], stepList $ t' n)
+        (ProgramChange, _) -> cycle' $ f s $ const ([], stepList $ t'' 100)
+        (ViewChange, _) -> cycle' $ St (not vi) st
+        _ ->  cycle_ False s
+  where
+    f (St a b) g = St a (g b)
 
     goLeft (xs, y: ys) = (y: xs, ys)
     goLeft xs = xs
