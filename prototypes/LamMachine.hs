@@ -306,9 +306,9 @@ instance ViewShow Exp where
     pShow e@(Exp_ fv x) = showFE green vi fv $
       case {-if vi then Exp_ (selfContract fv) x else-} e of
         Var (Nat i)  -> DVar i
-        Let a b     -> shLet (pShow a) $ pShow b
+        Let a b     -> shLet "" (pShow a) $ pShow b
         Seq a b     -> DOp "`seq`" (Infix 1) (pShow a) (pShow b)
-        Lam e       -> shLam $ pShow e
+        Lam e       -> shLam "" $ pShow e
         Con s i xs  -> foldl DApp (text s) $ pShow <$> xs
         Int i       -> pShow' i
         Y e         -> "Y" `DApp` pShow e
@@ -341,16 +341,16 @@ instance ViewShow MSt where
 
         g y DEnvNil = y
         g y z@(DEnvCons p env) = flip g env $ {-showFE red vi (case p of EnvPiece f _ -> f) $-} case p of
-            EDLet1 x -> shLet y (h x)
-            ELet x -> shLet (pShow x) y
+            EDLet1 x -> shLet "" y (h x)
+            ELet x -> shLet "" (pShow x) y
             ECase cns xs -> shCase cns y (pShow <$> xs)
             EOp2_1 op x -> shOp2 op y (pShow x)
             EOp2_2 op x -> shOp2 op (pShow x) y
 
         h DExpNil = onred $ white "*" --TODO?
         h z@(DExpCons p (h -> y)) = showFE blue vi (case p of EnvPiece f _ -> f) $ case p of
-            EDLet1 x -> shLet y (h x)
-            ELet x -> shLet (pShow x) y
+            EDLet1 x -> shLet "" y (h x)
+            ELet x -> shLet "" (pShow x) y
             ECase cns xs -> shCase cns y (pShow <$> xs)
             EOp2_1 op x -> shOp2 op y (pShow x)
             EOp2_2 op x -> shOp2 op (pShow x) y
@@ -361,13 +361,13 @@ instance PShow MSt where pShow = viewShow False
 shUps a b = DPreOp (-20) (SimpleAtom $ show a) b
 shUps' a x b = DPreOp (-20) (SimpleAtom $ show a ++ show x) b
 
-shLam b = DFreshName True $ showLam (DVar 0) b
+shLam n b = DFreshName (Just n) $ showLam (DVar 0) b
 
 showLam x (DFreshName u d) = DFreshName u $ showLam (DUp 0 x) d
 showLam x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
 showLam x y = DLam x y
 
-shLet a b = DFreshName True $ showLet (DLet "=" (shVar 0) $ DUp 0 a) b
+shLet n a b = DFreshName (Just n) $ showLet (DLet "=" (shVar 0) $ DUp 0 a) b
 
 showLet x (DFreshName u d) = DFreshName u $ showLet (DUp 0 x) d
 showLet x (DLet' xs y) = DLet' (DSemi x xs) y

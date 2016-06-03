@@ -298,7 +298,7 @@ instance PShow Visibility where
         Hidden -> "Hidden"
         Visible -> "Visible"
 
-dummyName s = SIName (debugSI s) ("v_" ++ s)
+dummyName s = SIName (debugSI s) "" --("v_" ++ s)
 dummyName' = SData . dummyName
 sVar = SVar . dummyName
 
@@ -476,8 +476,8 @@ instance (HasFreeVars a, PShow a) => PShow (SExp' a) where
         SApp h a b      -> shApp h (pShow a) (pShow b)
         Wildcard SType  -> text "_"
         Wildcard t      -> shAnn (text "_") (pShow t)
-        SBind_ _ h _ SType b -> shLam_ (usedVar 0 b) h Nothing (pShow b)
-        SBind_ _ h _ a b -> shLam (usedVar 0 b) h (pShow a) (pShow b)
+        SBind_ _ h (SData n) SType b -> shLam_ (usedVar' 0 b $ sName n) h Nothing (pShow b)
+        SBind_ _ h (SData n) a b -> shLam (usedVar' 0 b $ sName n) h (pShow a) (pShow b)
         SLet _ a b      -> shLet_ (pShow a) (pShow b)
         SLHS n x        -> "_lhs" `DApp` pShow n `DApp` pShow x
         STyped a        -> pShow a
@@ -487,12 +487,15 @@ instance (HasFreeVars a, PShow a) => PShow (SExp' a) where
 shApp Visible a b = DApp a b
 shApp Hidden a b = DApp a (DAt b)
 
+usedVar' a b s | usedVar a b = Just s
+               | otherwise = Nothing
+
 shLam usedVar h a b = shLam_ usedVar h (Just a) b
 
 simpleFo (DExpand x _) = x
 simpleFo x = x
 
-shLam_ False (BPi Hidden) (Just ((simpleFo -> DText "'CW") `DApp` a)) b = DFreshName False $ showContext (DUp 0 a) b
+shLam_ Nothing (BPi Hidden) (Just ((simpleFo -> DText "'CW") `DApp` a)) b = DFreshName Nothing $ showContext (DUp 0 a) b
   where
     showContext x (DFreshName u d) = DFreshName u $ showContext (DUp 0 x) d
     showContext x (DParContext xs y) = DParContext (DComma x xs) y
@@ -503,10 +506,10 @@ shLam_ usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 <$> a) b
   where
     lam = case h of
         BPi Visible
-            | usedVar   -> showForall "->"
+            | isJust usedVar   -> showForall "->"
             | otherwise -> shArr
         BPi Hidden
-            | usedVar   -> showForall "."
+            | isJust usedVar   -> showForall "."
             | otherwise -> showContext
         _ -> showLam
 
@@ -518,7 +521,7 @@ shLam_ usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 <$> a) b
         BLam Visible -> shAnn' (DVar 0)
         _ -> ann
 
-    ann | usedVar = shAnn' (DVar 0)
+    ann | isJust usedVar = shAnn' (DVar 0)
         | otherwise = fromMaybe (text "Type")
 
     showForall s x (DFreshName u d) = DFreshName u $ showForall s (DUp 0 x) d
@@ -537,7 +540,7 @@ showLet x (DFreshName u d) = DFreshName u $ showLet (DUp 0 x) d
 showLet x (DLet' xs y) = DLet' (DSemi x xs) y
 showLet x y = DLet' x y
 
-shLet_ a b = DFreshName True $ showLet (DLet "=" (shVar 0) $ DUp 0 a) b
+shLet_ a b = DFreshName (Just "") $ showLet (DLet "=" (shVar 0) $ DUp 0 a) b
 
 -------------------------------------------------------------------------------- statement
 

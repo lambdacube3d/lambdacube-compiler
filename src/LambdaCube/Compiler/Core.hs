@@ -412,9 +412,9 @@ instance MkDoc ExpType where
 
 instance MkDoc Exp where
     mkDoc pr@(reduce, body) = \case
-        Lam b           -> shLam_ (usedVar 0 b) (BLam Visible) Nothing (mkDoc pr b)
-        Pi h TType b    -> shLam_ (usedVar 0 b) (BPi h) Nothing (mkDoc pr b)
-        Pi h a b        -> shLam (usedVar 0 b) (BPi h) (mkDoc pr a) (mkDoc pr b)
+        Lam b           -> shLam_ (usedVar' 0 b "") (BLam Visible) Nothing (mkDoc pr b)
+        Pi h TType b    -> shLam_ (usedVar' 0 b "") (BPi h) Nothing (mkDoc pr b)
+        Pi h a b        -> shLam (usedVar' 0 b "") (BPi h) (mkDoc pr a) (mkDoc pr b)
         ENat n          -> pShow n
         Con s@(ConName _ i _) _ _ | body -> text $ "<<" ++ showNth i ++ " constructor of " ++ show (conTypeName s) ++ ">>"
         ConN FHCons (xs: x: _{-2-}) -> foldl DApp (text "HCons") (mkDoc pr <$> [x, xs])

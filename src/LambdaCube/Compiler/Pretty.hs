@@ -18,7 +18,7 @@ import Data.String
 import Data.Char
 import Data.Monoid
 import qualified Data.Set as Set
---import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Control.Applicative
 import Control.Monad.Identity
 import Control.Monad.Reader
@@ -71,7 +71,7 @@ data Doc
     | DInfix Fixity Doc DocAtom Doc
     | DPreOp Int DocAtom Doc
 
-    | DFreshName Bool{-used-} Doc
+    | DFreshName (Maybe String){-used-} Doc
     | DVar Int
     | DUp Int Doc
     | DResetFreshNames Doc
@@ -104,6 +104,16 @@ plainShow = ($ "") . P.displayS . P.renderPretty 0.6 150 . P.plain . renderDoc .
 simpleShow :: PShow a => a -> String
 simpleShow = ($ "") . P.displayS . P.renderPretty 0.4 200 . P.plain . renderDoc . pShow
 
+mkFreshName :: MonadState (Map.Map String Int, [String]) m => String -> m String
+mkFreshName n = state $ addIndex n
+  where
+    addIndex "" (m, (n:ns)) = add n (m, ns)
+    addIndex n (m, ns) = add n (m, ns)
+
+    add n (m, ns) = case Map.lookup n m of
+        Just i -> (n ++ (toSubscript <$> show (i+1)), (Map.insert n (i+1) m, ns))
+        Nothing -> (n, (Map.insert n 0 m, ns))
+
 renderDoc :: Doc -> P.Doc
 renderDoc
     = render
@@ -114,8 +124,8 @@ renderDoc
     . showVars
     . expand True
   where
-    freshNames = flip (:) <$> iterate ('\'':) "" <*> ['a'..'z']
-    freeNames = map ('_':) freshNames
+    freshNames = (mempty, cycle $ (:[]) <$> ['a'..'z'])
+    freeNames = map ('_':) $ flip (:) <$> iterate ('\'':) "" <*> ['a'..'z']
 
     noexpand = expand False
     expand full = \case
@@ -139,8 +149,8 @@ renderDoc
         DInfix pr x op y -> DInfix pr <$> showVars x <*> showVarA op <*> showVars y
         DPreOp pr op y -> DPreOp pr <$> showVarA op <*> showVars y
         DVar i -> asks $ text . (!! i)
-        DFreshName True x -> gets head >>= \n -> modify tail >> local (n:) (showVars x)
-        DFreshName False x -> local ("_":) $ showVars x
+        DFreshName (Just n) x -> mkFreshName n >>= \n -> local (n:) (showVars x)
+        DFreshName Nothing x -> local ("_":) $ showVars x
         DResetFreshNames x -> do
             st <- get
             put freshNames
@@ -421,3 +431,14 @@ showNth n = show n ++ f (n `div` 10 `mod` 10) (n `mod` 10)
     f _ 3 = "rd"
     f _ _ = "th"
 
+toSubscript '0' = '₀'
+toSubscript '1' = '₁'
+toSubscript '2' = '₂'
+toSubscript '3' = '₃'
+toSubscript '4' = '₄'
+toSubscript '5' = '₅'
+toSubscript '6' = '₆'
+toSubscript '7' = '₇'
+toSubscript '8' = '₈'
+toSubscript '9' = '₉'
+toSubscript _ = error "toSubscript"

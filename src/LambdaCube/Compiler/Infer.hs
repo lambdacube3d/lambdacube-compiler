@@ -83,8 +83,8 @@ showEnvSExpType e c t = show $ envDoc e $ underline $ (shAnn (pShow c) (pShow t)
 envDoc :: Env -> Doc -> Doc
 envDoc x m = case x of
     EGlobal{}           -> m
-    EBind1 _ h ts b     -> envDoc ts $ shLam (usedVar 0 b) h m (pShow b)
-    EBind2 h a ts       -> envDoc ts $ shLam True h (pShow a) m
+    EBind1 _ h ts b     -> envDoc ts $ shLam (usedVar' 0 b "") h m (pShow b)
+    EBind2 h a ts       -> envDoc ts $ shLam (Just "") h (pShow a) m
     EApp1 _ h ts b      -> envDoc ts $ shApp h m (pShow b)
     EApp2 _ h (ET (Lam (Var 0)) (Pi Visible TType _)) ts -> envDoc ts $ shApp h (text "tyType") m
     EApp2 _ h a ts      -> envDoc ts $ shApp h (pShow a) m
@@ -102,7 +102,7 @@ envDoc x m = case x of
 instance MkDoc a => MkDoc (CEnv a) where
     mkDoc pr = \case
         MEnd a          -> mkDoc pr a
-        Meta a b        -> shLam True BMeta (mkDoc pr a) (mkDoc pr b)
+        Meta a b        -> shLam (Just "") BMeta (mkDoc pr a) (mkDoc pr b)
         Assign i (ET x _) e -> shLet i (mkDoc pr x) (mkDoc pr e)
 
 -------------------------------------------------------------------------------- constraints env

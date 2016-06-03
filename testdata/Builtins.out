@@ -2705,13 +2705,13 @@ case'Mat
                       (u :: Vec 2 Float) (v :: Vec 2 Float) (w :: Vec 2 Float)
                     -> a 2 4 Float ('M24F t u v w))
                   -> (forall (x :: Vec 3 Float)
-                        (y :: Vec 3 Float) (z :: Vec 3 Float) (a' :: Vec 3 Float)
-                      -> a 3 4 Float ('M34F x y z a'))
-                    -> (forall (b' :: Vec 4 Float)
-                          (c' :: Vec 4 Float) (d' :: Vec 4 Float) (e' :: Vec 4 Float)
-                        -> a 4 4 Float ('M44F b' c' d' e'))
-                      -> forall (f' :: Nat) (g' :: Nat) h'
-                        . forall (i' :: Mat f' g' h') -> a f' g' h' i'
+                        (y :: Vec 3 Float) (z :: Vec 3 Float) (a₁ :: Vec 3 Float)
+                      -> a 3 4 Float ('M34F x y z a₁))
+                    -> (forall (b₁ :: Vec 4 Float)
+                          (c₁ :: Vec 4 Float) (d₁ :: Vec 4 Float) (e₁ :: Vec 4 Float)
+                        -> a 4 4 Float ('M44F b₁ c₁ d₁ e₁))
+                      -> forall (f₁ :: Nat) (g₁ :: Nat) h₁
+                        . forall (i₁ :: Mat f₁ g₁ h₁) -> a f₁ g₁ h₁ i₁
 case'Mat
   = \a b c d e f g h i j k l m n -> <<case function of a type with 0 parameters>>
 
@@ -3196,11 +3196,11 @@ one
                     (\y -> case'Nat
                       (\z -> 'VecS 'Bool (Succ (Succ (Succ z))))
                       (_rhs (V3 True True True))
-                      (\a' -> case'Nat
-                        (\b' -> 'VecS 'Bool (Succ (Succ (Succ (Succ b')))))
+                      (\a₁ -> case'Nat
+                        (\b₁ -> 'VecS 'Bool (Succ (Succ (Succ (Succ b₁)))))
                         (_rhs (V4 True True True True))
-                        (\c' -> _rhs (undefined ('VecS 'Bool (Succ (Succ (Succ (Succ (Succ c'))))))))
-                        a')
+                        (\c₁ -> _rhs (undefined ('VecS 'Bool (Succ (Succ (Succ (Succ (Succ c₁))))))))
+                        a₁)
                       y)
                     w)
                   u)
@@ -3208,7 +3208,7 @@ one
               f
               (_rhs (undefined ('VecS f g)))))
           a
-          (match'Bool (\d' -> d') (_rhs True) a (_rhs (undefined a))))))
+          (match'Bool (\d₁ -> d₁) (_rhs True) a (_rhs (undefined a))))))
 
 overlay
   :: forall (a :: Nat) (b :: [Type])
@@ -3367,11 +3367,11 @@ zero
                     (\y -> case'Nat
                       (\z -> 'VecS 'Bool (Succ (Succ (Succ z))))
                       (_rhs (V3 False False False))
-                      (\a' -> case'Nat
-                        (\b' -> 'VecS 'Bool (Succ (Succ (Succ (Succ b')))))
+                      (\a₁ -> case'Nat
+                        (\b₁ -> 'VecS 'Bool (Succ (Succ (Succ (Succ b₁)))))
                         (_rhs (V4 False False False False))
-                        (\c' -> _rhs (undefined ('VecS 'Bool (Succ (Succ (Succ (Succ (Succ c'))))))))
-                        a')
+                        (\c₁ -> _rhs (undefined ('VecS 'Bool (Succ (Succ (Succ (Succ (Succ c₁))))))))
+                        a₁)
                       y)
                     w)
                   u)
@@ -3379,7 +3379,7 @@ zero
               f
               (_rhs (undefined ('VecS f g)))))
           a
-          (match'Bool (\d' -> d') (_rhs False) a (_rhs (undefined a))))))
+          (match'Bool (\d₁ -> d₁) (_rhs False) a (_rhs (undefined a))))))
 ------------ tooltips
 10:1-10:3
     forall a . a -> a
