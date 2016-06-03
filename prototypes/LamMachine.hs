@@ -47,15 +47,31 @@ data Op2 = AppOp | SeqOp | Add | Sub | Mod | LessEq | EqInt
 data Exp = Exp_ !FV !Exp_
     deriving (Eq, Show)
 
--------------------
-
 data EnvPiece
-    = ELet   Exp
-    | EDLet1 DExp
-    | ECase_  FV [String] [Exp]
-    | EOp2_1 Op2 Exp
-    | EOp2_2 Op2 Exp
+    = ELet   !Exp
+    | EDLet1 !DExp
+    | ECase_ !FV ![String] ![Exp]
+    | EOp2_1 !Op2 !Exp
+    | EOp2_2 !Op2 !Exp
     deriving (Eq, Show)
+
+data DExp
+    = DExpNil   -- variable
+    | DExpCons_ !FV !EnvPiece !DExp
+    deriving (Eq, Show)
+
+data DEnv
+    = DEnvNil
+    | DEnvCons !EnvPiece !DEnv
+    deriving (Eq, Show)
+
+-- state of the machine
+data MSt = MSt !DEnv !Exp
+    deriving (Eq, Show)
+
+--------------------------------------------------------------------- pattern synonyms
+
+infixr 4 `DEnvCons`, `DExpCons`
 
 pattern ECase op e <- ECase_ u op (map (upp u) -> e)
   where ECase op b = ECase_ u op bz where (u, bz) = deltas b
@@ -78,11 +94,6 @@ getEnvPiece = \case
 
 uppS (SFV _ x) (Exp_ u a) = Exp_ (expand x u) a
 
-data DExp
-    = DExpNil   -- variable
-    | DExpCons_ FV EnvPiece DExp
-    deriving (Eq, Show)
-
 pattern DExpCons :: EnvPiece -> DExp -> DExp
 pattern DExpCons a b <- (getDExpCons -> (a, b))
   where DExpCons (EnvPiece ux a) DExpNil = DExpCons_ (fromSFV s) (EnvPiece ux' a) DExpNil
@@ -93,7 +104,7 @@ pattern DExpCons a b <- (getDExpCons -> (a, b))
 
 getDExpCons (DExpCons_ u x@(EnvPiece (SFV n _) _) b) = (uppEP u x, uppDE u n b)
 
-uppEP u (EnvPiece (SFV n x) y) = EnvPiece (SFV n $ onTail (u `expand`) n x) y      -- ???
+uppEP u (EnvPiece (SFV n x) y) = EnvPiece (SFV n $ onTail (u `expand`) n x) y
 
 upP i j = uppEP $ mkUp i j
 
@@ -103,19 +114,187 @@ uppDE :: FV -> Nat -> DExp -> DExp
 uppDE a _ DExpNil = DExpNil
 uppDE a n (DExpCons_ u x y) = DExpCons_ (onTail (expand a) n u) x y
 
-data DEnv
-    = DEnvNil
-    | DEnvCons EnvPiece DEnv
-    deriving (Eq, Show)
-
--- state of the machine
-data MSt = MSt DEnv Exp
-    deriving (Eq, Show)
-
-infixr 4 `DEnvCons`, `DExpCons`
-
 dDown i DExpNil = Just DExpNil
 dDown i (DExpCons_ u a b) = DExpCons_ <$> downFV i u <*> pure a <*> pure b
+
+---------------------------------------------------------------------
+
+pattern Int i       <- Exp_ _ (Int_ i)
+  where Int i       =  Exp_ mempty $ Int_ i
+pattern Op2 op a b  <- Exp_ u (Op2_ op (upp u -> a) (upp u -> b))
+  where Op2 op a b  =  Exp_ s $ Op2_ op az bz where (s, az, bz) = delta2 a b
+pattern Op1 op a    <- Exp_ u (Op1_ op (upp u -> a))
+  where Op1 op (Exp_ ab x) = Exp_ ab $ Op1_ op $ Exp_ (selfContract ab) x
+pattern Var' i      =  Exp_ (VarFV i) Var_
+pattern Var i       =  Var' i
+pattern Lam i       <- Exp_ u (Lam_ (upp (incFV u) -> i))
+  where Lam (Exp_ vs ax) = Exp_ (sDrop 1 vs) $ Lam_ $ Exp_ (compact vs) ax
+pattern Con a b i   <- Exp_ u (Con_ a b (map (upp u) -> i))
+  where Con a b x   =  Exp_ s $ Con_ a b bz where (s, bz) = deltas x
+pattern Case a b c  <- Exp_ u (Case_ a (upp u -> b) (map (upp u) -> c))
+  where Case cn a b =  Exp_ s $ Case_ cn az bz where (s, az: bz) = deltas $ a: b
+
+pattern Let i x    <- App (Lam x) i
+  where Let i (down 0 -> Just x) = x
+        Let i x     = App (Lam x) i
+
+pattern InHNF a    <- (getHNF -> Just a)
+  where InHNF a@Int{}        = a
+        InHNF a@Lam{}        = a
+        InHNF a@(Op1 HNF_ _) = a
+        InHNF a              = Op1 HNF_ a
+
+getHNF x = case x of
+    Int{} -> Just x
+    Lam{} -> Just x
+    Op1 HNF_ a -> Just a
+    _ -> Nothing
+
+pattern Y a         = Op1 YOp a
+pattern App a b     = Op2 AppOp a b
+pattern Seq a b     = Op2 SeqOp a b
+
+infixl 4 `App`
+
+delta2 (Exp_ ua a) (Exp_ ub b) = (s, Exp_ ua' a, Exp_ ub' b)
+  where
+    (s, ua', ub') = delta2' ua ub
+
+delta2' ua ub = (s, primContract s ua, primContract s ub)
+  where
+    s = ua <> ub
+
+deltas [] = (mempty, [])
+deltas [Exp_ x e] = (x, [Exp_ (selfContract x) e]) 
+deltas [Exp_ ua a, Exp_ ub b] = (s, [Exp_ (primContract s ua) a, Exp_ (primContract s ub) b])
+  where
+    s = ua <> ub
+deltas es = (s, [Exp_ (primContract s u) e | (u, Exp_ _ e) <- zip xs es])
+  where
+    xs = [ue | Exp_ ue _ <- es]
+
+    s = mconcat xs
+
+upp :: FV -> Exp -> Exp
+upp a (Exp_ b e) = Exp_ (expand a b) e
+
+up l n (Exp_ us x) = Exp_ (upFV l n us) x
+
+-- free variables set
+fvs (Exp_ us _) = usedFVs us
+
+usedVar i (Exp_ us _) = sIndex us i
+
+usedVar' i DExpNil = False
+usedVar' i (DExpCons_ u _ _) = sIndex u i
+
+down i (Exp_ us e) = Exp_ <$> downFV i us <*> pure e
+
+---------------------------
+
+initSt :: Exp -> MSt
+initSt e = MSt DEnvNil e
+
+----------------------------------------------------------- machine code begins here
+
+justResult :: MSt -> MSt
+justResult = steps 0 id (const ($)) (const (.))
+
+hnf = justResult . initSt
+
+----------------
+
+type GenSteps e
+    = (MSt -> e)
+   -> (StepTag -> (MSt -> e) -> MSt -> e)
+   -> (StepTag -> (MSt -> e) -> (MSt -> e) -> MSt -> e)
+   -> MSt -> e
+
+type StepTag = String
+
+focusNotUsed (MSt (EDLet1 x `DEnvCons` _) _) = not $ usedVar' 0 x
+focusNotUsed _ = True
+
+steps :: forall e . Int -> GenSteps e
+steps lev nostep bind cont (MSt vs e) = case e of
+
+    Con cn i xs
+        | lz == 0 || focusNotUsed (MSt vs e) -> step "con hnf" $ MSt vs $ InHNF e
+        | otherwise -> step "copy con" $ MSt (foldr DEnvCons vs $ ELet <$> zs) $ InHNF $ Con cn i xs'  -- share complex constructor arguments
+      where
+        lz = Nat $ length zs
+        (xs', concat -> zs) = unzip $ f 0 xs
+        f i [] = []
+        f i (x: xs) | simple x = (up 0 lz x, []): f i xs
+                    | otherwise = (Var' i, [up 0 (lz - i - 1) x]): f (i+1) xs
+
+    -- TODO: handle recursive constants
+    Y x             -> step "Y"     $ MSt vs $ App x (Y x)
+
+    Var i           -> step "var"   $ zipDown i DExpNil vs
+    Seq a b         -> step "seq"   $ MSt (EOp2_1 SeqOp b `DEnvCons` vs) a
+    Case cns a cs   -> step "case"  $ MSt (ECase cns cs `DEnvCons` vs) a
+    Op2 op a b      -> step "op2_1" $ MSt (EOp2_1 op b `DEnvCons` vs) a
+
+    InHNF a -> case vs of
+
+        DEnvNil -> bind "whnf" nostep $ MSt DEnvNil $ InHNF a
+
+        ELet x `DEnvCons` vs -> step "goUp" $ MSt vs $ InHNF $ Let x $ InHNF a
+        x `DEnvCons` vs | Let y e <- a -> step "pakol" $ MSt (upP 0 1 x `DEnvCons` ELet y `DEnvCons` vs) e
+        x `DEnvCons` vs -> case x of
+            EOp2_1 SeqOp b -> case a of
+                Int{}   -> step "seq" $ MSt vs b
+                Lam{}   -> step "seq" $ MSt vs b   -- TODO: remove a
+                Con{}   -> step "seq" $ MSt vs b   -- TODO: remove a
+                _       -> step "seq hnf" $ MSt vs $ InHNF $ Seq (InHNF a) b
+            ECase cns cs -> case a of
+                Con cn i es -> step "case" $ MSt vs $ foldl App (cs !! i) es  -- TODO: remove unused cases
+                _           -> step "case hnf" $ MSt vs $ InHNF $ Case cns (InHNF a) cs
+            EOp2_1 AppOp b -> case a of
+                Lam (down 0 -> Just x) -> step "appdel" $ MSt vs x   -- TODO: remove b
+                Lam x -> step "app"    $ MSt (ELet b `DEnvCons` vs) x
+                _     -> step "app hnf" $ MSt vs $ InHNF $ App (InHNF a) b
+            EOp2_1 op b -> step "op2_2 hnf" $ MSt (EOp2_2 op (InHNF a) `DEnvCons` vs) b
+            EOp2_2 op b -> case (b, a) of
+                (Int e, Int f) -> step "op-done" $ MSt vs (int op e f)
+                  where
+                    int Add a b = Int $ a + b
+                    int Sub a b = Int $ a - b
+                    int Mod a b = Int $ a `mod` b
+                    int LessEq a b = if a <= b then T else F
+                    int EqInt a b = if a == b then T else F
+                _ -> step "op2 hnf" $ MSt vs $ InHNF $ Op2 op b (InHNF a)
+            EDLet1 (dDown 0 -> Just d) -> zipUp (InHNF a) vs d
+            EDLet1 d -> zipUp (up 0 1 a) (ELet (InHNF a) `DEnvCons` vs) d
+
+  where
+    zipDown 0 e (ELet z `DEnvCons` zs) = MSt (EDLet1 e `DEnvCons` zs) z
+    zipDown j e (z@ELet{} `DEnvCons` zs) = zipDown (j-1) (z `DExpCons` e) zs
+    zipDown j e (z `DEnvCons` zs) = zipDown j (z `DExpCons` e) zs
+
+    zipUp x xs DExpNil = step "zipUp ready" $ MSt xs x
+    zipUp x xs (DExpCons a@ELet{} as) = zipUp (up 0 1 x) (a `DEnvCons` xs) as
+    zipUp x xs (DExpCons a as) = zipUp x (a `DEnvCons` xs) as
+
+    rec i = steps i nostep bind cont
+
+    step :: StepTag -> MSt -> e
+    step t = bind t (rec lev)
+{-
+    hnf :: StepTag -> (MSt -> e) -> MSt -> e
+    hnf t f = bind ("hnf " ++ t) $ cont t f (rec (1 + lev))
+
+    hnf' :: StepTag -> MSt -> e
+    hnf' t = hnf t $ bind ("focus " ++ t) $ goUp t 0
+-}
+
+simple = \case
+    Var{} -> True
+    Int{} -> True
+    _ -> False
+
+delElem i xs = take i xs ++ drop (i+1) xs
 
 --------------------------------------------------------------------- toolbox: pretty print
 
@@ -194,179 +373,6 @@ showLet x (DFreshName u d) = DFreshName u $ showLet (DUp 0 x) d
 showLet x (DLet' xs y) = DLet' (DSemi x xs) y
 showLet x y = DLet' x y
 
-
---------------------------------------------------------------------- pattern synonyms
-
-pattern Int i       <- Exp_ _ (Int_ i)
-  where Int i       =  Exp_ mempty $ Int_ i
-pattern Op2 op a b  <- Exp_ u (Op2_ op (upp u -> a) (upp u -> b))
-  where Op2 op a b  =  Exp_ s $ Op2_ op az bz where (s, az, bz) = delta2 a b
-pattern Op1 op a    <- Exp_ u (Op1_ op (upp u -> a))
-  where Op1 op (Exp_ ab x) = Exp_ ab $ Op1_ op $ Exp_ (selfContract ab) x
-pattern Var' i      =  Exp_ (VarFV i) Var_
-pattern Var i       =  Var' i
-pattern Lam i       <- Exp_ u (Lam_ (upp (incFV u) -> i))
-  where Lam (Exp_ vs ax) = Exp_ (sDrop 1 vs) $ Lam_ $ Exp_ (compact vs) ax
-pattern Con a b i   <- Exp_ u (Con_ a b (map (upp u) -> i))
-  where Con a b x   =  Exp_ s $ Con_ a b bz where (s, bz) = deltas x
-pattern Case a b c  <- Exp_ u (Case_ a (upp u -> b) (map (upp u) -> c))
-  where Case cn a b =  Exp_ s $ Case_ cn az bz where (s, az: bz) = deltas $ a: b
-
-pattern Let i x    <- App (Lam x) i
-  where Let i (down 0 -> Just x) = x
-        Let i x     = App (Lam x) i
-pattern Y a         = Op1 YOp a
-pattern InHNF a     = Op1 HNF_ a
-pattern App a b     = Op2 AppOp a b
-pattern Seq a b     = Op2 SeqOp a b
-
-infixl 4 `App`
-
-delta2 (Exp_ ua a) (Exp_ ub b) = (s, Exp_ ua' a, Exp_ ub' b)
-  where
-    (s, ua', ub') = delta2' ua ub
-
-delta2' ua ub = (s, primContract s ua, primContract s ub)
-  where
-    s = ua <> ub
-
-deltas [] = (mempty, [])
-deltas [Exp_ x e] = (x, [Exp_ (selfContract x) e]) 
-deltas [Exp_ ua a, Exp_ ub b] = (s, [Exp_ (primContract s ua) a, Exp_ (primContract s ub) b])
-  where
-    s = ua <> ub
-deltas es = (s, [Exp_ (primContract s u) e | (u, Exp_ _ e) <- zip xs es])
-  where
-    xs = [ue | Exp_ ue _ <- es]
-
-    s = mconcat xs
-
-upp :: FV -> Exp -> Exp
-upp a (Exp_ b e) = Exp_ (expand a b) e
-
-up l n (Exp_ us x) = Exp_ (upFV l n us) x
-
--- free variables set
-fvs (Exp_ us _) = usedFVs us
-
-usedVar i (Exp_ us _) = sIndex us i
-
-usedVar' i DExpNil = False
-usedVar' i (DExpCons_ u _ _) = sIndex u i
-
-down i (Exp_ us e) = Exp_ <$> downFV i us <*> pure e
-
----------------------------
-
-initSt :: Exp -> MSt
-initSt e = MSt DEnvNil e
-
------------------------------------------------------------ machine code begins here
-
-justResult :: MSt -> MSt
-justResult = steps 0 id (const ($)) (const (.))
-
-hnf = justResult . initSt
-
-----------------
-
-inHNF (InHNF a) = InHNF a
-inHNF a = InHNF a
-
-type GenSteps e
-    = (MSt -> e)
-   -> (StepTag -> (MSt -> e) -> MSt -> e)
-   -> (StepTag -> (MSt -> e) -> (MSt -> e) -> MSt -> e)
-   -> MSt -> e
-
-type StepTag = String
-
-focusNotUsed (MSt (EDLet1 x `DEnvCons` _) _) = not $ usedVar' 0 x
-focusNotUsed _ = True
-
-steps :: forall e . Int -> GenSteps e
-steps lev nostep bind cont (MSt vs e) = case e of
-
-    Int{} -> step "int hnf" $ MSt vs $ InHNF e
-    Lam{} -> step "lam hnf" $ MSt vs $ InHNF e
-
-    Con cn i xs
-        | lz == 0 || focusNotUsed (MSt vs e) -> step "con hnf" $ MSt vs $ InHNF e
-        | otherwise -> step "copy con" $ MSt (foldr DEnvCons vs $ ELet <$> zs) $ InHNF $ Con cn i xs'  -- share complex constructor arguments
-      where
-        lz = Nat $ length zs
-        (xs', concat -> zs) = unzip $ f 0 xs
-        f i [] = []
-        f i (x: xs) | simple x = (up 0 lz x, []): f i xs
-                    | otherwise = (Var' i, [up 0 (lz - i - 1) x]): f (i+1) xs
-
-    -- TODO: handle recursive constants
-    Y x             -> step "Y"     $ MSt vs $ App x (Y x)
-
-    Var i           -> step "var"   $ zipDown i DExpNil vs
-    Seq a b         -> step "seq"   $ MSt (EOp2_1 SeqOp b `DEnvCons` vs) a
-    Case cns a cs   -> step "case"  $ MSt (ECase cns cs `DEnvCons` vs) a
-    Op2 op a b      -> step "op2_1" $ MSt (EOp2_1 op b `DEnvCons` vs) a
-
-    InHNF a -> case vs of
-
-        DEnvNil -> bind "whnf" nostep $ MSt DEnvNil $ InHNF a
-
-        ELet x `DEnvCons` vs -> step "goUp" $ MSt vs $ inHNF $ Let x $ InHNF a
-        x `DEnvCons` vs | Let y e <- a -> step "pakol" $ MSt (upP 0 1 x `DEnvCons` ELet y `DEnvCons` vs) e
-        x `DEnvCons` vs -> case x of
-            EOp2_1 SeqOp b -> case a of
-                Int{}   -> step "seq" $ MSt vs b
-                Lam{}   -> step "seq" $ MSt vs b   -- TODO: remove a
-                Con{}   -> step "seq" $ MSt vs b   -- TODO: remove a
-                _       -> step "seq hnf" $ MSt vs $ InHNF $ Seq (InHNF a) b
-            EOp2_1 AppOp b -> case a of
-                Lam x | usedVar 0 x -> step "app"    $ MSt (ELet b `DEnvCons` vs) x
-                      | otherwise   -> step "appdel" $ MSt vs x   -- TODO: remove b
-                _     -> step "app hnf" $ MSt vs $ InHNF $ App (InHNF a) b
-            ECase cns cs -> case a of
-                Con cn i es -> step "case" $ MSt vs $ foldl App (cs !! i) es  -- TODO: remove unused cases
-                _           -> step "case hnf" $ MSt vs $ InHNF $ Case cns (InHNF a) cs
-            EOp2_1 op b -> step "op2_2 hnf" $ MSt (EOp2_2 op (InHNF a) `DEnvCons` vs) b
-            EOp2_2 op b -> case (b, a) of
-                (InHNF (Int e), Int f) -> step "op-done" $ MSt vs (int op e f)
-                  where
-                    int Add a b = Int $ a + b
-                    int Sub a b = Int $ a - b
-                    int Mod a b = Int $ a `mod` b
-                    int LessEq a b = if a <= b then T else F
-                    int EqInt a b = if a == b then T else F
-                _ -> step "op2 hnf" $ MSt vs $ InHNF $ Op2 op b (InHNF a)
-            EDLet1 (dDown 0 -> Just d) -> zipUp a vs d
-            EDLet1 d -> zipUp (up 0 1 a) (ELet (InHNF a) `DEnvCons` vs) d
-
-  where
-    zipDown 0 e (ELet z `DEnvCons` zs) = MSt (EDLet1 e `DEnvCons` zs) z
-    zipDown j e (z@ELet{} `DEnvCons` zs) = zipDown (j-1) (z `DExpCons` e) zs
-    zipDown j e (z `DEnvCons` zs) = zipDown j (z `DExpCons` e) zs
-
-    zipUp x xs DExpNil = step "zipUp ready" $ MSt xs x
-    zipUp x xs (DExpCons a@ELet{} as) = zipUp (up 0 1 x) (a `DEnvCons` xs) as
-    zipUp x xs (DExpCons a as) = zipUp x (a `DEnvCons` xs) as
-
-    rec i = steps i nostep bind cont
-
-    step :: StepTag -> MSt -> e
-    step t = bind t (rec lev)
-{-
-    hnf :: StepTag -> (MSt -> e) -> MSt -> e
-    hnf t f = bind ("hnf " ++ t) $ cont t f (rec (1 + lev))
-
-    hnf' :: StepTag -> MSt -> e
-    hnf' t = hnf t $ bind ("focus " ++ t) $ goUp t 0
--}
-
-simple = \case
-    Var{} -> True
-    Int{} -> True
-    _ -> False
-
-delElem i xs = take i xs ++ drop (i+1) xs
 
 ---------------------------------------------------------------------------------------- examples
 
