@@ -31,6 +31,7 @@ data Exp_
     = Var_
     | Int_ !Int     -- ~ constructor with 0 args
     | Lam_ String{-for pretty print-} !Exp
+    | Let_ String{-for pretty print-} !Exp !Exp
     | Op1_ !Op1 !Exp
     | Con_   String{-for pretty print-}  !Int [Exp]
     | Case_ [String]{-for pretty print-} !Exp ![Exp]  -- TODO: simplify?
@@ -134,9 +135,9 @@ pattern Con a b i   <- Exp_ u (Con_ a b (map (upp u) -> i))
 pattern Case a b c  <- Exp_ u (Case_ a (upp u -> b) (map (upp u) -> c))
   where Case cn a b =  Exp_ s $ Case_ cn az bz where (s, az: bz) = deltas $ a: b
 
-pattern Let n i x    <- App (Lam n x) i
-  where Let _ i (down 0 -> Just x) = x
-        Let n i x     = App (Lam n x) i
+pattern Let n i x   <- Exp_ u (Let_ n (upp u -> i) (upp (incFV u) -> x))
+  where Let _ _ (down 0 -> Just x) = x
+        Let n a b   =  Exp_ s (Let_ n a' b') where (s, a', Lam _ b') = delta2 a $ Lam n b
 
 pattern InHNF a    <- (getHNF -> Just a)
   where InHNF a@Int{}        = a
@@ -307,7 +308,6 @@ instance ViewShow Exp where
       case {-if vi then Exp_ (selfContract fv) x else-} e of
         Var (Nat i)  -> DVar i
         Let n a b   -> shLet n (pShow a) $ pShow b
-        Seq a b     -> DOp "`seq`" (Infix 1) (pShow a) (pShow b)
         Lam n e     -> shLam n $ pShow e
         Con s i xs  -> foldl DApp (text s) $ pShow <$> xs
         Int i       -> pShow' i
@@ -325,6 +325,7 @@ shCase cn e xs = DPreOp (-20) (ComplexAtom "case" (-10) e (SimpleAtom "of"))
                         $ foldr1 DSemi [DArr_ "->" (text a) b | (a, b) <- zip cn xs]
 
 shOp2 AppOp x y = DApp x y
+shOp2 SeqOp a b = DOp "`seq`" (Infix 1) a b
 shOp2 EqInt x y = DOp "==" (Infix 4) x y
 shOp2 Add x y   = DOp "+" (InfixL 6) x y
 shOp2 o x y     = text (show o) `DApp` x `DApp` y
@@ -447,7 +448,15 @@ primes = 2:3: filter (\n -> and $ map (\p -> n `mod` p /= 0) (takeWhile (\x -> x
 main = primes !! 3000
 -}
 
+twice = Lam "f" $ Lam "x" $ Var 1 `App` (Var 1 `App` Var 0)
+twice2 = Lam "f" $ Lam "x" $ Var 1 `sApp` (Var 1 `App` Var 0)
+
+inc = Lam "n" $ Op2 Add (Var 0) (Int 1)
+
 test'' = Lam "f" (Int 4) `App` Int 3
+
+twiceTest = twice `App` twice `App` twice `App` twice `App` inc `App` Int 0
+twiceTest2 = twice2 `App` twice2 `App` twice2 `App` twice2 `App` inc `App` Int 0
 
 tests
     =   hnf test == hnf (Int 13)

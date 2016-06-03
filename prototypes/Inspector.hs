@@ -83,7 +83,9 @@ main = do
   hSetBuffering stdin NoBuffering
   hSetBuffering stdout NoBuffering
   getArgs >>= \case
-    [b, n] -> 
+    ["twice"] -> pPrint $ hnf twiceTest
+    ["twice2"] -> pPrint $ hnf twiceTest2
+    [b, n] ->
         putStrLn $ ppShow $ hnf $ case b of
             "lazy" -> t' $ read n
             "seq" -> t'' $ read n
