@@ -139,7 +139,7 @@ programs = cycle $ map stepList
     , iterate (\x -> x `App` x) id_ !! 5
     , twiceTest 2
     , twiceTest 3
-    , twiceTest2
+    , twiceTest2 2
     , t' 20
     , t'' 20
     ]
@@ -149,7 +149,7 @@ main = do
   hSetBuffering stdout NoBuffering
   getArgs >>= \case
     ["twice"] -> pPrint $ hnf $ twiceTest 3
-    ["twice2"] -> pPrint $ hnf twiceTest2
+    ["twice2"] -> pPrint $ hnf $ twiceTest2 3
     [b, n] ->
         putStrLn $ ppShow $ hnf $ case b of
             "lazy" -> t' $ read n
