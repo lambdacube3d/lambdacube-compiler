@@ -40,13 +40,13 @@ data Lit
 
 data Exp
     = Var_  !VarFV
-    | Lam_  VarInfo  !(FVCache FV (LamFV Exp))
-    | Let_  VarInfo  !(FVCache FV (Exp, LamFV Exp))
-    | Con_  ConInfo !Int (FVCache FV [Exp])
-    | Case_ CaseInfo !(FVCache FV (Exp, [Exp]))
+    | Lam_  VarInfo  !(LamFV Exp)
+    | Let_  VarInfo  !(Pair Exp (LamFV Exp))
+    | Con_  ConInfo !Int (List Exp)
+    | Case_ CaseInfo !(Pair Exp (List Exp))
     | Lit  !Lit
     | Op1  !Op1 !Exp
-    | Op2_ !Op2 !(FVCache FV (Exp, Exp))
+    | Op2_ !Op2 !(Pair Exp Exp)
     deriving (Eq, Show)
 
 data Op1 = HNFMark | YOp | Round
@@ -61,27 +61,27 @@ pattern Seq a b     = Op2 SeqOp a b
 pattern Int i       = Lit (LInt i)
 
 pattern Var i       = Var_ (VarFV i)
-pattern Lam n i     = Lam_ n (CacheFV (LamFV i))
-pattern Let n i x   <- Let_ n (CacheFV (i, LamFV x))
+pattern Lam n i     = Lam_ n (LamFV i)
+pattern Let n i x   <- Let_ n (Pair i (LamFV x))
   where Let _ _ (down 0 -> Just x) = x
-        Let n i x   =  Let_ n (CacheFV (i, LamFV x))
-pattern Con a b i   = Con_ a b (CacheFV i)
-pattern Case a b c  = Case_ a (CacheFV (b, c))
-pattern Op2 op a b  = Op2_ op (CacheFV (a, b))
+        Let n i x   =  Let_ n (Pair i (LamFV x))
+pattern Con a b i   = Con_ a b (List i)
+pattern Case a b c  = Case_ a (Pair b (List c))
+pattern Op2 op a b  = Op2_ op (Pair a b)
 
 infixl 4 `App`
 
 data EnvPiece
     = ELet_   VarInfo !Exp
     | EDLet1_ VarInfo !(LamFV DExp)
-    | ECase_ CaseInfo !(FVCache FV [Exp])
+    | ECase_ CaseInfo !(List Exp)
     | EOp2_1_ !Op2 !Exp
     | EOp2_2_ !Op2 !Exp
     deriving (Eq, Show)
 
 pattern ELet i x   = ELet_ i x
 pattern EDLet1 i x = EDLet1_ i (LamFV x)
-pattern ECase op b = ECase_ op (CacheFV b)
+pattern ECase op b = ECase_ op (List b)
 pattern EOp2_1 i x = EOp2_1_ i x
 pattern EOp2_2 i x = EOp2_2_ i x
 

@@ -21,10 +21,13 @@ module FreeVars
     ( SFV(..), FV, Nat(..), pattern Nat
     , HasFV (..), Lens
     , up, down, usedVar, appLens, lComp, lConst
-    , FVCache(..), LamFV(..), VarFV(..)
-    , pattern CacheFV
+    , Pair, pattern Pair
+    , List, pattern List
+    , LamFV, pattern LamFV
+    , VarFV(..)
 
-    , expand, fv, primContract
+    , ChangeFV(..)
+    , expand'', expand'''
     )
     where
 
@@ -77,14 +80,6 @@ instance PShow Nat where pShow (Nat i) = pShow i
 instance Show Nat where show = ppShow
 
 ----------------------------------------------------------------------------------
-
--- Expand monoid
-newtype Expand = Expand {getExpand :: FV}
-    deriving (Eq, Show, Arbitrary)
-
-instance Monoid Expand where
-    mempty = Expand $ fO 0
-    Expand a `mappend` Expand b = Expand (a `expand` b)
 
 {-
 diffTest u = u == uncurry expandT (diffT u)
@@ -157,6 +152,8 @@ fromBools [] = FE
 fromBools (True: bs) = fv 0 1 $ fromBools bs
 fromBools (False: bs) = fv 1 0 $ fromBools bs
 
+fromStr = fromBools . map (=='1')
+
 instance Monoid FV where
     mempty = FE
 
@@ -173,34 +170,6 @@ instance Monoid FV where
 prop_monoid_FV = prop_Monoid (T :: T FV)
 prop_mappend_normal_FV (a :: FV) b = testNormalFV (a <> b)
 
-expand :: FV -> FV -> FV
-expand _ FE = FE
-expand FE _ = FE
-expand (FV a b xs) (FV c d ys)
-    | c + d <= b  = fv (a + c) d       $ expand (FV 0 (b - (c + d)) xs) ys
-    | c <= b      = fv (a + c) (b - c) $ expand xs (FV 0 (d - (b - c)) ys)
-    | otherwise   = fv (a + b) 0       $ expand xs (FV (c - b) d ys)
-
-primContract :: FV -> FV -> FV
-primContract x FE = FE
-primContract (FV a' b' us') (FV a b us)
-    | a' + b' <= a = fv b'       0 $ primContract us' (FV (a - (a' + b')) b us)
-    | otherwise    = fv (a - a') b $ primContract (FV 0 ((a' + b') - (a + b)) us') us
-
-contract :: FV -> FV -> FV
-contract a b = primContract (a <> b) a
-
---    selfContract a = primContract a a
-selfContract :: FV -> FV
-selfContract xs = fv 0 (altersum xs) FE
-  where
-    altersum FE = 0
-    altersum (FV _ a cs) = a + altersum cs
-
-prop_expand_normal_FV (a :: FV) b = testNormalFV (expand a b)
-prop_contract_normal_FV (a :: FV) b = testNormalFV (contract a b)
-
-prop_monoid_Expand_FV = prop_Monoid (T :: T Expand)
 {-
 --prop_diffTestFV1 = diffTest :: D1 FV -> Bool
 --prop_diffTestFV2 = diffTest :: D2 FV -> Bool
@@ -209,6 +178,32 @@ prop_monoid_Expand_FV = prop_Monoid (T :: T Expand)
 --prop_assocTestL_FV = assocTestL :: D3 FV -> Bool
 --prop_assocTestR_FV = assocTestR :: D3 FV -> Bool
 -}
+
+propagateChange :: FV -> FV -> FV -> FV
+propagateChange _ _ FE = FE
+propagateChange new@(FV nn ln un) old@(FV no lo uo) x
+    = fv nn 0 $  onTail (propagateChange (fv 0 (ln - l) un) (fv 0 (lo - l) uo)) l $ sDrop no x
+  where
+    l = min ln lo
+
+{-
+prop_propagate a b = do
+    let ab = a <> b
+        FV _ n _ = selfContract ab
+    gs <- replicateM n arbitrary
+    let ab' = foldr (\n -> fv n 1) FE gs
+    return $ 
+-}
+
+data ChangeFV
+    = Same !FV
+    | Changed !FV !FV  -- new old
+    deriving (Eq, Show)
+
+instance HasFV ChangeFV where
+    fvLens = \case
+        Same u -> (u, \s -> if s == u then Same u else Changed s u)
+        Changed n o -> (n, \s -> if s == o then Same o else Changed s o)
 
 sIndex :: FV -> Nat -> Bool
 sIndex FE i = False
@@ -281,42 +276,44 @@ usedVar i x = sIndex (fst $ fvLens x :: FV) i
 instance HasFV FV where
     fvLens = lId
 
-instance (HasFV a, HasFV b) => HasFV (a, b) where
-    fvLens (fvLens -> (ux, x'), fvLens -> (uy, y')) = (s, \s' -> (x' $ s' `expand` primContract s ux, y' $ s' `expand` primContract s uy)) where
-        s = ux <> uy
+data Pair a b = Pair_ !ChangeFV !a !b
+    deriving (Eq, Show)
+
+instance (HasFV a, HasFV b) => HasFV (Pair a b) where
+    fvLens (Pair_ (fvLens -> ~(s, f)) a b) = (s, \s -> Pair_ (f s) a b)
+
+pattern Pair a b <- Pair_ s (expand'' s -> a) (expand'' s -> b)
+  where Pair a@(fvLens -> ~(ux, _)) b@(fvLens -> ~(uy, _)) = Pair_ (Same $ ux <> uy) a b
 
 --prop_HasFV_D2 (a :: FV) b = contractFV (D2 a b) == diffT (D2 a b)
 --prop_HasFV_D2' (s :: FV) a b = expandFV s (D2 a b) == expandT s (D2 a b)
 
-newtype LamFV u = LamFV {getLamFV :: u}
+data LamFV u = LamFV_ !ChangeFV u
     deriving (Eq, Show)
 
 instance HasFV a => HasFV (LamFV a) where
-    fvLens (LamFV (fvLens -> x@(ux, fx))) = (sDrop 1 ux, \s -> LamFV $ lApp' (onTail (const s) 1) x)
+    fvLens (LamFV_ (fvLens -> (s, f)) x) = (s, \s -> LamFV_ (f s) x)
+
+pattern LamFV a <- LamFV_ s (expand''' 1 s -> a)
+  where LamFV a@(fvLens -> ~(ux, _)) = LamFV_ (Same $ sDrop 1 ux) a
 
 --prop_LamFV (u :: FV) = contractFV (LamFV u) == (sDrop 1 u, LamFV $ onTail selfContract 1 u)
 --prop_LamFV' s (u :: FV) = expandFV s (LamFV u) == LamFV (fv 0 1 s `expand` u)
 
-data FVCache a b = FVCache !a !b
+expand'' Same{} x = x
+expand'' (Changed new old) (fvLens -> (x, f)) = f $ propagateChange new old x
+
+expand''' _ Same{} x = x
+expand''' n (Changed new old) (fvLens -> (x, f)) = f $ onTail (propagateChange new old) n x
+
+data List a = List_ !ChangeFV [a]
     deriving (Eq, Show)
 
-instance Functor (FVCache a) where
-    fmap f (FVCache a b) = FVCache a (f b)
+instance HasFV a => HasFV (List a) where
+    fvLens (List_ (fvLens -> (s, f)) xs) = (s, \s -> List_ (f s) xs)
 
-instance HasFV (FVCache FV x) where
-    fvLens (FVCache u x) = (u, \u -> FVCache u x)
-
-pattern CacheFV a <- FVCache u (lApp' (expand u) . fvLens -> a)
-  where CacheFV (fvLens -> x@(ua, fa)) = FVCache ua $ lApp' selfContract x
-
-instance HasFV a => HasFV [a] where
-    fvLens [] = lConst []
-    fvLens [fvLens -> (u, fx)] = (u, \s -> [fx s])
-    fvLens [fvLens -> (u, fx), fvLens -> (u', fy)] = (s, \s' -> [fx $ s' `expand` primContract s u, fy $ s' `expand` primContract s u' ])
-      where
-        s = u <> u'
-    fvLens (unzip . map fvLens -> (us, fs)) = let
-        s = mconcat us in (s, \s -> zipWith (\f u -> f $ s `expand` primContract s u) fs us)
+pattern List a <- List_ s (map (expand'' s) -> a)
+  where List a = List_ (Same $ mconcat $ map (fst . fvLens) a) a
 
 newtype VarFV = VarFV Nat
     deriving (Eq, Show)
@@ -341,9 +338,10 @@ instance Monoid SFV where
     SFV m b `mappend` SFV n a = SFV (n + m) $ sDrop n b <> a
 
 prop_monoid_SFV = prop_Monoid (T :: T SFV)
-
+{-
 instance HasFV SFV where
     fvLens (SFV n u) = (u, SFV n)
+-}
 {-
 --prop_diffTest1_SFV = diffTest :: D1 SFV -> Bool
 --prop_diffTest2_SFV = diffTest :: D2 SFV -> Bool

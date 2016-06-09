@@ -36,7 +36,7 @@ import FreeVars
 data SplayList a
     = Nil
     | Singleton a
-    | Append_ !(Measure a) !FV (SplayList a) (SplayList a)
+    | Append_ !(Measure a) !ChangeFV (SplayList a) (SplayList a)
     deriving (Typeable)
 
 deriving instance (Show a, Show (Measure a)) => Show (SplayList a)
@@ -66,7 +66,7 @@ instance (Measured a, HasFV a) => HasFV (SplayList a) where
     fvLens = \case
         Nil -> lConst Nil
         Singleton (fvLens -> (s, f)) -> (s, Singleton . f)
-        Append_ n s l r -> (s, \s -> Append_ n s l r)
+        Append_ n (fvLens -> (s, f)) l r -> (s, \s -> Append_ n (f s) l r)
 
 instance (Measured a) => Measured (SplayList a) where
     type Measure (SplayList a) = Measure a
@@ -76,20 +76,14 @@ instance (Measured a) => Measured (SplayList a) where
 
 --------------------------------------------
 
-getAppend (Append_ _ s x@(fvLens -> ~(ux, x')) z@(fvLens -> ~(uz, z')))
-    = Just (x' $ fv 0 (measure z) s `expand` ux, z' $ s `expand` uz)
+getAppend (Append_ _ s x z) = Just (expand''' (measure z) s x, expand'' s z)
 getAppend _ = Nothing
 
 pattern Append :: () => Measured a => SplayList a -> SplayList a -> SplayList a
 pattern Append l r <- (getAppend -> Just (l, r))
-  where Append x@(fvLens -> (ux, x')) z@(fvLens -> (uz, z')) = Append_ us s (x' ux') (z' uz')
+  where Append x@(fvLens -> (ux, _)) z@(fvLens -> (uz, _)) = Append_ us (Same s) x z
           where
-            SFV us s = SFV (measure x) ux <> SFV mz uz
-
-            mz = measure z
-
-            ux' = fv 0 mz s `primContract` ux
-            uz' = s `primContract` uz
+            SFV us s = SFV (measure x) ux <> SFV (measure z) uz
 
 pattern Cons a as <- (viewl -> Just (a, ascendL -> as))
   where Cons a as = Singleton a <> as
