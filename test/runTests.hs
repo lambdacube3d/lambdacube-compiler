@@ -72,13 +72,14 @@ showTime delta
   where
     t = realToFrac delta :: Double
 
-timeOut :: MonadBaseControl IO m => NominalDiffTime -> a -> m a -> m (NominalDiffTime, a)
+timeOut :: forall m a . MonadBaseControl IO m => NominalDiffTime -> a -> m a -> m (NominalDiffTime, a)
 timeOut dt d m =
   control $ \runInIO ->
     race' (runInIO $ timeDiff m)
           (runInIO $ timeDiff $ liftIO (threadDelay $ round $ dt * 1000000) >> return d)
   where
-    liftIO = liftBaseWith . const
+    liftIO :: IO b -> m b
+    liftIO m = liftBaseWith (const m)
     race' a b = either id id <$> race a b
     timeDiff m = (\s x e -> (diffUTCTime e s, x))
       <$> liftIO getCurrentTime
