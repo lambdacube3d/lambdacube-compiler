@@ -23,8 +23,7 @@ import Data.Monoid
 import Data.Maybe
 import Data.Bits
 import Data.String
-import qualified Vector as PV
-import qualified Data.Vector as PV'
+import qualified Data.Vector as PV
 import qualified Data.Vector.Mutable as V
 import qualified Data.Vector.Unboxed.Mutable as UV
 import qualified Data.Vector.Unboxed as PUV
@@ -65,50 +64,23 @@ instance VecLike (Vec s a) (ST s) where
     type VElem (Vec s a) = a
 
     new n | n < 0 = error $ "new: " ++ show n
-    new n = Vec 0 <$> V.new n
+    new n = Vec 0 <$> V.unsafeNew n
 
-    append (Vec n v) (k, xs) = do
-        v' <- myGrow_ v (n + k)
-        sequence_ $ zipWith (V.write v') [n..] xs
-        return $ Vec (n + k) v'
-      where
-        myGrow_ v@(V.length -> m) n
-            | m >= n = return v
-            | otherwise = V.grow v (2 * n - m)
+    append (Vec n v@(V.length -> m)) (k, xs) = do
+        let !nk = n + k
+        v' <- if m >= nk then return v else V.unsafeGrow v (2 * nk - m)
+        zipWithM_ (V.unsafeWrite v') [n..] xs
+        return $ Vec nk v'
 
-    read_ (Vec _ v) i = V.read v i
+    read_ (Vec _ v) i = V.unsafeRead v i
 
-    freezedRead (Vec _ v) = PV'.unsafeFreeze v <&> PV'.unsafeIndex
+    freezedRead (Vec _ v) = PV.unsafeFreeze v <&> PV.unsafeIndex
 
-    write x@(Vec _ v) i a = V.write v i a >> return x
+    write x@(Vec _ v) i a = V.unsafeWrite v i a >> return x
 
-    modify x@(Vec _ v) i a = V.modify v a i >> return x
+    modify x@(Vec _ v) i a = V.unsafeModify v a i >> return x
 
-    vToList (Vec n v) = mapM (V.read v) [0..n-1]
-
------------------
-
-data PVec a = PVec !Int !(PV.V a)
-
-instance HasLen (PVec a) where
-    len (PVec n _) = n
-
-instance Monad m => VecLike (PVec a) m where
-    type VElem (PVec a) = a
-
-    new n = return $ PVec 0 PV.Nil
-
-    append (PVec n v) (k, xs) = return $ PVec (n + k) $ foldl (flip PV.Cons) v $ take k $ xs ++ repeat (error "yzv")
-
-    read_ (PVec n v) i = return $ PV.index v (n - i - 1)
-
-    freezedRead (PVec n v) = return $ \i -> PV.index v (n - i - 1)
-
-    write v i x = modify v i $ const x
-
-    modify (PVec n v) i f = return $ PVec n $ PV.update v (n - i - 1) f
-
-    vToList (PVec _ a) = return $ reverse $ PV.toList a
+    vToList (Vec n v) = mapM (V.unsafeRead v) [0..n-1]
 
 --------------------------------------------------------------------------- data structures
 
@@ -120,7 +92,6 @@ data Lit
 
 data Exp
     = Var_ !DB
---    | Free !Int
     | Lam  VarInfo Exp
     | App  Exp Exp
     | Con  ConIndex [Exp]
@@ -151,19 +122,32 @@ pattern Int i       = Lit (LInt i)
 
 infixl 4 `App`
 
-data EnvPiece e
-    = EApp e
-    | ECase CaseInf [e]
-    | EDelta !Op [Lit] [e]
+data EnvPiece
+    = EApp !EExp
+    | ECase CaseInf ![EExp]
+    | EDelta !Op ![Lit] ![EExp]
     | Update_ !DB
-    deriving (Eq, Show, Functor)
+    deriving (Eq, Show)
 
-data HNF e
-    = HLam VarInfo e
-    | HCon ConIndex [DB]
+data HNF
+    = HLam VarInfo !EExp
+    | HCon ConIndex ![DB]
     | HLit !Lit
     | HVar_ !DB
-    deriving (Eq, Show, Functor)
+    | HPiece !EnvPiece !HNF
+    | HLet !Int ![EExp] !HNF
+    deriving (Eq, Show)
+
+zipWith' f (x: xs) (y: ys) = f x y !: zipWith' f xs ys
+zipWith' _ _ _ = []
+{-
+f <$!> [] = []
+f <$!> (a: as) = f a :! (f <$!> as)
+-}
+a !: as = a `seq` as `seq` (a: as)
+
+[] ++! xs = xs
+(x: xs) ++! ys = x !: (xs ++! ys)
 
 pattern Update i = Update_ (Pos i)
 
@@ -183,20 +167,18 @@ pattern Pos i <- (getPos -> Just i)
 getPos i | i >= 0 = Just i
 getPos _ = Nothing
 
-
 data EExp
-    = ExpC !Int [EExp] [EnvPiece EExp] (HNF EExp)
+    = ExpC !Int ![EExp] !HNF
     | ErrExp
     deriving (Eq, Show)
 
-pattern PExp ps e <- ExpC 0 _ ps e
-  where PExp = ExpC 0 []
-
-pattern SExp e = PExp [] e
+pattern SExp :: HNF -> EExp
+pattern SExp e <- ExpC 0 _ e
+  where SExp = ExpC 0 []
 
 pattern ERef r = SExp (HVar_ r)
 
-pattern LExp n ls v = ExpC n ls [] (HVar_ v)
+pattern LExp n ls v = ExpC n ls (HVar_ v)
 
 -------------------------------------- max db index
 
@@ -213,30 +195,31 @@ class Rearrange a where
     rearrange :: (Int -> Int) -> Int -> a -> a
 
 instance Rearrange a => Rearrange [a] where
-    rearrange f i = map (rearrange f i)
+    rearrange f i xs = rearrange f i <$!> xs
 
 instance Rearrange EExp
   where
     rearrange _ _ ErrExp = ErrExp
-    rearrange f l_ (ExpC n ls ps e) = ExpC n (rearrange f l ls) (rearrange f l ps) $ rearrange f l e
+    rearrange f l_ (ExpC n ls e) = ExpC n (rearrange f l ls) $ rearrange f l e
       where
         l = l_ + n
 
-instance Rearrange e => Rearrange (EnvPiece e)
+instance Rearrange EnvPiece
   where
     rearrange f l = \case
         EApp e          -> EApp $ rearrange f l e
-        ECase is@(_, i) es -> ECase is $ zipWith (rearrange f . (l +)) i es
+        ECase is@(_, i) es -> ECase is $ zipWith' (rearrange f . (l +)) i es
         EDelta o ls es  -> EDelta o ls $ rearrange f l es
         Update_ i       -> Update_ $ atL f l i
 
-instance Rearrange e => Rearrange (HNF e)
+instance Rearrange HNF
   where
     rearrange f l = \case
         HLam i e    -> HLam i $ rearrange f (l+1) e
-        HCon i ns   -> HCon i $ atL f l <$> ns
+        HCon i ns   -> HCon i $ atL f l <$!> ns
         HVar_ i     -> HVar_ $ atL f l i
-        x           -> x
+        HPiece p e  -> HPiece (rearrange f l p) $ rearrange f l e
+        x@HLit{}    -> x
 
 instance Rearrange Exp
   where
@@ -248,14 +231,6 @@ instance Rearrange Exp
         Case is@(_, i) e es -> Case is (rearrange f l e) $ zipWith (rearrange f . (l +)) i es
         Delta d es  -> Delta d $ rearrange f l es
         x           -> x
-
-{-
-instance (Rearrange a, Rearrange b) => Rearrange (a, b) where
-    rearrange f i (a, b) = (rearrange f i a, rearrange f i b)
-
-instance Rearrange (Info a) where
-    rearrange _ _ = id
--}
 
 ----------
 
@@ -288,9 +263,9 @@ instance FVs a => FVs [a] where
     fv l f [] = return
     fv l f (x: xs) = fv l f x >=> fv l f xs
 
-    sfv f = map . sfv f
+    sfv l f xs = sfv l f <$!> xs
 
-    open f = map . open f
+    open l f xs = open l f <$!> xs
 
 instance (FVs a, FVs b) => FVs (a, b) where
     fv l f (a, b) = fv l f a >=> fv l f b
@@ -301,18 +276,18 @@ instance (FVs a, FVs b) => FVs (a, b) where
 
 instance FVs EExp where
     fv f l ErrExp = return
-    fv f l (ExpC n ls ps e) = fv f l' ls >=> fv f l' ps >=> fv f l' e
+    fv f l (ExpC n ls e) = fv f l' ls >=> fv f l' e
       where l' = l + n
 
     sfv f l ErrExp = ErrExp
-    sfv f l (ExpC n ls ps e) = ExpC n (sfv f l' ls) (sfv f l' ps) (sfv f l' e)
+    sfv f l (ExpC n ls e) = ExpC n (sfv f l' ls) (sfv f l' e)
       where l' = l + n
 
     open f l ErrExp = ErrExp
-    open f l (ExpC n ls ps e) = ExpC n (open f l' ls) (open f l' ps) (open f l' e)
+    open f l (ExpC n ls e) = ExpC n (open f l' ls) (open f l' e)
       where l' = l + n
 
-instance FVs e => FVs (EnvPiece e) where
+instance FVs EnvPiece where
 
     fv f l = \case
         EApp e          -> fv f l e
@@ -322,34 +297,37 @@ instance FVs e => FVs (EnvPiece e) where
 
     sfv f l = \case
         EApp e          -> EApp $ sfv f l e
-        ECase is@(_, i) es -> ECase is $ zipWith (sfv f . (l +)) i es
+        ECase is@(_, i) es -> ECase is $ zipWith' (sfv f . (l +)) i es
         EDelta o ls es  -> EDelta o ls $ sfv f l es
         Update_ i       -> Update_ $ atL f l i
 
     open f l = \case
         EApp e          -> EApp $ open f l e
-        ECase is@(_, i) es -> ECase is $ zipWith (open f . (l +)) i es
+        ECase is@(_, i) es -> ECase is $ zipWith' (open f . (l +)) i es
         EDelta o ls es  -> EDelta o ls $ open f l es
         Update_ i       -> Update_ $ openL f l i
 
-instance FVs e => FVs (HNF e) where
+instance FVs HNF where
 
     fv f l = \case
         HLam i e    -> fv f (l+1) e
-        HCon i ns   -> foldr (>=>) return $ map (addI f l) ns
+        HCon i ns   -> foldr (>=>) return $ addI f l <$!> ns
         HVar_ i     -> addI f l i
+        HPiece p e  -> fv f l p >=> fv f l e
         HLit{}      -> return
 
     sfv f l = \case
         HLam i e    -> HLam i $ sfv f (l+1) e
-        HCon i ns   -> HCon i $ atL f l <$> ns
+        HCon i ns   -> HCon i $ atL f l <$!> ns
         HVar_ i     -> HVar_ $ atL f l i
+        HPiece p e  -> HPiece (sfv f l p) $ sfv f l e
         x@HLit{}    -> x
 
     open f l = \case
         HLam i e    -> HLam i $ open f (l+1) e
-        HCon i ns   -> HCon i $ openL f l <$> ns
+        HCon i ns   -> HCon i $ openL f l <$!> ns
         HVar_ i     -> HVar_ $ openL f l i
+        HPiece p e  -> HPiece (open f l p) $ open f l e
         x@HLit{}    -> x
 
 openL f l (Neg i) | i >= f = i - f + l
@@ -384,24 +362,24 @@ preprocess = \case
     Lit l       -> SExp $ HLit l
     Var_ i      -> SExp $ HVar_ i
     Lam i e     -> SExp $ HLam i $ hnf e
-    Y s e       -> ExpC (n+1) (ls ++ [({-s,-} PExp ps f)]) mempty (HVar n)
-      where ExpC n ls ps f = hnf e
-    Delta d (e: es) -> add' (EDelta d [] $ preprocess <$> es) $ preprocess e
+    Y s e       -> ExpC (n+1) (ls ++ [({-s,-} SExp f)]) (HVar n)
+      where ExpC n ls f = hnf e
+    Delta d (e: es) -> add' (EDelta d [] $ preprocess <$!> es) $ preprocess e
     App e f         -> add' (EApp $ letify "u" $ preprocess f) $ preprocess e
-    Case is@(_, i) e es -> add' (ECase is $ zipWith (\ns -> if ns == 0 then preprocess else hnf) i es) $ preprocess e
-    Con i es        -> foldl (app2 f) (SExp $ HCon i []) $ letify "r" . preprocess <$> es
+    Case is@(_, i) e es -> add' (ECase is $ zipWith' (\ns -> if ns == 0 then preprocess else hnf) i es) $ preprocess e
+    Con i es        -> foldl (app2 f) (SExp $ HCon i mempty) $ letify "r" . preprocess <$> es
       where
-        f [] (HCon i vs) [] (HVar_ v) = ([], HCon i $ vs ++ [v])
+        f (HCon i vs) (HVar_ v) = HCon i $ vs ++ [v]
   where
-    add' p (ExpC n ls ps e) = ExpC n ls (ps ++ [up' n p]) e
+    add' p (ExpC n ls e) = ExpC n ls $ HPiece (up' n p) e
 
-    app2 g e@(ExpC n ls ps f) e'@(ExpC n' ls' ps' f') = ExpC (n+n') (up n n' ls <> up 0 n ls') ps'' f''
+    app2 g e@(ExpC n ls f) e'@(ExpC n' ls' f') = ExpC (n+n') (up n n' ls ++! up 0 n ls') f''
       where
-        (ps'', f'') = g (up n n' ps) (up n n' f) (up 0 n ps') (up 0 n f')
+        f'' = g (up n n' f) (up 0 n f')
 
     letify :: Info String -> EExp -> EExp
     letify s e@LExp{} = e
-    letify s (ExpC n ls ps e) = LExp (n+1) (up n 1 $ ls <> [({-s,-} PExp ps e)]) n
+    letify s (ExpC n ls e) = LExp (n+1) (up n 1 $ ls <> [({-s,-} SExp e)]) n
 
 -------------------------------------------------
 
@@ -413,26 +391,29 @@ steps :: GCConfig -> EExp -> EExp
 steps (gc1, gc2, gc3, gc4) e = runST (init e)
   where
     init :: forall s . EExp -> ST s EExp
-    init (ExpC n ls ps e) = do
+    init (ExpC n ls e) = do
         v1 <- new n
         v2 <- new gc4
         v1' <- append v1 (n, ls)
-        trace "-----" $ vsteps (n, 0, []) (v1', v2) [ps] e
+        trace "-----" $ vsteps (n, 0, []) (v1', v2) [] e
       where
-        vsteps :: (Int, Int, [Int]) -> Vecs s -> [[EnvPiece EExp]] -> HNF EExp -> ST s EExp
+        vsteps :: (Int, Int, [Int]) -> Vecs s -> [EnvPiece] -> HNF -> ST s EExp
+
+        vsteps sn ls ps (HPiece p e) = vsteps sn ls (p: ps) e
+
         vsteps sn ls@(v1@(len -> n), v2@(len -> n')) ps e@(HVar_ i)
             | i < 0 || i >= n + n' = final sn ls ps e
             | i < n = do
                 (adjust (n + n') -> e) <- read_ v1 i
                 if isHNF e
                   then addLets sn ls ps e
-                  else write v1 i ErrExp >>= \v1 -> addLets sn (v1, v2) ([Update i]: ps) e
+                  else write v1 i ErrExp >>= \v1 -> addLets sn (v1, v2) (Update i: ps) e
             | i < n + n' = do
                 (adjust (n + n') -> e) <- read_ v2 (i-n)
                 if isHNF e
                   then addLets sn ls ps e
-                  else write v2 (i-n) ErrExp >>= \v2 -> addLets sn (v1, v2) ([Update i]: ps) e
-        vsteps sn@(gc1, gc2, argh) ls@(v1@(len -> n), v2@(len -> n')) (getC -> Just (p, ps)) e
+                  else write v2 (i-n) ErrExp >>= \v2 -> addLets sn (v1, v2) (Update i: ps) e
+        vsteps sn@(gc1, gc2, argh) ls@(v1@(len -> n), v2@(len -> n')) (p: ps) e
             | Update i <- p = if i < n
                 then do
                     v1' <- write v1 i $ SExp e
@@ -445,10 +426,10 @@ steps (gc1, gc2, gc3, gc4) e = runST (init e)
 
         final sn v ps e = majorGC sn v ps e $ \sn' (v1@(len -> n), _) ps' e' -> do
             ls' <- vToList v1
-            return $ ExpC n ls' (concat ps') e'
+            return $ ExpC n ls' $ foldl (flip HPiece) e' ps'
 
-        dx len (EApp (LExp n ls z)) (HLam i (ExpC n' ls' ps' e))
-            = Just $ ExpC (n + n') (rearrange' upFun ls <> rearrange' fu ls') (rearrange' fu ps') $ rearrange' fu e
+        dx len (EApp (LExp n ls z)) (HLam i (ExpC n' ls' e))
+            = Just $ ExpC (n + n') (rearrange' upFun ls ++! rearrange' fu ls') $ rearrange' fu e
               where
                 z' = if z < 0 then z else if z < n then z + len else z - n
                 fu i | i <  n'   = i + n + len
@@ -458,36 +439,37 @@ steps (gc1, gc2, gc3, gc4) e = runST (init e)
                 upFun i = if i < n then i + len else i - n
 
         dx len (ECase _ cs) (HCon (_, i) vs@(length -> n))
-            | n' == 0 && n == 0 = Just e
-            | otherwise = Just $ adjust' (\i -> if i < n' then i + len else if i - n' < n then vs !! (n - (i - n') - 1) else i - n - n') e
+            | nn == 0 = Just e
+            | otherwise = Just $ adjust' (\i -> if i < n' then i + len else if i < nn then vs !! (nn - 1 - i) else i - nn) e
           where
-            e@(ExpC n' _ _ _) = cs !! i
+            !nn = n + n'
+            !e@(ExpC n' _ _) = cs !! i
         dx len (EDelta SeqOp [] [f]) x
             | isHNF' x = Just $ adjust len f
             | otherwise = Nothing
-        dx len (EDelta o lits (ExpC n ls ps f: fs)) (HLit l)
-            = Just $ adjust len $ ExpC n ls (ps ++ [EDelta o (l: lits) fs]) f
+        dx len (EDelta o lits (ExpC n ls f: fs)) (HLit l)
+            = Just $ adjust len $ ExpC n ls $ HPiece (EDelta o (l: lits) fs) f
         dx len (EDelta o lits []) (HLit l)
             = Just $ SExp $ delta o $ l: lits
         dx _ _ _ = Nothing
 
-        addLets sn ls ps (PExp ps' e) = vsteps sn ls (ps': ps) e
-        addLets sn ls@(v1, v2) ps (ExpC n' xs ps' e) = do
+        addLets sn ls ps (SExp e) = vsteps sn ls ps e
+        addLets sn ls@(v1, v2) ps (ExpC n' xs e) = do
             v2' <- append v2 (n', xs)
-            mkGC sn (v1, v2') (ps': ps) e
+            mkGC sn (v1, v2') ps e
 
         mkGC sn@(mg, sn_, xx) v@(len -> n, len -> n') ps e
             | n' < gc2          = vsteps (mg, sn_ + 1, xx) v ps e
             | n + n' - mg < gc1 = minorGC sn v ps e
             | otherwise         = majorGC sn v ps e vsteps
 
-        adjust _ e@PExp{} = e
-        adjust n e@(ExpC n' _ _ _) = adjust' (\i -> if i < n' then i + n else i - n') e
+        adjust _ e@SExp{} = e
+        adjust n e@(ExpC n' _ _) = adjust' (\i -> if i < n' then i + n else i - n') e
 
-        adjust' fu (ExpC n' xs ps' e) = ExpC n' (rearrange' fu xs) (rearrange' fu ps') (rearrange' fu e)
+        adjust' fu (ExpC n' xs e) = ExpC n' (rearrange' fu xs) (rearrange' fu e)
 
-        minorGC :: (Int, Int, [Int]) -> Vecs s -> [[EnvPiece EExp]] -> HNF EExp -> ST s EExp
-        minorGC (mg, sn, argh) (v1@(len -> n), v2@(len -> n')) (concat -> ps) e = do
+        minorGC :: (Int, Int, [Int]) -> Vecs s -> [EnvPiece] -> HNF -> ST s EExp
+        minorGC (mg, sn, argh) (v1@(len -> n), v2@(len -> n')) ps e = do
           fv2 <- freezedRead v2
           genericGC_ fv2 n n' $ \mark co -> do
             let cc (xx, acc) i = do
@@ -503,12 +485,12 @@ steps (gc1, gc2, gc3, gc4) e = runST (init e)
                 trace ("minor gc: " ++ show (n - la) ++ " + " ++ show (la - la') ++ " + " ++ show la' ++ " + " ++ show xx' ++ " + " ++ show (n' - xx') ++ " - " ++ show (n + n' - n'')) $ do
                     v1'' <- foldM (\v i -> modify v i $ sfv fvi n) v1' argh'
                     v2' <- new gc3
-                    vsteps (mg, sn + 1, []) (v1'', v2') [sfv fvi n ps] (sfv fvi n e)
+                    vsteps (mg, sn + 1, []) (v1'', v2') (sfv fvi n ps) (sfv fvi n e)
 
-        majorGC :: (Int, Int, [Int]) -> Vecs s -> [[EnvPiece EExp]] -> HNF EExp
-                -> ((Int, Int, [Int]) -> Vecs s -> [[EnvPiece EExp]] -> HNF EExp -> ST s e)
+        majorGC :: (Int, Int, [Int]) -> Vecs s -> [EnvPiece] -> HNF
+                -> ((Int, Int, [Int]) -> Vecs s -> [EnvPiece] -> HNF -> ST s e)
                 -> ST s e
-        majorGC (_, sn, argh) v@(v1@(len -> n), v2@(len -> n')) (concat -> ps) e cont = do
+        majorGC (_, sn, argh) v@(v1@(len -> n), v2@(len -> n')) ps e cont = do
           fv1 <- freezedRead v1
           fv2 <- freezedRead v2
           let read2 i = if i < n then fv1 i else fv2 (i - n)
@@ -518,7 +500,7 @@ steps (gc1, gc2, gc3, gc4) e = runST (init e)
               \fvi v1'@(len -> n'') ->
                 trace ("major gc: " ++ show n ++ " + " ++ show n' ++ " - " ++ show (n + n' - n'')) $ do
                     v2' <- new gc3
-                    cont (n'', sn + 1, []) (v1', v2') [sfv fvi 0 ps] (sfv fvi 0 e)
+                    cont (n'', sn + 1, []) (v1', v2') (sfv fvi 0 ps) (sfv fvi 0 e)
 
         genericGC_ read_ n len cont = do
             vi <- UV.replicate len nogc_mark
@@ -534,16 +516,16 @@ steps (gc1, gc2, gc3, gc4) e = runST (init e)
                 cont fvi =<< sweep 0 vv
          where
             mark vi read_ n acc i t = do
-                ma <- UV.read vi i
+                ma <- UV.unsafeRead vi i
                 if ma /= nogc_mark then writes ma >> return t else
                     case read_ i of
                       ERef r | r >= n -> mark vi read_ n (i: acc) (r - n) t
                       e -> do
                         writes t
-                        UV.write vi i t
+                        UV.unsafeWrite vi i t
                         fv (mark vi read_ n []) n e $ t+1
               where
-                writes t = forM_ acc $ \i -> UV.write vi i t
+                writes t = forM_ acc $ \i -> UV.unsafeWrite vi i t
 
 delta ISqrt             [LInt i] = HLit $ LInt $ round $ sqrt $ fromIntegral i
 delta LessEq    [LInt j, LInt i] = mkBool $ i <= j
@@ -553,18 +535,14 @@ delta Sub       [LInt j, LInt i] = HLit $ LInt $ i - j
 delta Mod       [LInt j, LInt i] = HLit $ LInt $ i `mod` j
 delta o ls = error $ "delta: " ++ show o ++ "\n" ++ show ls
 
-mkBool b = HCon (if b then ("True", 1) else ("False", 0)) []
+mkBool b = HCon (if b then ("True", 1) else ("False", 0)) mempty
 
-isHNF ERef{} = False
-isHNF SExp{} = True
+isHNF (SExp x) = isHNF' x
 isHNF _ = False
 
 isHNF' HVar_{} = False
+isHNF' HPiece{} = False
 isHNF' _ = True
-
-getC ((x: xs): xss) = Just (x, xs: xss)
-getC ([]: xss) = getC xss
-getC _ = Nothing
 
 --------------------------------------------------------------- pretty print
 
@@ -603,25 +581,26 @@ showLam x (DFreshName u d) = DFreshName u $ showLam (DUp 0 x) d
 showLam x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
 showLam x y = DLam x y
 
-instance PShow e => PShow (HNF e) where
+instance PShow HNF where
     pShow = \case
         HLam n e -> shLam (getInfo n) $ pShow e
         HCon (s, _) is -> foldl DApp (text s) $ dVar <$> is
         HLit l -> pShow l
         HVar_ i -> dVar i
+        HPiece p e -> showPiece (pShow e) p
 
 dVar (Pos i) = DVar i
 dVar (Neg i) = text $ "v" ++ show i
 
 instance PShow EExp where
     pShow ErrExp = text "_|_"
-    pShow (ExpC n ls ps e) = shLet ((,) "x" . pShow <$> ls) $ foldl h (pShow e) ps
-      where
-        h e = \case
-            EApp x -> e `DApp` pShow x
-            ECase (cns, _) xs -> shCase cns e $ pShow <$> xs
-            Update_ i -> DOp "@" (InfixR 14) (dVar i) e
-            EDelta o ls es -> shDelta o $ (pShow <$> ls) ++ e: (pShow <$> es)
+    pShow (ExpC _ ls e) = shLet ((,) "x" . pShow <$> ls) $ pShow e
+
+showPiece e = \case
+    EApp x -> e `DApp` pShow x
+    ECase (cns, _) xs -> shCase cns e $ pShow <$> xs
+    Update_ i -> DOp "@" (InfixR 14) (dVar i) e
+    EDelta o ls es -> shDelta o $ (pShow <$> ls) ++ e: (pShow <$> es)
 {-
 instance PShow Exp where
     pShow = \case
