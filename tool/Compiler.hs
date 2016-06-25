@@ -11,7 +11,7 @@ import LambdaCube.Compiler
 addInfo i p = info (helper <*> p) i
 
 main :: IO ()
-main = join $ execParser $ addInfo i $ subparser (
+main = join $ execParser $ addInfo i $ versionOption <*> subparser (
     command "compile" (addInfo (progDesc "compiles LambdaCube3D source to JSON IR") compile')
  <> command "parse" (addInfo (progDesc "parses LambdaCube3D source") $ parse
           <$> argument str (metavar "SOURCE_FILE")
@@ -33,7 +33,17 @@ main = join $ execParser $ addInfo i $ subparser (
 
     i = fullDesc
      <> progDesc "executes command (default to compile if no command is given)"
-     <> header ("LambdaCube 3D compiler " ++ showVersion version)
+     <> header versionStr
+
+versionStr :: String
+versionStr = "LambdaCube 3D compiler " ++ showVersion version
+
+versionOption :: Parser (a -> a)
+versionOption = abortOption (InfoMsg versionStr) $ mconcat
+    [ long "version"
+    , short 'v'
+    , help "Print version."
+    ]
 
 prettyPrint srcName output = do
       let baseName = dropExtension srcName
