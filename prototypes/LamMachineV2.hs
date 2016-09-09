@@ -1,3 +1,8 @@
+-- Lazy evaluation machine
+--
+-- LamMachine is a variant of the machine described in
+-- "Deriving a Lazy Abstract Machine" (1997) by Peter Sestoft 
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE PatternGuards #-}
