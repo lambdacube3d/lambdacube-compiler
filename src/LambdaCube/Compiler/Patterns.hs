@@ -1,3 +1,8 @@
+-- Pattern match compilation
+--
+-- overview:
+-- https://rawgit.com/BP-HUG/presentations/master/2016_april/pattern-match-compilation/patternMatchComp.html
+
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
