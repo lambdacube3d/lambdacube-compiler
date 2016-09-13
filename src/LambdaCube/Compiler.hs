@@ -48,7 +48,7 @@ import LambdaCube.Compiler.Infer (inference)
 import LambdaCube.Compiler.CoreToIR
 
 import LambdaCube.Compiler.Utils
-import LambdaCube.Compiler.DesugaredSource as Exported (FileInfo(..), Range(..), SPos(..), SIName(..), pattern SIName, sName, SI(..))
+import LambdaCube.Compiler.DesugaredSource as Exported (FileInfo(..), Range(..), SPos(..), pattern SPos, SIName(..), pattern SIName, sName, SI(..))
 import LambdaCube.Compiler.Core as Exported (mkDoc, Exp, ExpType(..), pattern ET, outputType, boolType, trueExp, hnf)
 import LambdaCube.Compiler.InferMonad as Exported (errorRange, listAllInfos, listAllInfos', listTypeInfos, listTraceInfos, Infos, Info(..))
 --import LambdaCube.Compiler.Infer as Exported ()
