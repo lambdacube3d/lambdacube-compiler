@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards #-}
+import Data.Monoid
 import Data.Char
 import System.Directory
 import System.FilePath

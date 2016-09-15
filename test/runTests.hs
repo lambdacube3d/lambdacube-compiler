@@ -7,6 +7,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
+import Data.Monoid
 import Data.Char
 import Data.List
 --import Data.Either

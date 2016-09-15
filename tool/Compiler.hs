@@ -1,3 +1,4 @@
+import Data.Monoid
 import Control.Monad
 import Options.Applicative
 import Data.Aeson
