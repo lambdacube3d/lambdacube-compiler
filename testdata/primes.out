@@ -1,5 +1,5 @@
 main :: Int
-main = 27457
+main = 17393
 ------------ desugared source code
 infixr 0 $
 
@@ -98,7 +98,7 @@ primes
           (fromInt 0 == c))
         b
 
-main = _lhs main (_rhs (primes !! fromInt 3000))
+main = _lhs main (_rhs (primes !! fromInt 2000))
 ------------ core code
 !! :: forall a . [a] -> Int -> a
 !!
@@ -156,7 +156,7 @@ id :: forall a . a -> a
 id = \a b -> _rhs b
 
 main :: Int
-main = _rhs 27457
+main = _rhs 17393
 
 map :: forall a b . (a -> b) -> [a] -> [b]
 map = \a b c -> _rhs (foldr (\d e -> c d : e) [])
