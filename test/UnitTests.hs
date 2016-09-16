@@ -2,7 +2,7 @@
 module Main where
 
 import Data.Monoid
-import Text.Megaparsec.Pos (SourcePos(..), newPos, sourceName, sourceLine, sourceColumn)
+import Text.Megaparsec.Pos (Pos, unsafePos, SourcePos(..), sourceName, sourceLine, sourceColumn)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
@@ -28,12 +28,14 @@ main = defaultMain $ testGroup "Compiler"
 ----------------------------------------------------------------- Arbitraries
 
 -- SourcePos
+instance Arbitrary Pos where
+    arbitrary = unsafePos . getPositive <$> arbitrary
 
 instance Arbitrary SourcePos where
-  arbitrary = newPos <$> arbitrary <*> (getPositive <$> arbitrary) <*> (getPositive <$> arbitrary)
+  arbitrary = SourcePos <$> arbitrary <*> arbitrary <*> arbitrary
   shrink pos
     | n <- sourceName pos, l <- sourceLine pos, c <- sourceColumn pos
-      = [newPos n' l' c' | n' <- shrink n, l' <- shrink l, c' <- shrink c]
+      = [SourcePos n' l' c' | n' <- shrink n, l' <- shrink l, c' <- shrink c]
   -- TODO: Diagonalize shrink
 
 -- TODO: generate only valid positions

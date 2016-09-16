@@ -6,22 +6,25 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE RankNTypes #-}
 module LambdaCube.Compiler.Lexer
     ( module LambdaCube.Compiler.Lexer
     , module ParseUtils
     ) where
 
 import Data.List
+import Data.List.NonEmpty (fromList)
 import Data.Char
 import qualified Data.Set as Set
 import Control.Monad.Except
 import Control.Monad.RWS
 import Control.Applicative
+import Control.Arrow
 
-import Text.Megaparsec hiding (State)
+import Text.Megaparsec hiding (State, ParseError)
 import qualified Text.Megaparsec as P
-import Text.Megaparsec as ParseUtils hiding (try, Message, State)
+import Text.Megaparsec as ParseUtils hiding (try, Message, State, ParseError)
 import Text.Megaparsec.Lexer hiding (lexeme, symbol, negate)
 
 import LambdaCube.Compiler.Pretty hiding (parens)
@@ -34,19 +37,21 @@ import LambdaCube.Compiler.DesugaredSource
 try_ s m = try m <?> s
 
 toSPos :: SourcePos -> SPos
-toSPos p = SPos (sourceLine p) (sourceColumn p)
+toSPos p = SPos (fromIntegral $ unPos $ sourceLine p) (fromIntegral $ unPos $ sourceColumn p)
 
 getSPos = toSPos <$> getPosition
 
 -------------------------------------------------------------------------------- literals
 
-parseLit :: Parse r w Lit
+parseLit :: forall r w . Parse r w Lit
 parseLit = lexeme (LChar <$> charLiteral <|> LString <$> stringLiteral <|> natFloat) <?> "literal"
   where
+    charLiteral :: Parse r w Char
     charLiteral = between (char '\'')
                           (char '\'' <?> "end of character")
                           (char '\\' *> escapeCode <|> satisfy ((&&) <$> (> '\026') <*> (/= '\'')) <?> "character")
 
+    stringLiteral :: Parse r w String
     stringLiteral = between (char '"')
                             (char '"' <?> "end of string")
                             (concat <$> many stringChar)
@@ -57,6 +62,7 @@ parseLit = lexeme (LChar <$> charLiteral <|> LString <$> stringLiteral <|> natFl
                    <|> [] <$ char '&'
                    <|> (:[]) <$> escapeCode
 
+    escapeCode :: Parse r w Char
     escapeCode = choice (charEsc ++ charNum: (char '^' *> charControl): charAscii) <?> "escape code"
       where
         charControl = toEnum . (+ (-64)) . fromEnum <$> satisfy ((&&) <$> (>= 'A') <*> (<= '_')) <?> "control char"
@@ -73,6 +79,7 @@ parseLit = lexeme (LChar <$> charLiteral <|> LString <$> stringLiteral <|> natFl
             --                               \a  \b \t \n \v \f \r                                                                  ' '
             y = toEnum <$> ([0..32] ++ [127])
 
+    natFloat :: Parse r w Lit
     natFloat = char '0' *> zeroNumFloat <|> decimalFloat
       where
         zeroNumFloat = LInt <$> (oneOf "xX" *> hexadecimal <|> oneOf "oO" *> octal)
@@ -105,13 +112,18 @@ data ParseEnv r = ParseEnv
 type ParseState r = (ParseEnv r, P.State String)
 
 parseState :: FileInfo -> r -> ParseState r
-parseState fi di = (ParseEnv fi di ExpNS (SPos 0 0), either (error "impossible") id $ runParser getParserState (filePath fi) (fileContent fi))
+parseState fi di = (ParseEnv fi di ExpNS (SPos 0 0), either (error "impossible") id $ runParser (getParserState :: Parsec Dec String (P.State String)) (filePath fi) (fileContent fi))
 
 --type Parse r w = ReaderT (ParseEnv r) (WriterT [w] (StateT SPos (Parsec String)))
-type Parse r w = RWST (ParseEnv r) [w] SPos (Parsec String)
+type Parse r w = RWST (ParseEnv r) [w] SPos (Parsec Dec String)
+
+newtype ParseError = ParseErr (P.ParseError (Token String) Dec)
+
+instance Show ParseError where
+    show (ParseErr e) = parseErrorPretty e
 
 runParse :: Parse r w a -> ParseState r -> Either ParseError (a, [w])
-runParse p (env, st) = snd . flip runParser' st $ evalRWST p env (error "spos")
+runParse p (env, st) = left ParseErr . snd . flip runParser' st $ evalRWST p env (error "spos")
 
 getParseState :: Parse r w (ParseState r)
 getParseState = (,) <$> ask <*> getParserState
@@ -154,6 +166,7 @@ noSpaceBefore p = try $ do
 
 lexeme_ p = lexemeWithoutSpace p <* whiteSpace
 
+lexeme :: Parse r w a -> Parse r w a
 lexeme p = snd <$> lexeme_ p
 
 lexemeName p = uncurry SIName <$> lexeme_ p
@@ -214,6 +227,7 @@ opLetter          = lowercaseOpLetter <|> char ':'
 
 maybeStartWith p i = i <|> (:) <$> satisfy p <*> i
 
+upperCase, upperCase_, lowerCase :: Parse r w SIName
 upperCase       = identifier (tick =<< (:) <$> upperLetter <*> many identLetter) <?> "uppercase ident"
 upperCase_      = identifier (tick =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
 lowerCase       = identifier ((:) <$> lowerLetter <*> many identLetter) <?> "lowercase ident"
@@ -237,10 +251,13 @@ reservedOp name = fst <$> lexeme_ (try $ string name *> notFollowedBy opLetter)
 
 reserved name = fst <$> lexeme_ (try $ string name *> notFollowedBy identLetter)
 
-expect msg p i = i >>= \n -> if p n then unexpected (msg ++ " " ++ show n) else return n
+expect :: String -> (String -> Bool) -> Parse r w String -> Parse r w String
+expect msg p i = i >>= \n -> if p n then unexpected (Tokens $ fromList n) else return n
 
+identifier :: Parse r w String -> Parse r w SIName
 identifier name = lexemeName $ try $ expect "reserved word" (`Set.member` theReservedNames) name
 
+operator :: Parse r w String -> Parse r w SIName
 operator name = lexemeName $ try $ expect "reserved operator" (`Set.member` theReservedOpNames) name
 
 theReservedOpNames = Set.fromList ["::","..","=","\\","|","<-","->","@","~","=>"]
