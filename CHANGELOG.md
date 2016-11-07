@@ -1,4 +1,44 @@
 
+# v0.6
+
+-   new features
+    -   support mutual constant and function definitions
+    -   support pattern type annotations
+    -   support guards + where
+    -   support view patterns
+    -   support pattern guards
+    -   support as-patterns
+    -   implement constraint kinds
+    -   implement pattern match reachability and exhaustiveness warnings 
+    -   allow pattern match on tuple types
+    -   support parsing only
+    -   support printing desugared source code
+-   improvements
+    -   improve pretty printing
+    -   better presentation of types in editor tooltips
+    -   better error messages (e.g. for mismatching operator fixities)
+    -   speedup the builtin interpreter in the compiler
+-   bugfixes
+    -   fix local function handling
+    -   fix parens around operators
+    -   fix parsing of operator definitions
+    -   fix parsing of sections
+    -   fix parsing of literals
+    -   fix switching to type namespace after @
+    -   fix a bug in escape code parsing
+-   documentation
+    -   reorganise and cleanup the compiler sources
+    -   begin to write developer's guide
+    -   documentation on pattern match compilation
+-   dependencies
+    -   use megaparsec 5.0
+    -   switch to ansi-wl-pprint
+    -   allow newer base, optparse-applicative and QuickCheck libraries
+-   other
+    -   move the TODOs to Trello: https://trello.com/b/TcuVPBAR/lambdacube3d
+    -   work on prototypes (reducer, lammachine, inspector)
+
+
 # v0.5
 
 -   compiler
