@@ -36,7 +36,12 @@
     -   allow newer base, optparse-applicative and QuickCheck libraries
 -   other
     -   move the TODOs to Trello: https://trello.com/b/TcuVPBAR/lambdacube3d
-    -   work on prototypes (reducer, lammachine, inspector)
+    -   work on prototypes
+        -   Reducer.hs -- experiment with lazy evaluation in the ST monad
+        -   ShiftReducer.hs -- experiment with lazy evaluation purely, with incremental GC
+        -   LamMachine.hs -- experiment with lazy evaluation purely, with incremental GC (next version)
+        -   Inspector.hs -- a tool for inspect the state of LamMachine, intended for debugging/visualizing lazy evaluation
+        -   LamMachineV2.hs -- experiment with lazy evaluation in the ST monad, with explicit, generational GC
 
 
 # v0.5
