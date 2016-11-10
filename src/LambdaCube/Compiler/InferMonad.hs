@@ -30,7 +30,7 @@ import Control.Arrow hiding ((<+>))
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty hiding (braces, parens)
 import LambdaCube.Compiler.DesugaredSource hiding (getList)
-import LambdaCube.Compiler.Parser (ParseWarning) -- TODO: remove
+import LambdaCube.Compiler.Parser (ParseWarning (..))
 import LambdaCube.Compiler.Core
 
 -------------------------------------------------------------------------------- error messages
@@ -97,6 +97,13 @@ listAllInfos' f m
 
 listTraceInfos m = [DResetFreshNames $ pShow i | i <- m, case i of Info{} -> False; ParseWarning{} -> False; _ -> True]
 listTypeInfos m = Map.toList $ Map.unionsWith (<>) [Map.singleton r [DResetFreshNames i] | Info r i <- m]
+listErrors m = Map.toList $ Map.unionsWith (<>) [Map.singleton r [DResetFreshNames (pShow e)] | IError e <- m, RangeSI r <- errorRange_ e]
+listWarnings m = Map.toList $ Map.unionsWith (<>) [Map.singleton r [DResetFreshNames msg] | ParseWarning (getRangeAndMsg -> Just (r, msg)) <- m]
+  where
+    getRangeAndMsg = \case
+        Unreachable r -> Just (r, "Unreachable")
+        w@(Uncovered (getRange . sourceInfo -> Just r) _) -> Just (r, pShow w)
+        _ -> Nothing
 
 tellType si t = tell $ mkInfoItem (sourceInfo si) $ DTypeNamespace True $ pShow t
 
