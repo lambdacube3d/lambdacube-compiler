@@ -1,0 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+import Internals
+
+fun1 = \((x,uv::Float) :: (Float,Float)) -> ((x))

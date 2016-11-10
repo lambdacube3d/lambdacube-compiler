@@ -1,0 +1,47 @@
+main is not found
+------------ desugared source code
+fun1
+  = _lhs
+    fun1
+    (_rhs
+      \(a :: (Float, Float)) -> hlistConsCase
+        _
+        (\(b :: _) (c :: _) -> hlistConsCase
+          _
+          (\(d :: _) (e :: _) -> let f = d :: Float in hlistNilCase _ ((b)) e)
+          c)
+        a)
+------------ core code
+fun1 :: (Float, Float) -> ((Float))
+fun1
+  = _rhs
+    \a -> hlistConsCase
+      'Float
+      ['Float]
+      ' (('Float))
+      (\b c -> hlistConsCase
+        'Float
+        []
+        ' (('Float))
+        (\_ d -> hlistNilCase ' (('Float)) ((b)) d)
+        c)
+      a
+------------ tooltips
+4:1-4:5
+    (Float, Float) -> ((Float))
+4:17-4:22
+    Type
+4:17-4:50
+    ((_c))
+4:27-4:40
+    Type
+4:28-4:33
+    Type
+4:28-4:39
+    [Type]
+4:34-4:39
+    Type | [Type]
+4:45-4:50
+    ((_j))
+4:47-4:48
+    _m
