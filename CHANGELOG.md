@@ -8,12 +8,12 @@
     -   support view patterns
     -   support pattern guards
     -   support as-patterns
-    -   implement constraint kinds
     -   implement pattern match reachability and exhaustiveness warnings 
-    -   allow pattern match on tuple types
     -   support parsing only
     -   support printing desugared source code
 -   improvements
+    -   allow pattern match on tuple types
+    -   implement constraint kinds (useful for type classes)
     -   improve pretty printing
     -   better presentation of types in editor tooltips
     -   better error messages (e.g. for mismatching operator fixities)
