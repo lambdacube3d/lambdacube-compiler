@@ -1,0 +1,21 @@
+main :: Bool
+main = True
+------------ desugared source code
+main
+  = _lhs
+    main
+    let a = True in case'Bool (\(_ :: _) -> _) (_rhs undefined) (_rhs True) a
+------------ core code
+main :: Bool
+main = _rhs True
+------------ tooltips
+1:1-1:5
+    Bool
+2:7-2:8
+    Bool
+2:7-2:15
+    Bool
+2:11-2:15
+    Bool
+4:9-4:13
+    Bool

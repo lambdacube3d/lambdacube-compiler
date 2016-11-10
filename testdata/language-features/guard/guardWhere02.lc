@@ -1,0 +1,9 @@
+main
+    | f x = False
+    | f y = True
+  where
+    x = True
+    y = False
+    f True = False
+    f False = True
+

@@ -1,0 +1,53 @@
+main :: Bool
+main = True
+------------ desugared source code
+main
+  = _lhs
+    main
+    let
+      a = True;
+      b = False;
+      c = _lhs f \(d :: _) -> case'Bool (\(_ :: _) -> _) (_rhs True) (_rhs False) d
+      in case'Bool
+      (\(_ :: _) -> _)
+      (case'Bool (\(_ :: _) -> _) (_rhs undefined) (_rhs True) (c b))
+      (_rhs False)
+      (c a)
+------------ core code
+main :: Bool
+main = _rhs True
+------------ tooltips
+1:1-1:5
+    Bool
+2:7-2:8
+    Bool -> Bool
+2:7-2:10
+    Bool
+2:7-3:17
+    Bool
+2:9-2:10
+    Bool
+2:13-2:18
+    Bool
+2:13-3:17
+    Bool -> Bool
+3:7-3:8
+    Bool -> Bool
+3:7-3:10
+    Bool
+3:7-3:17
+    Bool
+3:9-3:10
+    Bool
+3:13-3:17
+    Bool
+5:9-5:13
+    Bool
+6:9-6:14
+    Bool
+7:14-7:19
+    Bool
+7:14-8:19
+    Bool -> Bool
+8:15-8:19
+    Bool
