@@ -105,7 +105,7 @@ library
     ansi-wl-pprint >=0.6 && <0.7,
     pretty-show >= 1.6.9,
     text >= 1.2 && <1.3,
-    lambdacube-ir == 0.4.*,
+    lambdacube-ir == 0.3.*,
     vector >= 0.11 && <0.12
 
   hs-source-dirs:      src
@@ -193,7 +193,7 @@ executable lambdacube-compiler-test-suite
     patience >= 0.1 && < 0.2,
     text >= 1.2 && <1.3,
     time >= 1.5 && <1.7,
-    lambdacube-ir == 0.4.*,
+    lambdacube-ir == 0.3.*,
     vector >= 0.11 && <0.12
 
 executable lambdacube-compiler-performance-report
@@ -233,7 +233,7 @@ executable lambdacube-backend-test-server
     containers >=0.5 && <0.6,
     text >= 1.2 && <1.3,
     lambdacube-compiler,
-    lambdacube-ir == 0.4.*,
+    lambdacube-ir == 0.3.*,
     pretty-show >= 1.6.9,
     optparse-applicative >=0.12 && <0.14,
     aeson >=0.9 && <0.12,
@@ -273,7 +273,7 @@ executable lambdacube-compiler-coverage-test-suite
     directory >=1.2 && <1.3,
     exceptions >= 0.8 && <0.9,
     filepath >=1.4 && <1.5,
-    lambdacube-ir == 0.4.*,
+    lambdacube-ir == 0.3.*,
     mtl >=2.2 && <2.3,
     monad-control >= 1.0 && <1.1,
     optparse-applicative >=0.12 && <0.14,
