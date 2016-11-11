@@ -92,7 +92,8 @@ getCommands backend e = case e of
 
         let 
             (vertexInput, pUniforms, vertSrc, fragSrc) = case backend of
-              IR.DirectX11 -> genHLSLs backend (compRC' rctx) ints vert frag ffilter
+              -- disabled DX11 codegen, due to it's incomplete
+              --IR.DirectX11 -> genHLSLs backend (compRC' rctx) ints vert frag ffilter
               _ -> genGLSLs backend (compRC' rctx) ints vert frag ffilter
 
             pUniforms' = snd <$> Map.filter ((\case UTexture2D{} -> False; _ -> True) . fst) pUniforms
