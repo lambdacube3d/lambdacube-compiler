@@ -112,7 +112,7 @@ library
   default-language:    Haskell2010
 
   if flag(profiling)
-    GHC-Options: -fprof-auto -rtsopts
+    GHC-Options: -fprof-auto
 
 executable lc
   hs-source-dirs:   tool
