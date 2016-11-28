@@ -102,7 +102,8 @@ instance PShow Range
 showRangeWithoutFileName (Range _ b e) = pShow b <> "-" <> pShow e
 
 joinRange :: Range -> Range -> Range
-joinRange (Range n b e) (Range n' b' e') {- | n == n' -} = Range n (min b b') (max e e')
+joinRange (Range n b e) (Range n' b' e') = Range n (min b b') (max e e')
+-- TODO: check (n == n') ?
 
 -------------------------------------------------------------------------------- source info
 

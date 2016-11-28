@@ -442,7 +442,7 @@ instance MkDoc Neutral where
         CstrT' t a b        -> shCstr (mkDoc pr a) (mkDoc pr (ET b t))
         Fun (FunName _ _ (ExpDef d) _) xs _ | body -> mkDoc (reduce, False) (foldlrev app_ d xs)
         FFix (getFixLam -> Just (s, xs)) | not body -> foldl DApp (pShow s) $ mkDoc pr <$> xs
-        FFix f {- | body -} -> foldl DApp "primFix" [{-pShow t -}"_", mkDoc pr f]
+        FFix f -> foldl DApp "primFix" [{-pShow t -}"_", mkDoc pr f]
         Fun (FunName _ _ (DeltaDef n _) _) _ _ | body -> text $ "<<delta function with arity " ++ show n ++ ">>"
         Fun (FunName _ _ NoDef _) _ _ | body -> "<<builtin>>"
         ReducedN a | reduce -> mkDoc pr a
