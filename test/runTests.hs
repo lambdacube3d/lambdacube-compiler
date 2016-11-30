@@ -36,6 +36,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Text.Printf
 
+import qualified LambdaCube.IR as IR
 import LambdaCube.Compiler
 import LambdaCube.Compiler.Pretty hiding ((</>))
 
@@ -237,13 +238,13 @@ doTest Config{..} (i, fn) = do
         return res
 
     --getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m (Infos, [Stmt]) ((Infos, [Stmt]), Either Doc (FilePath, Either Doc ExpType))
-
+    clearPipelineInfo p = p {IR.info = ""}
     f ((i, desug), e) | not $ isReject fn = case e of
         Left (_, show -> e)      -> Left (unlines $ tab "!Failed" e: map show (listTraceInfos i), Failed)
         Right (fname, ge, Left (pShow -> e))
                                  -> Right ("typechecked module", simpleShow $ vcat $ e: showGE fname ge)
         Right (fname, ge, Right (ET e te))
-            | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ compilePipeline OpenGL33 (ET e te))
+            | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ clearPipelineInfo $ compilePipeline OpenGL33 (ET e te))
             | e == trueExp       -> Right ("reducted main", de)
             | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ simpleShow res, Failed)
             | otherwise          -> Right ("reduced main :: " ++ simpleShow (mkDoc (True, False) te), de)
