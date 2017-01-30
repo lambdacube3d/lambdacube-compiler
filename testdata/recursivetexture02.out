@@ -8,8 +8,8 @@ Pipeline
           , textureSemantic = Depth
           , textureSampler =
               SamplerDescriptor
-                { samplerWrapS = Repeat
-                , samplerWrapT = Nothing
+                { samplerWrapS = MirroredRepeat
+                , samplerWrapT = Just MirroredRepeat
                 , samplerWrapR = Nothing
                 , samplerMinFilter = Linear
                 , samplerMagFilter = Linear
@@ -28,8 +28,8 @@ Pipeline
           , textureSemantic = Color
           , textureSampler =
               SamplerDescriptor
-                { samplerWrapS = Repeat
-                , samplerWrapT = Nothing
+                { samplerWrapS = MirroredRepeat
+                , samplerWrapT = Just MirroredRepeat
                 , samplerWrapR = Nothing
                 , samplerMinFilter = Linear
                 , samplerMagFilter = Linear
@@ -48,8 +48,8 @@ Pipeline
           , textureSemantic = Depth
           , textureSampler =
               SamplerDescriptor
-                { samplerWrapS = Repeat
-                , samplerWrapT = Nothing
+                { samplerWrapS = MirroredRepeat
+                , samplerWrapT = Just MirroredRepeat
                 , samplerWrapR = Nothing
                 , samplerMinFilter = Linear
                 , samplerMagFilter = Linear
@@ -68,8 +68,8 @@ Pipeline
           , textureSemantic = Color
           , textureSampler =
               SamplerDescriptor
-                { samplerWrapS = Repeat
-                , samplerWrapT = Nothing
+                { samplerWrapS = MirroredRepeat
+                , samplerWrapT = Just MirroredRepeat
                 , samplerWrapR = Nothing
                 , samplerMinFilter = Linear
                 , samplerMagFilter = Linear
@@ -88,8 +88,8 @@ Pipeline
           , textureSemantic = Depth
           , textureSampler =
               SamplerDescriptor
-                { samplerWrapS = Repeat
-                , samplerWrapT = Nothing
+                { samplerWrapS = MirroredRepeat
+                , samplerWrapT = Just MirroredRepeat
                 , samplerWrapR = Nothing
                 , samplerMinFilter = Linear
                 , samplerMagFilter = Linear
@@ -108,8 +108,8 @@ Pipeline
           , textureSemantic = Color
           , textureSampler =
               SamplerDescriptor
-                { samplerWrapS = Repeat
-                , samplerWrapT = Nothing
+                { samplerWrapS = MirroredRepeat
+                , samplerWrapT = Just MirroredRepeat
                 , samplerWrapR = Nothing
                 , samplerMinFilter = Linear
                 , samplerMagFilter = Linear
@@ -128,8 +128,8 @@ Pipeline
           , textureSemantic = Depth
           , textureSampler =
               SamplerDescriptor
-                { samplerWrapS = Repeat
-                , samplerWrapT = Nothing
+                { samplerWrapS = MirroredRepeat
+                , samplerWrapT = Just MirroredRepeat
                 , samplerWrapR = Nothing
                 , samplerMinFilter = Linear
                 , samplerMagFilter = Linear
@@ -148,8 +148,8 @@ Pipeline
           , textureSemantic = Color
           , textureSampler =
               SamplerDescriptor
-                { samplerWrapS = Repeat
-                , samplerWrapT = Nothing
+                { samplerWrapS = MirroredRepeat
+                , samplerWrapT = Just MirroredRepeat
                 , samplerWrapR = Nothing
                 , samplerMinFilter = Linear
                 , samplerMagFilter = Linear
@@ -168,8 +168,8 @@ Pipeline
           , textureSemantic = Depth
           , textureSampler =
               SamplerDescriptor
-                { samplerWrapS = Repeat
-                , samplerWrapT = Nothing
+                { samplerWrapS = MirroredRepeat
+                , samplerWrapT = Just MirroredRepeat
                 , samplerWrapR = Nothing
                 , samplerMinFilter = Linear
                 , samplerMagFilter = Linear
@@ -188,8 +188,8 @@ Pipeline
           , textureSemantic = Color
           , textureSampler =
               SamplerDescriptor
-                { samplerWrapS = Repeat
-                , samplerWrapT = Nothing
+                { samplerWrapS = MirroredRepeat
+                , samplerWrapT = Just MirroredRepeat
                 , samplerWrapR = Nothing
                 , samplerMinFilter = Linear
                 , samplerMagFilter = Linear
