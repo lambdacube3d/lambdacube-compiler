@@ -163,7 +163,7 @@ getCommands backend e = case e of
   where
     getRenderTextureCommands :: String -> Uniform -> CG ([SamplerBinding],[IR.Command])
     getRenderTextureCommands n = \case
-        UTexture2D (fromIntegral -> width) (fromIntegral -> height) img -> do
+        UTexture2D textureFilter edgeMode (fromIntegral -> width) (fromIntegral -> height) img -> do
 
             let (a, tf) = case img of
                     A1 "PrjImageColor" a -> (,) a $ \[_, x] -> x
@@ -174,11 +174,11 @@ getCommands backend e = case e of
                     , IR.textureSize      = IR.VV2U $ IR.V2 (fromIntegral width) (fromIntegral height)
                     , IR.textureSemantic  = semantic
                     , IR.textureSampler   = IR.SamplerDescriptor
-                        { IR.samplerWrapS       = IR.Repeat
-                        , IR.samplerWrapT       = Nothing
+                        { IR.samplerWrapS       = edgeMode
+                        , IR.samplerWrapT       = Just edgeMode
                         , IR.samplerWrapR       = Nothing
-                        , IR.samplerMinFilter   = IR.Linear 
-                        , IR.samplerMagFilter   = IR.Linear
+                        , IR.samplerMinFilter   = textureFilter
+                        , IR.samplerMagFilter   = textureFilter
                         , IR.samplerBorderColor = IR.VV4F (IR.V4 0 0 0 1)
                         , IR.samplerMinLod      = Nothing
                         , IR.samplerMaxLod      = Nothing
@@ -231,6 +231,17 @@ compSemantics = map compSemantic . compList
 compList (A2 ":" a x) = a : compList x
 compList (A0 "Nil") = []
 compList x = error $ "compList: " ++ ppShow x
+
+compFilter = \case
+  A0 "PointFilter"  -> IR.Nearest
+  A0 "LinearFilter" -> IR.Linear
+  x -> error $ "compFilter: " ++ ppShow x
+
+compEdgeMode = \case
+  A0 "Repeat"         -> IR.Repeat
+  A0 "MirroredRepeat" -> IR.MirroredRepeat
+  A0 "ClampToEdge"    -> IR.ClampToEdge
+  x -> error $ "compEdgeMode: " ++ ppShow x
 
 compSemantic = \case
   A0 "Depth"     -> IR.Depth
@@ -624,7 +635,7 @@ genGLSLs backend
 data Uniform
     = UUniform
     | UTexture2DSlot
-    | UTexture2D Integer Integer ExpTV
+    | UTexture2D IR.Filter IR.EdgeMode Integer Integer ExpTV
 
 type Uniforms = Map String (Uniform, IR.InputType)
 
@@ -658,9 +669,9 @@ genGLSL dns e = case e of
         [_, _, A1 "Texture2DSlot" (EString s)] -> do
             tellUniform $ Map.singleton s $ (,) UTexture2DSlot IR.FTexture2D{-compInputType $ tyOf e  -- TODO-}
             pure $ text s
-        [_, _, A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b] -> do
+        [textureFilter, edgeMode, A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b] -> do
             s <- newName
-            tellUniform $ Map.singleton s $ (,) (UTexture2D w h b) IR.FTexture2D
+            tellUniform $ Map.singleton s $ (,) (UTexture2D (compFilter textureFilter) (compEdgeMode edgeMode) w h b) IR.FTexture2D
             pure $ text s
 
     'P':'r':'i':'m':n | n'@(_:_) <- trName (dropS n) -> call n' xs
@@ -1034,9 +1045,9 @@ genHLSL dns e = case e of
         [_, _, A1 "Texture2DSlot" (EString s)] -> do
             tellUniform $ Map.singleton s $ (,) UTexture2DSlot IR.FTexture2D{-compInputType $ tyOf e  -- TODO-}
             pure $ text s
-        [_, _, A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b] -> do
+        [textureFilter, edgeMode, A2 "Texture2D" (A2 "V2" (EInt w) (EInt h)) b] -> do
             s <- newName
-            tellUniform $ Map.singleton s $ (,) (UTexture2D w h b) IR.FTexture2D
+            tellUniform $ Map.singleton s $ (,) (UTexture2D (compFilter textureFilter) (compEdgeMode edgeMode) w h b) IR.FTexture2D
             pure $ text s
 
     'P':'r':'i':'m':n | n'@(_:_) <- trName (dropS n) -> call n' xs
