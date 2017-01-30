@@ -28,15 +28,6 @@ main = defaultMain $ testGroup "Compiler"
 ----------------------------------------------------------------- Arbitraries
 
 -- SourcePos
-instance Arbitrary Pos where
-    arbitrary = unsafePos . getPositive <$> arbitrary
-
-instance Arbitrary SourcePos where
-  arbitrary = SourcePos <$> arbitrary <*> arbitrary <*> arbitrary
-  shrink pos
-    | n <- sourceName pos, l <- sourceLine pos, c <- sourceColumn pos
-      = [SourcePos n' l' c' | n' <- shrink n, l' <- shrink l, c' <- shrink c]
-  -- TODO: Diagonalize shrink
 
 -- TODO: generate only valid positions
 instance Arbitrary SPos where
