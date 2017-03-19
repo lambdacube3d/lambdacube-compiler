@@ -115,17 +115,3 @@ instance MonadMask m => MonadMask (ExceptT e m) where
     mask f = ExceptT $ mask $ \u -> runExceptT $ f (mapExceptT u)
     uninterruptibleMask = error "not implemented: uninterruptibleMask for ExcpetT"
 -}
-
-instance (Monoid w, P.MonadParsec e s m) => P.MonadParsec e s (RWST r w st m) where
-    failure a b                 = lift . P.failure a b
-    label                       = mapRWST . P.label
-    try                         = mapRWST P.try
-    lookAhead          (RWST m) = RWST $ \r s -> (\(a, _, _) -> (a, s, mempty)) <$> P.lookAhead (m r s)
-    notFollowedBy      (RWST m) = RWST $ \r s -> P.notFollowedBy ((\(a, _, _) -> a) <$> m r s) >> return ((), s, mempty)
-    withRecovery rec   (RWST m) = RWST $ \r s -> P.withRecovery (\e -> runRWST (rec e) r s) (m r s)
-    eof                         = lift P.eof
-    token  f e                  = lift $ P.token  f e
-    tokens f e                  = lift $ P.tokens f e
-    getParserState              = lift P.getParserState
-    updateParserState f         = lift $ P.updateParserState f
-
