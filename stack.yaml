@@ -1,9 +1,9 @@
-resolver: lts-4.1
+resolver: lts-6.25
 packages:
 - '../lambdacube-ir/lambdacube-ir.haskell'
 - '.'
 extra-deps:
-- megaparsec-4.3.0
+- megaparsec-5.1.0
 - pretty-compact-1.0
 flags: {}
 extra-package-dbs: []
