@@ -48,8 +48,10 @@ instance DeBruijnify SIName PreStmt where
 mkLets :: [Stmt]{-where block-} -> SExp{-main expression-} -> SExp{-big let with lambdas; replaces global names with de bruijn indices-}
 mkLets = mkLets_ SLet
 
+mkLets_ :: DeBruijnify SIName a => (SIName -> SExp -> a -> a) -> [Stmt] -> a -> a
 mkLets_ mkLet = mkLets' mkLet . concatMap desugarMutual . sortDefs
 
+mkLets' :: DeBruijnify SIName a => (SIName -> SExp -> a -> a) -> [Stmt] -> a -> a
 mkLets' mkLet = f where
     f [] e = e
     f (StmtLet n x: ds) e = mkLet n x (deBruijnify [n] $ f ds e)
@@ -61,8 +63,10 @@ type DefinedSet = Set.Set SName
 addForalls :: DefinedSet -> SExp -> SExp
 addForalls defined x = foldl f x [v | v@(sName -> vh:_) <- reverse $ names x, sName v `notElem'` defined, isLower vh]
   where
+    f :: SExp -> SIName -> SExp
     f e v = SPi Hidden (Wildcard SType) $ deBruijnify [v] e
 
+    notElem' :: SName -> Set.Set SName -> Bool
     notElem' s@(Ticked s') m = Set.notMember s m && Set.notMember s' m    -- TODO: review
     notElem' s m = s `notElem` m
 
@@ -71,13 +75,16 @@ addForalls defined x = foldl f x [v | v@(sName -> vh:_) <- reverse $ names x, sN
 
 ------------------------------------------------------------------------
 
+compileStmt' :: MonadWriter [ParseCheck] m => [PreStmt] -> m [Stmt]
 compileStmt' = compileStmt'_ SLHS SRHS SRHS
 
+compileStmt'_ :: MonadWriter [ParseCheck] m => (SIName -> SExp -> SExp) -> (SExp -> SExp) -> (SExp -> SExp) -> [PreStmt] -> m [Stmt]
 compileStmt'_ lhs ulend lend ds = fmap concat . sequence $ map (compileStmt lhs (\si vt -> compileGuardTree ulend lend (Just si) vt . mconcat) ds) $ groupBy h ds where
+    h :: PreStmt -> PreStmt -> Bool
     h (FunAlt n _ _) (FunAlt m _ _) = m == n
     h _ _ = False
 
---compileStmt :: MonadWriter [ParseCheck] m => (SIName -> [(Visibility, SExp)] -> [GuardTrees] -> m SExp) -> [PreStmt] -> [PreStmt] -> m [Stmt]
+compileStmt :: MonadWriter [ParseCheck] m => (SIName -> SExp -> SExp) -> (SIName -> [(Visibility, SExp)] -> [GuardTrees] -> m SExp) -> [PreStmt] -> [PreStmt] -> m [Stmt]
 compileStmt lhs compilegt ds = \case
     [Instance{}] -> return []
     [Class n ps ms] -> do
@@ -118,6 +125,7 @@ compileStmt lhs compilegt ds = \case
 funAlt :: SIName -> [((Visibility, SExp), ParPat)] -> GuardTrees -> PreStmt
 funAlt n pats gt = FunAlt n (fst <$> pats) $ compilePatts (map snd pats) gt
 
+funAlt' :: SIName -> [(Visibility, SExp)] -> [ParPat] -> GuardTrees -> PreStmt
 funAlt' n ts x gt = FunAlt n ts $ compilePatts x gt
 
 desugarValueDef :: MonadWriter [ParseCheck] m => ParPat -> SExp -> m [PreStmt]
@@ -127,9 +135,10 @@ desugarValueDef p e = sequence
       | (i, x) <- zip [0..] dns
       ]
   where
-    dns = reverse $ getPVars p
-    n = mangleNames dns
+    dns = reverse $ getPVars p :: [SIName]
+    n = mangleNames dns :: SIName
 
+getLet :: Stmt -> Maybe (SIName, SExp)
 getLet (StmtLet x dx) = Just (x, dx)
 getLet _ = Nothing
 
@@ -149,10 +158,12 @@ desugarMutual (traverse getLet -> Just (unzip -> (ns, ds))) = fst' $ runWriter $
     xy = mangleNames ns
 desugarMutual xs = error "desugarMutual"
 
+addFix :: SIName -> SExp -> SExp
 addFix n x
     | usedS n x = SBuiltin FprimFix `SAppV` SLamV (deBruijnify [n] x)
     | otherwise = x
 
+mangleNames :: [SIName] -> SIName
 mangleNames xs = SIName (foldMap sourceInfo xs) $ "_" ++ intercalate "_" (sName <$> xs)
 
 -------------------------------------------------------------------------------- statement with dependencies
@@ -167,25 +178,30 @@ data StmtNode = StmtNode
 sortDefs :: [Stmt] -> [[Stmt]]
 sortDefs xs = map snValue <$> scc snId snChildren snRevChildren nodes
   where
+    nodes :: [StmtNode]
     nodes = zipWith mkNode [0..] xs
       where
+        mkNode :: Int -> Stmt -> StmtNode
         mkNode i s = StmtNode i s (nubBy ((==) `on` snId) $ catMaybes $ (`Map.lookup` defMap) <$> need)
                                   (fromMaybe [] $ IM.lookup i revMap)
           where
+            need :: [SIName]
             need = Set.toList $ case s of
                 PrecDef{} -> mempty
                 StLet _ mt e -> foldMap names mt <> names e
                 Data _ ps t cs -> foldMap (names . snd) ps <> names t <> foldMap (names . snd) cs
 
+            names :: SExp -> Set.Set SIName
             names = foldName Set.singleton
 
+    revMap :: IM.IntMap [StmtNode]
     revMap = IM.unionsWith (++) [IM.singleton (snId c) [n] | n <- nodes, c <- snChildren n]
 
+    defMap :: Map.Map SIName StmtNode
     defMap = Map.fromList [(s, n) | n <- nodes, s <- def $ snValue n]
       where
+        def :: Stmt -> [SIName]
         def = \case
             PrecDef{} -> mempty
             StLet n _ _ -> [n]
             Data n _ _ cs -> n: map fst cs
-
-
