@@ -34,11 +34,13 @@ import LambdaCube.Compiler.DesugaredSource
 
 -- try with error handling
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
+try_ :: String -> Parse r w a -> Parse r w a
 try_ s m = try m <?> s
 
 toSPos :: SourcePos -> SPos
 toSPos p = SPos (fromIntegral $ unPos $ sourceLine p) (fromIntegral $ unPos $ sourceColumn p)
 
+getSPos :: Parse r w SPos
 getSPos = toSPos <$> getPosition
 
 -------------------------------------------------------------------------------- literals
@@ -130,12 +132,14 @@ getParseState = (,) <$> ask <*> getParserState
 
 ----------------------------------------------------------- indentation, white space, symbols
 
+getCheckedSPos :: Parse r w SPos
 getCheckedSPos = do
     p <- getSPos
     p' <- asks indentationLevel
     when (p /= p' && column p <= column p') $ fail "wrong indentation"
     return p
 
+identation :: Bool -> Parse r w t -> Parse r w [t]
 identation allowempty p = (if allowempty then option [] else id) $ do
     pos' <- getCheckedSPos
     (if allowempty then many else some) $ do
@@ -143,6 +147,7 @@ identation allowempty p = (if allowempty then option [] else id) $ do
         guard (column pos == column pos')
         local (\e -> e {indentationLevel = pos}) p
 
+lexemeWithoutSpace :: Parse r w t -> Parse r w (SI, t)
 lexemeWithoutSpace p = do
     p1 <- getCheckedSPos
     x <- p
@@ -155,8 +160,10 @@ lexemeWithoutSpace p = do
 appRange :: Parse r w (SI -> a) -> Parse r w a
 appRange p = (\fi p1 a p2 -> a $ RangeSI $ Range fi p1 p2) <$> asks fileInfo <*> getSPos <*> p <*> getLexemeEnd
 
+--getLexemeEnd :: _
 getLexemeEnd = get
 
+--noSpaceBefore :: _ --Parse r w a -> Parse r w a
 noSpaceBefore p = try $ do
     pos <- getLexemeEnd
     x <- p
@@ -164,19 +171,25 @@ noSpaceBefore p = try $ do
         RangeSI (Range _ pos' _) -> pos == pos'
     return x
 
+lexeme_ :: Parse r w a -> Parse r w (SI, a)
 lexeme_ p = lexemeWithoutSpace p <* whiteSpace
 
 lexeme :: Parse r w a -> Parse r w a
 lexeme p = snd <$> lexeme_ p
 
+lexemeName :: Parse r w SName -> Parse r w SIName
 lexemeName p = uncurry SIName <$> lexeme_ p
 
+symbolWithoutSpace :: String -> Parse r w (SI, String)
 symbolWithoutSpace = lexemeWithoutSpace . string
 
+symbol :: String -> Parse r w (SI, String)
 symbol name = symbolWithoutSpace name <* whiteSpace
 
+simpleSpace :: Parse r w ()
 simpleSpace = skipSome (satisfy isSpace)
 
+whiteSpace :: Parse r w ()
 whiteSpace = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
   where
     oneLineComment
@@ -192,10 +205,12 @@ whiteSpace = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "
             <|> oneOf "{}-"              *> inCommentMulti
             <?> "end of comment"
 
+parens, braces, brackets :: Parse r w a -> Parse r w a
 parens   = between (symbol "(") (symbol ")")
 braces   = between (symbol "{") (symbol "}")
 brackets = between (symbol "[") (symbol "]")
 
+commaSep, commaSep1 :: Parse r w a -> Parse r w [a]
 commaSep p  = sepBy p  $ symbol ","
 commaSep1 p = sepBy1 p $ symbol ","
 
@@ -208,8 +223,10 @@ tick c = f <$> asks namespace
   where
     f = \case TypeNS -> switchTick c; _ -> c
 
+switchNamespace :: Namespace -> Namespace
 switchNamespace = \case ExpNS -> TypeNS; TypeNS -> ExpNS
- 
+
+modifyLevel :: (Namespace -> Namespace) -> Parse r w a -> Parse r w a
 modifyLevel f = local $ \e -> e {namespace = f $ namespace e}
 
 typeNS, expNS :: Parse r w a -> Parse r w a
@@ -217,7 +234,7 @@ typeNS   = modifyLevel $ const TypeNS
 expNS    = modifyLevel $ const ExpNS
 
 -------------------------------------------------------------------------------- identifiers
-
+lowerLetter, upperLetter, identStart, identLetter, lowercaseOpLetter, opLetter :: Parse r w Char
 lowerLetter       = satisfy $ (||) <$> isLower <*> (== '_')
 upperLetter       = satisfy isUpper
 identStart        = satisfy $ (||) <$> isLetter <*> (== '_')
@@ -225,9 +242,10 @@ identLetter       = satisfy $ (||) <$> isAlphaNum <*> (`elem` ("_\'#" :: [Char])
 lowercaseOpLetter = oneOf "!#$%&*+./<=>?@\\^|-~"
 opLetter          = lowercaseOpLetter <|> char ':'
 
+maybeStartWith :: (Char -> Bool) -> Parse r w String -> Parse r w String
 maybeStartWith p i = i <|> (:) <$> satisfy p <*> i
 
-upperCase, upperCase_, lowerCase :: Parse r w SIName
+upperCase, upperCase_, lowerCase, backquotedIdent, symbols, lcSymbols, colonSymbols, moduleName, patVar, lhsOperator, rhsOperator, varId, upperLower :: Parse r w SIName
 upperCase       = identifier (tick =<< (:) <$> upperLetter <*> many identLetter) <?> "uppercase ident"
 upperCase_      = identifier (tick =<< maybeStartWith (=='\'') ((:) <$> upperLetter <*> many identLetter)) <?> "uppercase ident"
 lowerCase       = identifier ((:) <$> lowerLetter <*> many identLetter) <?> "lowercase ident"
@@ -247,8 +265,10 @@ upperLower      = lowerCase <|> upperCase_ <|> parens symbols
 
 ----------------------------------------------------------- operators and identifiers
 
+reservedOp :: String -> Parse r w SI
 reservedOp name = fst <$> lexeme_ (try $ string name *> notFollowedBy opLetter)
 
+reserved :: String -> Parse r w SI
 reserved name = fst <$> lexeme_ (try $ string name *> notFollowedBy identLetter)
 
 expect :: String -> (String -> Bool) -> Parse r w String -> Parse r w String
@@ -260,8 +280,10 @@ identifier name = lexemeName $ try $ expect "reserved word" (`Set.member` theRes
 operator :: Parse r w String -> Parse r w SIName
 operator name = lexemeName $ try $ expect "reserved operator" (`Set.member` theReservedOpNames) name
 
+theReservedOpNames :: Set.Set String
 theReservedOpNames = Set.fromList ["::","..","=","\\","|","<-","->","@","~","=>"]
 
+theReservedNames :: Set.Set String
 theReservedNames = Set.fromList $
     ["let","in","case","of","if","then","else"
     ,"data","type"
