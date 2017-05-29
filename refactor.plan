@@ -1,0 +1,68 @@
+goals:
+  simple, clean API and dependency tree
+
+stage 1:
+ok - LambdaCube.Compiler.Utils
+import LambdaCube.Compiler.Pretty
+import LambdaCube.Compiler.DeBruijn
+
+typesig - import LambdaCube.Compiler.Lexer
+typesig - import LambdaCube.Compiler.DesugaredSource
+typesig - import LambdaCube.Compiler.Patterns
+typesig - import LambdaCube.Compiler.Statements
+import LambdaCube.Compiler.Parser
+
+stage 2:
+import LambdaCube.Compiler.Core
+import LambdaCube.Compiler.Infer
+import LambdaCube.Compiler.InferMonad
+
+stage 3:
+import LambdaCube.Compiler.CoreToIR
+
+IDEA:
+  add each module a Pattern module with the pattern synonyms that provides the rich API
+
+problem:
+  low level use of debruijn indices
+  too many and indiscpilined pattern synonyms
+
+
+type classes:
+  Debruijn:         Rearrange, HasFreeVars, DeBruijnify
+  Pretty:           PShow
+  Patterns:         PatVars
+  DesugaredSource:  SourceInfo, SetSourceInfo
+
+  Core:             HasFName, Subst, MkDoc, NType
+
+data types:
+  Lexer:            ParseEnv, Namespace
+  Parser:           LCParseError, ParseWarning, DesugarInfo
+  Pretty:           Fixity, Doc, DocAtom
+  Patterns:         ParseCheck, Pat_ c, ParPat_ c, Lets a, GuardTree
+  DesugaredSource:  FileInfo, Range, SI, SIName, FNameTag, Lit, SExp' a, Binder, Visibility, Stmt, Module_ a, Export, ImportItems, Extension
+  Utils:            Void
+  Statements:       PreStmt, StmtNode
+
+  Infer:            CEnv, Env
+  InferMonad:       ErrorMsg, Info
+  Core:             ConName, TyConName, FunName, CaseFunName, TyCaseFunName, FunDef, Freq, Exp, Neutral, ExpType
+
+newtypes:
+  Lexer:            ParseError
+  DeBruijn:         FreeVars
+  DesugaredSource:  SPos, FName
+  Utils:            SData
+
+patterns:
+  Pretty:           DText, DAt, DApp, DHApp, DSemi, DArr_, DCstr, DAnn, DLet, DComma, DPar, DParen, DBrace, DBracket, DOp, DOp0, DSep, DGlue, DArr, DForall,
+                    DContext', DContext, DParContext, DLam, DLet'
+  Patterns:         ParPat, PWildcard, PCon, ViewPat, PatType, PVarSimp, PConSimp, ViewPatSimp, PatTypeSimp, PParens, Otherwise
+  DesugaredSource:  Ticked, CaseName, MatchName, SPos, SIName_, SIName, Tag, FTag, SBind, SPi, SLam, Wildcard, SLet, SLamV, SVar, SApp, SAppH, SAppV, SAppV2,
+                    SBuiltin, SRHS, Section, SType, SConstraint, Parens, SAnn, SCW, TyType, HList, HCons, HNil, BList, BCons, BNil, UncurryS, AppsS, StLet, Primitive
+
+  Infer:            EBind2, CheckType
+  Core:             TType, NoRHS, Fun, CaseFun_, TyCaseFun_, App_, Con, TyCon, Lam, Pi, Let, SubstLet, CaseFun, TyCaseFun, Var, App, DFun, DFun_, UFun, DFunN,
+                    DFunN_, ConN, TyConN, TTyCon0, :~>, TConstraint, Unit, TInt, TNat, TBool, TFloat, TString, TChar, TOrdering, TVec, Empty, TT, CUnit, CEmpty,
+                    CstrT, CstrT', Coe, ParEval, T2, CW, CW_, CSplit,HLit, HInt, HFloat, HChar, HString, EBool, ENat, ReducedN, Reduced, FFix, NonNeut
