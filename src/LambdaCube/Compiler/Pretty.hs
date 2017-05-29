@@ -28,7 +28,7 @@ import Debug.Trace
 
 import qualified Text.PrettyPrint.ANSI.Leijen as P
 
-import LambdaCube.Compiler.Utils
+import LambdaCube.Compiler.Utils(dropIndex, Void, elimVoid)
 
 -------------------------------------------------------------------------------- fixity
 

@@ -164,7 +164,7 @@ pattern SIName_ :: SI -> Maybe Fixity -> SName -> SIName
 pattern SIName_ si f n <- SIName__ _ si f n
   where SIName_ si f n =  SIName__ (fnameHash si n) si f n
 
-pattern SIName_ :: SI -> SName -> SIName
+pattern SIName :: SI -> SName -> SIName
 pattern SIName si n <- SIName_ si _ n
   where SIName si n =  SIName_ si Nothing n
 
@@ -220,8 +220,11 @@ data FNameTag
     | Fparens | FtypeAnn | Fundefined | Fotherwise | FprimIfThenElse | FfromTo | FconcatMap | FfromInt | Fproject | Fswizzscalar | Fswizzvector
 
     | FunsafeCoerce | FreflCstr | FhlistNilCase | FhlistConsCase
-    | FprimAddInt | FprimSubInt | FprimModInt | FprimSqrtFloat | FprimRound | FprimIntToFloat | FprimIntToNat | FprimCompareInt | FprimCompareFloat | FprimCompareChar | FprimCompareString
-    | FPrimGreaterThan | FPrimGreaterThanEqual | FPrimLessThan | FPrimLessThanEqual | FPrimEqualV | FPrimNotEqualV | FPrimEqual | FPrimNotEqual | FPrimSubS | FPrimSub | FPrimAddS | FPrimAdd | FPrimMulS | FPrimMul | FPrimDivS | FPrimDiv | FPrimModS | FPrimMod | FPrimNeg | FPrimAnd | FPrimOr | FPrimXor | FPrimNot
+    | FprimAddInt | FprimSubInt | FprimModInt | FprimSqrtFloat | FprimRound | FprimIntToFloat | FprimIntToNat
+    | FprimCompareInt | FprimCompareFloat | FprimCompareChar | FprimCompareString
+    | FPrimGreaterThan | FPrimGreaterThanEqual | FPrimLessThan | FPrimLessThanEqual | FPrimEqualV | FPrimNotEqualV | FPrimEqual | FPrimNotEqual
+    | FPrimSubS | FPrimSub | FPrimAddS | FPrimAdd | FPrimMulS | FPrimMul | FPrimDivS | FPrimDiv | FPrimModS | FPrimMod
+    | FPrimNeg | FPrimAnd | FPrimOr | FPrimXor | FPrimNot
 
     -- other
     | F_rhs | F_section

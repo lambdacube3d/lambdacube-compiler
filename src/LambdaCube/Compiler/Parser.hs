@@ -76,6 +76,7 @@ instance PShow ParseWarning where
             addG x [] = x
             addG x xs = DOp "|" (Infix (-5)) x $ foldr1 (DOp "," (InfixR (-4))) xs
 
+trackSI :: SourceInfo a => BodyParser a -> BodyParser a
 trackSI p = do
     x <- p
     tell $ Right . TrackedCode <$> maybeToList (getRange $ sourceInfo x)
@@ -387,6 +388,7 @@ checkPattern ns = tell $ pure $ Left $
     [] -> Nothing
     xs -> Just $ MultiplePatternVars xs
 
+--postponedCheck :: _
 postponedCheck pr x = do
     tell [Left $ either (\(a, b) -> Just $ OperatorMismatch (pr a) (pr b)) (const Nothing) x]
     return $ either (const $ error "impossible @ Parser 725") id x
@@ -485,6 +487,7 @@ parseRHS tok = do
 
 parseDefs lhs = identation True parseDef >>= runCheck . compileStmt'_ lhs SRHS SRHS . concat
 
+--funAltDef :: BodyParser _ -> BodyParser _ -> BodyParser _
 funAltDef parseOpName parseName = do
     (n, (fee, tss)) <-
         case parseOpName of
@@ -512,6 +515,7 @@ parseExport =
         ExportModule <$ reserved "module" <*> moduleName
     <|> ExportId <$> varId
 
+importlist :: HeaderParser [SIName]
 importlist = parens $ commaSep upperLower
 
 parseExtensions :: HeaderParser [Extension]
