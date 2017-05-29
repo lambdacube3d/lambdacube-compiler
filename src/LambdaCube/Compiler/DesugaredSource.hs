@@ -33,6 +33,7 @@ type SName = String
 pattern Ticked :: SName -> SName
 pattern Ticked s = '\'': s
 
+untick :: SName -> SName
 untick (Ticked s) = s
 untick s = s
 
@@ -99,6 +100,7 @@ instance PShow Range
              : map text (drop (r - 1) $ take r' $ lines $ fileContent n)
             ++ [text $ replicate (c - 1) ' ' ++ replicate (c' - c) '^' | r' == r]
 
+showRangeWithoutFileName :: Range -> Doc
 showRangeWithoutFileName (Range _ b e) = pShow b <> "-" <> pShow e
 
 joinRange :: Range -> Range -> Range
@@ -111,6 +113,7 @@ data SI
     = NoSI (Set.Set String) -- no source info, attached debug info
     | RangeSI Range
 
+getRange :: SI -> Maybe Range
 getRange (RangeSI r) = Just r
 getRange _ = Nothing
 
@@ -132,8 +135,10 @@ instance PShow SI where
 hashPos :: FileInfo -> SPos -> Int
 hashPos fn (SPos_ p) = (1 + fileId fn) `shiftL` 32 .|. p
 
+debugSI :: String -> SI
 debugSI a = NoSI (Set.singleton a)
 
+validate :: SI -> [SI] -> SI
 si@(RangeSI r) `validate` xs | r `notElem` [r | RangeSI r <- xs]  = si
 _ `validate` _ = mempty
 
@@ -155,9 +160,11 @@ class SetSourceInfo a where
 
 data SIName = SIName__ { nameHash :: Int, nameSI :: SI, nameFixity :: Maybe Fixity, sName :: SName }
 
+pattern SIName_ :: SI -> Maybe Fixity -> SName -> SIName
 pattern SIName_ si f n <- SIName__ _ si f n
   where SIName_ si f n =  SIName__ (fnameHash si n) si f n
 
+pattern SIName_ :: SI -> SName -> SIName
 pattern SIName si n <- SIName_ si _ n
   where SIName si n =  SIName_ si Nothing n
 
@@ -220,6 +227,7 @@ data FNameTag
     | F_rhs | F_section
     deriving (Eq, Ord, Show, Enum, Bounded)
 
+tagName :: FNameTag -> String
 tagName FCons = ":"
 tagName t = case show t of 'F': s -> s
 
@@ -227,15 +235,19 @@ pattern Tag :: FNameTag -> SIName
 pattern Tag t <- (toTag . nameHash -> Just t)
   where Tag t =  SIName__ (fromEnum t) (tagSI t) (tagFixity t) (tagName t)
 
+pattern FTag :: FNameTag -> FName
 pattern FTag t = FName (Tag t)
 
+toTag :: Int -> Maybe FNameTag
 toTag i
     | i <= fromEnum (maxBound :: FNameTag) = Just (toEnum i)
     | otherwise = Nothing
 
+tagFixity :: FNameTag -> Maybe Fixity
 tagFixity FCons = Just $ InfixR 5
 tagFixity _ = Nothing
 
+tagSI :: FNameTag -> SI
 tagSI t = NoSI $ Set.singleton $ tagName t
 
 fnameHash :: SI -> SName -> Int
@@ -274,6 +286,7 @@ data SExp' a
     | STyped  a
   deriving (Eq)
 
+sLHS :: SIName -> SExp' a -> SExp' a
 sLHS _ (SRHS x) = x
 sLHS n x = SLHS n x
 
@@ -299,31 +312,57 @@ instance PShow Visibility where
         Hidden -> "Hidden"
         Visible -> "Visible"
 
+dummyName :: String -> SIName
 dummyName s = SIName (debugSI s) "" --("v_" ++ s)
+
+dummyName' :: String -> SData SIName
 dummyName' = SData . dummyName
+
+sVar :: String -> Int -> SExp' a
 sVar = SVar . dummyName
 
+pattern SBind :: Binder -> SData SIName -> SExp' a -> SExp' a -> SExp' a
 pattern SBind v x a b <- SBind_ _ v x a b
   where SBind v x a b =  SBind_ (sourceInfo a <> sourceInfo b) v x a b
+
+pattern SPi :: Visibility -> SExp' a -> SExp' a -> SExp' a
 pattern SPi  h a b <- SBind (BPi  h) _ a b
   where SPi  h a b =  SBind (BPi  h) (dummyName' "SPi") a b
+
+pattern SLam :: Visibility -> SExp' a -> SExp' a -> SExp' a
 pattern SLam h a b <- SBind (BLam h) _ a b
   where SLam h a b =  SBind (BLam h) (dummyName' "SLam") a b
+
+pattern Wildcard :: SExp' a -> SExp' a
 pattern Wildcard t <- SBind BMeta _ t (SVar _ 0)
   where Wildcard t =  SBind BMeta (dummyName' "Wildcard") t (sVar "Wildcard2" 0)
+
+pattern SLet :: SIName -> SExp' a -> SExp' a -> SExp' a
 pattern SLet n a b <- SLet_ _ (SData n) a b
   where SLet n a b =  SLet_ (sourceInfo a <> sourceInfo b) (SData n) a b
+
+pattern SLamV :: SExp' a -> SExp' a
 pattern SLamV a  = SLam Visible (Wildcard SType) a
+
+pattern SVar :: SIName -> Int -> SExp' a
 pattern SVar a b = SVar_ (SData a) b
 
+pattern SApp :: Visibility -> SExp' a -> SExp' a -> SExp' a
 pattern SApp h a b <- SApp_ _ h a b
   where SApp h a b =  SApp_ (sourceInfo a <> sourceInfo b) h a b
+
+pattern SAppH :: SExp' a -> SExp' a -> SExp' a
 pattern SAppH a b    = SApp Hidden a b
+
+pattern SAppV :: SExp' a -> SExp' a -> SExp' a
 pattern SAppV a b    = SApp Visible a b
+
+pattern SAppV2 :: SExp' a -> SExp' a -> SExp' a -> SExp' a
 pattern SAppV2 f a b = f `SAppV` a `SAppV` b
 
 infixl 2 `SAppV`, `SAppH`
-
+------------------------------------------------------------------------------------------------- ****************************************
+pattern SBuiltin :: FNameTag -> SExp' a
 pattern SBuiltin s = SGlobal (Tag s)
 
 pattern SRHS a      = SBuiltin F_rhs     `SAppV` a
@@ -332,8 +371,10 @@ pattern SType       = SBuiltin F'Type
 pattern SConstraint = SBuiltin F'Constraint
 pattern Parens e    = SBuiltin Fparens   `SAppV` e
 pattern SAnn a t    = SBuiltin FtypeAnn  `SAppH` t `SAppV` a
-pattern TyType a    = SAnn a SType
 pattern SCW a       = SBuiltin F'CW      `SAppV` a
+
+pattern TyType :: SExp' a -> SExp' a
+pattern TyType a    = SAnn a SType
 
 -- builtin heterogenous list
 pattern HList a   = SBuiltin F'HList `SAppV` a
@@ -345,15 +386,19 @@ pattern BList a   = SBuiltin F'List `SAppV` a
 pattern BCons a b = SBuiltin FCons `SAppV` a `SAppV` b
 pattern BNil      = SBuiltin FNil
 
+getTTuple :: SExp' a -> [SExp' a]
 getTTuple (HList (getList -> Just xs)) = xs
 getTTuple x = [x]
 
+getList :: SExp' a -> Maybe [SExp' a]
 getList BNil = Just []
 getList (BCons x (getList -> Just y)) = Just (x:y)
 getList _ = Nothing
 
+sLit :: Lit -> SExp' a
 sLit = SLit mempty
 
+isPi :: Binder -> Bool
 isPi (BPi _) = True
 isPi _ = False
 
@@ -361,6 +406,7 @@ pattern UncurryS :: [(Visibility, SExp' a)] -> SExp' a -> SExp' a
 pattern UncurryS ps t <- (getParamsS -> (ps, t))
   where UncurryS ps t = foldr (uncurry SPi) t ps
 
+getParamsS :: SExp' a -> ([(Visibility, SExp' a)], SExp' a)
 getParamsS (SPi h t x) = first ((h, t):) $ getParamsS x
 getParamsS x = ([], x)
 
@@ -368,11 +414,13 @@ pattern AppsS :: SExp' a -> [(Visibility, SExp' a)] -> SExp' a
 pattern AppsS f args  <- (getApps -> (f, args))
   where AppsS = foldl $ \a (v, b) -> SApp v a b
 
+getApps :: SExp' a -> (SExp' a, [(Visibility, SExp' a)])
 getApps = second reverse . run where
   run (SApp h a b) = second ((h, b):) $ run a
   run x = (x, [])
 
 -- todo: remove
+downToS :: String -> Int -> Int -> [SExp' a]
 downToS err n m = [sVar (err ++ "_" ++ show i) (n + i) | i <- [m-1, m-2..0]]
 
 instance SourceInfo (SExp' a) where
@@ -417,6 +465,7 @@ foldS h g f = fs
         SLHS _ x -> fs i x
         STyped x -> h i x
 
+foldName :: Monoid m => (SIName -> m) -> SExp' Void -> m
 foldName f = foldS (\_ -> elimVoid) (\sn _ -> f sn) mempty 0
 
 usedS :: SIName -> SExp -> Bool
@@ -485,19 +534,25 @@ instance (HasFreeVars a, PShow a) => PShow (SExp' a) where
         SVar _ i        -> shVar i
         SLit _ l        -> pShow l
 
+shApp :: Visibility -> Doc -> Doc -> Doc
 shApp Visible a b = DApp a b
 shApp Hidden a b = DApp a (DAt b)
 
+usedVar' :: HasFreeVars a => Int -> a -> x -> Maybe x
 usedVar' a b s | usedVar a b = Just s
                | otherwise = Nothing
 
+shLam :: Maybe String -> Binder -> Doc -> Doc -> Doc
 shLam usedVar h a b = shLam_ usedVar h (Just a) b
 
+simpleFo :: Doc -> Doc
 simpleFo (DExpand x _) = x
 simpleFo x = x
 
+shLam_ :: Maybe String -> Binder -> Maybe Doc -> Doc -> Doc
 shLam_ Nothing (BPi Hidden) (Just ((simpleFo -> DText "'CW") `DApp` a)) b = DFreshName Nothing $ showContext (DUp 0 a) b
   where
+    showContext :: Doc -> Doc -> Doc
     showContext x (DFreshName u d) = DFreshName u $ showContext (DUp 0 x) d
     showContext x (DParContext xs y) = DParContext (DComma x xs) y
     showContext x (DContext xs y) = DParContext (DComma x xs) y
@@ -505,6 +560,7 @@ shLam_ Nothing (BPi Hidden) (Just ((simpleFo -> DText "'CW") `DApp` a)) b = DFre
 
 shLam_ usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 <$> a) b
   where
+    lam :: Doc -> Doc -> Doc
     lam = case h of
         BPi Visible
             | isJust usedVar   -> showForall "->"
@@ -514,33 +570,42 @@ shLam_ usedVar h a b = DFreshName usedVar $ lam (p $ DUp 0 <$> a) b
             | otherwise -> showContext
         _ -> showLam
 
+    shAnn' :: Doc -> Maybe Doc -> Doc
     shAnn' a = maybe a (shAnn a)
 
+    p :: Maybe Doc -> Doc
     p = case h of
         BMeta -> shAnn' (blue $ DVar 0)
         BLam Hidden -> DAt . shAnn' (DVar 0)
         BLam Visible -> shAnn' (DVar 0)
         _ -> ann
 
+    ann :: Maybe Doc -> Doc
     ann | isJust usedVar = shAnn' (DVar 0)
         | otherwise = fromMaybe (text "Type")
 
+    showForall :: String -> Doc -> Doc -> Doc
     showForall s x (DFreshName u d) = DFreshName u $ showForall s (DUp 0 x) d
     showForall s x (DForall s' xs y) | s == s' = DForall s (DSep (InfixR 11) x xs) y
     showForall s x y = DForall s x y
 
+    showContext :: Doc -> Doc -> Doc
     showContext x y = DContext' x y
 
+showLam :: Doc -> Doc -> Doc
 showLam x (DFreshName u d) = DFreshName u $ showLam (DUp 0 x) d
 showLam x (DLam xs y) = DLam (DSep (InfixR 11) x xs) y
 showLam x y = DLam x y
 
+shLet :: Int -> Doc -> Doc -> Doc
 shLet i a b = DLet' (DLet "=" (blue $ shVar i) $ DUp i a) (DUp i b)
 
+showLet :: Doc -> Doc -> Doc
 showLet x (DFreshName u d) = DFreshName u $ showLet (DUp 0 x) d
 showLet x (DLet' xs y) = DLet' (DSemi x xs) y
 showLet x y = DLet' x y
 
+shLet_ :: Doc -> Doc -> Doc
 shLet_ a b = DFreshName (Just "") $ showLet (DLet "=" (shVar 0) $ DUp 0 a) b
 
 -------------------------------------------------------------------------------- statement
@@ -550,12 +615,15 @@ data Stmt
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
 
+pattern StLet :: SIName -> Maybe (SExp' Void) -> SExp' Void -> Stmt
 pattern StLet n mt x <- StmtLet n (getSAnn -> (x, mt))
   where StLet n mt x =  StmtLet n $ maybe x (SAnn x) mt
 
+getSAnn :: SExp' a -> (SExp' a, Maybe (SExp' a))
 getSAnn (SAnn x t) = (x, Just t)
 getSAnn x = (x, Nothing)
 
+pattern Primitive :: SIName -> SExp' Void -> Stmt
 pattern Primitive n t = StLet n (Just t) (SBuiltin Fundefined)
 
 instance PShow Stmt where
