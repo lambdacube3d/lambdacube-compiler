@@ -13,7 +13,41 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-module LambdaCube.Compiler.Patterns where
+module LambdaCube.Compiler.Patterns 
+  ( compileGuardTree
+  , compileGuardTrees
+  , compileGuardTrees'
+  , compilePatts
+  , compileCase
+  , GuardTrees
+  , ParPat
+  , pattern PVarSimp
+  , noGuards
+  , ParseCheck(..)
+  , getPVars
+  -- statements
+  , cHCons
+  , cHNil
+  -- parser
+  , ConsInfo
+  , PatList
+  , pattern PConSimp
+  , cSucc
+  , cZero
+  , cList
+  , cCons
+  , cNil
+  , cHList
+  , cTrue
+  , lLet
+  , guardNode'
+  , pattern PParens
+  , pattern PatTypeSimp
+  , pattern ParPat
+  , pattern ViewPatSimp
+  , pattern PWildcard
+  , patLam
+  ) where
 
 import Data.Monoid
 import Data.Maybe
@@ -53,6 +87,7 @@ type ParPat = ParPat_ ConsInfo
 -- parallel patterns like  v@(f -> [])@(Just x)
 data ParPat_ c = ParPat_ SI [Pat_ c]
 
+pattern ParPat :: [Pat_ a] -> ParPat_ a
 pattern ParPat ps <- ParPat_ _ ps
   where ParPat ps =  ParPat_ (foldMap sourceInfo ps) ps
 
@@ -68,13 +103,18 @@ instance PShow (ParPat_ a) where
         ParPat [] -> text "_"
         ParPat ps -> foldr1 (DOp "@" (InfixR 11)) $ pShow <$> ps
 
-
-
+pattern PWildcard :: SI -> ParPat_ a
 pattern PWildcard si = ParPat_ si []
+
+pattern PCon :: (SIName, c) -> [ParPat_ c] -> Pat_ c
 pattern PCon n pp <- PCon_ _ n pp
   where PCon n pp =  PCon_ (sourceInfo (fst n) <> sourceInfo pp) n pp
+
+pattern ViewPat :: SExp -> ParPat_ c -> Pat_ c
 pattern ViewPat e pp <- ViewPat_ _ e pp
   where ViewPat e pp =  ViewPat_ (sourceInfo e <> sourceInfo pp) e pp
+
+pattern PatType :: ParPat_ c -> SExp -> Pat_ c
 pattern PatType pp e <- PatType_ _ pp e
   where PatType pp e =  PatType_ (sourceInfo e <> sourceInfo pp) pp e
 --pattern SimpPats ps <- (traverse simpleParPat -> Just ps)
@@ -83,24 +123,38 @@ pattern PatType pp e <- PatType_ _ pp e
 --simpleParPat (ParPat [p]) = Just p
 --simpleParPat _ = Nothing
 
+pattern PVarSimp :: SIName -> ParPat
 pattern PVarSimp    n    = ParPat [PVar    n]
+
+pattern PConSimp :: (SIName, c) -> [ParPat_ c] -> ParPat_ c
 pattern PConSimp    n ps = ParPat [PCon    n ps]
 --pattern PConSimp    n ps = PCon    n (SimpPats ps)
+
+pattern ViewPatSimp :: SExp -> ParPat -> ParPat
 pattern ViewPatSimp e p  = ParPat [ViewPat e p]
+
+pattern PatTypeSimp :: ParPat -> SExp -> ParPat
 pattern PatTypeSimp p t  = ParPat [PatType p t]
 
+pBuiltin :: FNameTag -> Either ((SName,Int),[(FNameTag,Int)]) Int -> [ParPat] -> ParPat
 pBuiltin n ci ps = PConSimp (Tag n, left (second $ map $ first Tag) ci) ps
 
+cTrue, cZero, cNil, cHNil :: ParPat
 cTrue = pBuiltin FTrue (Left ((CaseName "'Bool", 0), [(FFalse, 0), (FTrue, 0)])) []
 cZero = pBuiltin FZero (Left ((CaseName "'Nat", 0), [(FZero, 0), (FSucc, 1)])) []
 cNil  = pBuiltin FNil  (Left ((CaseName "'List", 0), [(FNil, 0), (FCons, 2)])) []
 cHNil = pBuiltin FHNil (Left (("hlistNilCase", -1), [(FHNil, 0)])) []
+
+cList, cHList, cSucc :: ParPat -> ParPat
 cList  a = pBuiltin F'List (Right 1) [a]
 cHList a = pBuiltin F'HList (Right 1) [a]
 cSucc  a = pBuiltin FSucc (Left ((CaseName "'Nat", 0), [(FZero, 0), (FSucc, 1)])) [a]
+
+cCons, cHCons :: ParPat -> ParPat -> ParPat
 cCons  a b = pBuiltin FCons (Left ((CaseName "'List", 0), [(FNil, 0), (FCons, 2)])) [a, b]
 cHCons a b = pBuiltin FHCons (Left (("hlistConsCase", -1), [(FHCons, 2)])) [a, b]
 
+pattern PParens :: ParPat -> ParPat
 pattern PParens p = ViewPatSimp (SBuiltin Fparens) p
 
 mapP :: (Int -> SExp -> SExp) -> Int -> Pat -> Pat
@@ -110,9 +164,11 @@ mapP f i = \case
     ViewPat_ si e p -> ViewPat_ si (f i e) (mapPP f i p)
     PatType_ si p t -> PatType_ si (mapPP f i p) (f i t)
 
+mapPP :: (Int -> SExp -> SExp) -> Int -> ParPat_ ConsInfo -> ParPat_ ConsInfo
 mapPP f i = \case
     ParPat_ si ps -> ParPat_ si $ upPats (mapP f) i ps
 
+--upPats :: _
 upPats g k [] = []
 upPats g k (p: ps) = g k p: upPats g (k + patVars p) ps
 
@@ -181,13 +237,16 @@ runPMC si vt m = do
   where
     (a, (ps, rs)) = runWriter m
 
+    --mkPatt_ :: _
     mkPatt_ ps_ is = (ps, mkGuards 0 ps_)
       where
         (mconcat -> qs, ps) = unzip $ map (mkPatt 0 ps_) is
 
+        --mkGuards :: _
         mkGuards k [] = []
         mkGuards k ((q, (cn, n, e)): ps) = [(PConSimp (cn, ()) $ replicate n $ PWildcard mempty, e) | q `Set.notMember` qs] ++ mkGuards (k + n) ps
 
+        --mkPatt :: _
         mkPatt k ((q, (cn, n, SVar _ j)): ps) i | j == (i + k)
             = (Set.singleton q <>) . mconcat *** PConSimp (cn, ()) $ unzip [mkPatt 0 ps l | l <- [n-1, n-2..0]]
         mkPatt k ((q, (cn, n, _)): ps) i = mkPatt (k + n) ps i
@@ -199,14 +258,17 @@ data Lets a
     | LTypeAnn SExp (Lets a)        -- TODO: eliminate if not used
     | In a
 
+lLet :: Rearrange a => SIName -> SExp' Void -> Lets a -> Lets a
 lLet sn (SVar sn' i) l = rSubst 0 i l
 lLet sn e l = LLet sn e l
 
+foldLets :: (a -> b) -> Lets a -> b
 foldLets f = \case
     In e -> f e
     LLet sn e x -> foldLets f x
     LTypeAnn e x -> foldLets f x
 
+--mapLets :: _
 mapLets f h l = \case
     In e -> In $ h l e
     LLet sn e x -> LLet sn (f l e) $ mapLets f h (l+1) x
@@ -236,6 +298,7 @@ instance Monoid GuardTrees where
     In GTFailure `mappend` y = y
     x@(In GTSuccess{}) `mappend` _ = x
 
+noGuards :: SExp -> GuardTrees
 noGuards = In . GTSuccess
 
 mapGT :: (Int -> ParPat -> ParPat) -> (Int -> SExp -> SExp) -> Int -> GuardTree -> GuardTree
@@ -244,6 +307,7 @@ mapGT f h k = \case
     GTSuccess e -> GTSuccess $ h k e
     GTFailure -> GTFailure
 
+mapGTs :: (Int -> ParPat -> ParPat) -> (Int -> SExp -> SExp) -> Int -> GuardTrees -> GuardTrees
 mapGTs f h = mapLets h (mapGT f h)
 {-
 foldGT f = \case
@@ -254,6 +318,7 @@ foldGT f = \case
 instance Rearrange GuardTree where
     rearrange l f = mapGT (`rearrange` f) (`rearrange` f) l
 
+pattern Otherwise :: SExp' Void
 pattern Otherwise = SBuiltin Fotherwise
 
 guardNode :: Pat -> SExp -> GuardTrees -> GuardTrees
@@ -266,12 +331,14 @@ guardNode (PCon sn ps) e gt = In $ GuardNode e sn (replicate n $ dummyName "gn")
   where
     n = length ps
 
+guardNode' :: ParPat_ ConsInfo -> SExp -> GuardTrees -> GuardTrees
 guardNode' (PParens p) e gt = guardNode' p e gt
 guardNode' (ParPat_ si ps) e gt = case ps of
     []  -> gt
     [p] -> guardNode p e gt
     ps  -> lLet (SIName si "gtc") e $ buildNode guardNode 1 ps [0..] gt
 
+--buildNode :: _
 buildNode guardNode n ps is gt
     = foldr f (rUp n (patVars ps) gt) $ zip3 ps is $ scanl (+) 0 $ map patVars ps
   where
@@ -334,10 +401,13 @@ compileGuardTree ulend lend si vt = fmap (\e -> foldr (uncurry SLam) e vt) . run
             su = length ps
         In x -> In x
 
+compileGuardTrees :: MonadWriter [ParseCheck] m => (SExp -> SExp) -> Maybe SIName -> [(Visibility, SExp)] -> [GuardTrees] -> m SExp
 compileGuardTrees ulend si vt = compileGuardTree ulend SRHS si vt . mconcat
 
+compileGuardTrees' :: (Traversable t, MonadWriter [ParseCheck] m) => a -> [(Visibility, SExp)] -> t GuardTrees -> m (SExp' Void)
 compileGuardTrees' si vt = fmap (foldr1 $ SAppV2 $ SBuiltin FparEval `SAppV` Wildcard SType) . mapM (compileGuardTrees id Nothing vt . (:[]))
 
+compileCase :: MonadWriter [ParseCheck] m => SExp' Void -> [(ParPat, GuardTrees)] -> m (SExp' Void)
 compileCase x cs
     = (`SAppV` x) <$> compileGuardTree id id (Just $ SIName (sourceInfo x) "") [(Visible, Wildcard SType)] (mconcat [compilePatts [p] e | (p, e) <- cs])
 
