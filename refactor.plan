@@ -10,7 +10,7 @@ typesig - import LambdaCube.Compiler.Lexer
 typesig - import LambdaCube.Compiler.DesugaredSource
 typesig - import LambdaCube.Compiler.Patterns
 typesig - import LambdaCube.Compiler.Statements
-import LambdaCube.Compiler.Parser
+typesig - import LambdaCube.Compiler.Parser
 
 stage 2:
 import LambdaCube.Compiler.Core

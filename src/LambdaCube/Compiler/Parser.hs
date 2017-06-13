@@ -85,19 +85,24 @@ trackSI p = do
 addFixity :: BodyParser SIName -> BodyParser SIName
 addFixity p = f <$> asks (fixityMap . desugarInfo) <*> p
   where
+    f :: Map.Map SName Fixity -> SIName -> SIName
     f fm sn@(SIName_ si _ n) = SIName_ si (Just $ defaultFixity $ Map.lookup n fm) n
 
 addFixity' :: BodyParser SIName -> BodyParser SIName
 addFixity' p = f <$> asks (fixityMap . desugarInfo) <*> p
   where
+    f :: Map.Map SName Fixity -> SIName -> SIName
     f fm sn@(SIName_ si _ n) = SIName_ si (Map.lookup n fm) n
 
+addConsInfo :: BodyParser SIName -> BodyParser (SIName, ConsInfo)
 addConsInfo p = join $ f <$> asks (consMap . desugarInfo) <*> p
   where
+    f :: Map.Map String ConsInfo -> SIName -> BodyParser (SIName, ConsInfo)
     f adts s = do
         tell [Left $ either (Just . UndefinedConstructor) (const Nothing) x]
         return $ either (const $ error "impossible @ Parser 826") id x
       where
+        x :: Either SIName (SIName, ConsInfo)
         x = case Map.lookup (sName s) adts of
             Nothing -> throwError s
             Just i -> return (s, i)
@@ -105,6 +110,7 @@ addConsInfo p = join $ f <$> asks (consMap . desugarInfo) <*> p
 addForalls' :: BodyParser SExp -> BodyParser SExp
 addForalls' p = addForalls_ mempty <*> p
 
+addForalls_ :: [SIName] -> BodyParser (SExp -> SExp)
 addForalls_ s = addForalls . (Set.fromList (sName <$> s) <>) <$> asks (definedSet . desugarInfo)
 
 -------------------------------------------------------------------------------- desugar info
@@ -131,8 +137,10 @@ mkDesugarInfo ss = DesugarInfo
     , definedSet = Set.singleton "'Type" <> foldMap defined ss
     }
   where
+    pars :: SExp' a -> Int
     pars (UncurryS l _) = length $ filter ((== Visible) . fst) l -- todo
 
+    defined :: Stmt -> Set.Set SName
     defined = \case
         StLet sn _ _ -> Set.singleton $ sName sn
         Data sn _ _ cs -> Set.fromList $ sName sn: map (sName . fst) cs
@@ -140,27 +148,37 @@ mkDesugarInfo ss = DesugarInfo
 
 -------------------------------------------------------------------------------- expression parsing
 
+hiddenTerm :: BodyParser a -> BodyParser a -> BodyParser (Visibility, a)
 hiddenTerm p q = (,) Hidden <$ reservedOp "@" <*> typeNS p  <|>  (,) Visible <$> q
 
+parseType :: Maybe SExp -> BodyParser SExp
 parseType mb = maybe id option mb (reservedOp "::" *> typeNS (setR parseTermLam))
 
+typedIds :: DeBruijnify SIName a => (BodyParser SExp -> BodyParser a) -> [SIName] -> BodyParser [(SIName, a)]
 typedIds f ds = (\ns t -> (,) <$> ns <*> pure t) <$> commaSep1 upperLower <*> (deBruijnify (ds :: [SIName]) <$> f (parseType Nothing))
 
+telescope :: Maybe SExp -> BodyParser ([SIName], [(Visibility, SExp)])
 telescope mb = fmap mkTelescope $ many $ hiddenTerm
     (typedId <|> maybe empty (tvar . pure) mb)
     (try_ "::" typedId <|> maybe ((,) (SIName mempty "") <$> typeNS (setR parseTermAtom)) (tvar . pure) mb)
   where
+    tvar :: BodyParser SExp -> BodyParser (SIName, SExp)
     tvar x = (,) <$> patVar <*> x
+
+    typedId :: BodyParser (SIName, SExp)
     typedId = parens $ tvar $ parseType mb
 
+mkTelescope :: [(Visibility,(SIName,SExp))] -> ([SIName],[(Visibility,SExp)])
 mkTelescope (unzip -> (vs, ns)) = second (zip vs) $ mkTelescope' $ first (:[]) <$> ns
 
+mkTelescope' :: DeBruijnify SIName a => [([SIName],a)] -> ([SIName],[a])
 mkTelescope' = go []
   where
+    go :: DeBruijnify SIName a => [SIName] -> [([SIName],a)] -> ([SIName],[a])
     go ns [] = (ns, [])
     go ns ((n, e): ts) = second (deBruijnify ns e:) $ go (n ++ ns) ts
 
---parseTerm... :: BodyParser SExp
+parseTermLam :: BodyParser SExp
 parseTermLam =
          do level parseTermAnn $ \t ->
                 mkPi <$> (Visible <$ reservedOp "->" <|> Hidden <$ reservedOp "=>") <*> pure t <*> setR parseTermLam
@@ -179,75 +197,100 @@ parseTermLam =
                     (fe, p) <- longPattern
                     (,) p . deBruijnify fe <$> parseRHS "->"
   where
+    mkIf :: SExp -> SExp -> SExp -> SExp
     mkIf b t f = SBuiltin FprimIfThenElse `SAppV` b `SAppV` t `SAppV` f
 
+    mkPi :: Visibility -> SExp -> SExp -> SExp
     mkPi Hidden xs b = foldr (\a b -> SPi Hidden a $ up1 b) b $ map SCW $ getTTuple xs
     mkPi Visible a b = SPi Visible a $ up1 b
 
+parseTermAnn :: BodyParser SExp
 parseTermAnn = level parseTermOp $ \t -> SAnn t <$> parseType Nothing
 
+parseTermOp :: BodyParser SExp
 parseTermOp = (notOp False <|> notExp) >>= calculatePrecs
   where
+    notExp :: BodyParser [Either SIName SExp]
     notExp = (++) <$> ope <*> notOp True
+
+    notOp :: Bool -> BodyParser [Either SIName SExp]
     notOp x = (++) <$> try_ "expression" ((++) <$> ex parseTermApp <*> option [] ope) <*> notOp True
          <|> if x then option [] (try_ "lambda" $ ex parseTermLam) else mzero
+
+    ope :: BodyParser [Either SIName SExp]
     ope = pure . Left <$> addFixity (rhsOperator <|> appRange (flip SIName "'EqCTt" <$ reservedOp "~"))
+
+    ex :: BodyParser SExp -> BodyParser [Either SIName SExp]
     ex pr = pure . Right <$> setR pr
 
     calculatePrecs :: [Either SIName SExp] -> BodyParser SExp
     calculatePrecs = go where
 
+        go :: [Either SIName SExp] -> BodyParser SExp
         go (Right e: xs)         = waitOp False e [] xs
         go xs@(Left (sName -> "-"): _) = waitOp False (mkLit $ LInt 0) [] xs
         go (Left op: xs)         = Section . SLamV <$> waitExp True (sVar "leftSection" 0) [] op xs
         go _                     = error "impossible @ Parser 479"
 
+        waitExp :: Bool -> SExp -> [(SIName, SExp)] -> SIName -> [Either SIName SExp] -> BodyParser SExp
         waitExp lsec e acc op (Right t: xs)  = waitOp lsec e ((op, if lsec then up 1 t else t): acc) xs
         waitExp lsec e acc op [] | lsec      = fail "two-sided section is not allowed"
                                  | otherwise = fmap (Section . SLamV) . calcPrec' e $ (op, sVar "rightSection" 0): map (second (up 1)) acc
         waitExp _ _ _ _ _                    = fail "two operator is not allowed next to each-other"
 
+        waitOp :: Bool -> SExp -> [(SIName, SExp)] -> [Either SIName SExp] -> BodyParser SExp
         waitOp lsec e acc (Left op: xs) = waitExp lsec e acc op xs
         waitOp lsec e acc []            = calcPrec' e acc
         waitOp lsec e acc _             = error "impossible @ Parser 488"
 
+        calcPrec' :: SExp -> [(SIName, SExp)] -> BodyParser SExp
         calcPrec' e = postponedCheck id . calcPrec (\op x y -> SGlobal op `SAppV` x `SAppV` y) (fromJust . nameFixity) e . reverse
 
+parseTermApp :: BodyParser SExp
 parseTermApp =
         AppsS <$> try_ "record" (SGlobal <$> upperCase <* symbol "{")
               <*> commaSep ((,) Visible <$ lowerCase{-TODO-} <* reservedOp "=" <*> setR parseTermLam)
               <*  symbol "}"
      <|> AppsS <$> setR parseTermSwiz <*> many (hiddenTerm (setR parseTermSwiz) $ setR parseTermSwiz)
 
+parseTermSwiz :: BodyParser SExp
 parseTermSwiz = level parseTermProj $ \t ->
     mkSwizzling t <$> lexeme (try_ "swizzling" $ char '%' *> count' 1 4 (satisfy (`elem` ("xyzwrgba" :: String))))
   where
+    mkSwizzling :: SExp -> String -> SExp
     mkSwizzling term = swizzcall . map (SBuiltin . sc . synonym)
       where
+        swizzcall :: [SExp] -> SExp
         swizzcall []  = error "impossible: swizzling parsing returned empty pattern"
         swizzcall [x] = SBuiltin Fswizzscalar `SAppV` term `SAppV` x
         swizzcall xs  = SBuiltin Fswizzvector `SAppV` term `SAppV` foldl SAppV (SBuiltin $ f (length xs)) xs
 
+        sc :: Char -> FNameTag
         sc 'x' = FSx
         sc 'y' = FSy
         sc 'z' = FSz
         sc 'w' = FSw
 
+        f :: Int -> FNameTag
         f 2 = FV2
         f 3 = FV3
         f 4 = FV4
 
+        synonym :: Char -> Char
         synonym 'r' = 'x'
         synonym 'g' = 'y'
         synonym 'b' = 'z'
         synonym 'a' = 'w'
         synonym c   = c
 
+parseTermProj :: BodyParser SExp
 parseTermProj = level parseTermAtom $ \t ->
     try_ "projection" $ mkProjection t <$ char '.' <*> sepBy1 lowerCase (char '.')
   where
+    mkProjection :: SExp -> [SIName] -> SExp
     mkProjection = foldl $ \exp field -> SBuiltin Fproject `SAppV` litString field `SAppV` exp
 
+parseTermAtom :: BodyParser SExp
 parseTermAtom =
          mkLit <$> try_ "literal" parseLit
      <|> Wildcard (Wildcard SType) <$ reserved "_"
@@ -258,6 +301,7 @@ parseTermAtom =
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
   where
+    ppa :: (Namespace -> Namespace) -> BodyParser SExp
     ppa tick =
          brackets ( (setR parseTermLam >>= \e ->
                 mkDotDot e <$ reservedOp ".." <*> setR parseTermLam
@@ -267,6 +311,7 @@ parseTermAtom =
      <|> parens (SGlobal <$> try_ "opname" (symbols <* lookAhead (symbol ")"))
              <|> mkTuple . tick <$> asks namespace <*> commaSep (setR parseTermLam))
 
+    mkTuple :: Namespace -> [SExp] -> SExp
     mkTuple _      [Section e] = e
     mkTuple ExpNS  [Parens e]  = HCons e HNil
     mkTuple TypeNS [Parens e]  = HList $ BCons e BNil
@@ -274,15 +319,19 @@ parseTermAtom =
     mkTuple ExpNS  xs          = foldr HCons HNil xs
     mkTuple TypeNS xs          = HList $ foldr BCons BNil xs
 
+    mkList :: Namespace -> [SExp] -> SExp
     mkList TypeNS [x] = BList x
     mkList _      xs  = foldr BCons BNil xs
 
     -- Creates: RecordCons @[("x", _), ("y", _), ("z", _)] (1.0, 2.0, 3.0)))
+    mkRecord :: [(SIName, SExp)] -> SExp
     mkRecord (unzip -> (names, values))
         = SBuiltin FRecordCons `SAppH` foldr BCons BNil (mkRecItem <$> names) `SAppV` foldr HCons HNil values
 
+    mkRecItem :: SIName -> SExp
     mkRecItem l = SBuiltin FRecItem `SAppV` litString l `SAppV` Wildcard SType
 
+    mkDotDot :: SExp -> SExp -> SExp
     mkDotDot e f = SBuiltin FfromTo `SAppV` e `SAppV` f
 
     generator, letdecl, boolExpression :: BodyParser (SExp -> ErrorFinder SExp)
@@ -300,40 +349,54 @@ parseTermAtom =
     boolExpression = (\pred e -> return $ SBuiltin FprimIfThenElse `SAppV` pred `SAppV` e `SAppV` BNil) <$> setR parseTermLam
 
 
+level :: BodyParser SExp -> (SExp -> BodyParser SExp) -> BodyParser SExp
 level pr f = pr >>= \t -> option t $ f t
 
+litString :: SIName -> SExp
 litString (SIName si n) = SLit si $ LString n
 
+mkLit :: Lit -> SExp
 mkLit n@LInt{} = SBuiltin FfromInt `SAppV` sLit n
 mkLit l = sLit l
 
 -------------------------------------------------------------------------------- pattern parsing
 
+setR :: SetSourceInfo a => BodyParser a -> BodyParser a
 setR p = appRange $ flip setSI <$> p
 
---parsePat... :: BodyParser ParPat
+parsePatAnn :: BodyParser ParPat
 parsePatAnn = patType <$> setR parsePatOp <*> parseType (Just $ Wildcard SType)
   where
+    patType :: ParPat -> SExp -> ParPat
     patType p (Wildcard SType) = p
     patType p t = PatTypeSimp p t
 
+parsePatOp :: BodyParser ParPat
 parsePatOp = join $ calculatePatPrecs <$> setR parsePatApp <*> option [] (oper >>= p)
   where
+    oper :: BodyParser (SIName, ConsInfo)
     oper = addConsInfo $ addFixity colonSymbols
+
+    p :: (SIName,ConsInfo) -> BodyParser [((SIName, ConsInfo), ParPat)]
     p op = do (exp, op') <- try_ "pattern" $ (,) <$> setR parsePatApp <*> oper
               ((op, exp):) <$> p op'
        <|> pure . (,) op <$> setR parsePatAnn
 
+    calculatePatPrecs :: ParPat -> [((SIName, ConsInfo), ParPat)] -> BodyParser ParPat
     calculatePatPrecs e xs = postponedCheck fst $ calcPrec (\op x y -> PConSimp op [x, y]) (fromJust . nameFixity . fst) e xs
 
+parsePatApp :: BodyParser ParPat
 parsePatApp =
          PConSimp <$> addConsInfo upperCase_ <*> many (setR parsePatAt)
      <|> parsePatAt
 
+parsePatAt :: BodyParser ParPat
 parsePatAt = concatParPats <$> sepBy1 (setR parsePatAtom) (noSpaceBefore $ reservedOp "@")
   where
+    concatParPats :: [ParPat] -> ParPat
     concatParPats ps = ParPat $ concat [p | ParPat p <- ps]
 
+parsePatAtom :: BodyParser ParPat
 parsePatAtom =
          mkLit <$> asks namespace <*> try_ "literal" parseLit
      <|> flip PConSimp [] <$> addConsInfo upperCase_
@@ -341,18 +404,21 @@ parsePatAtom =
      <|> char '\'' *> ppa switchNamespace
      <|> ppa id
   where
+    mkLit :: Namespace -> Lit -> ParPat
     mkLit TypeNS (LInt n) = iterateN (fromIntegral n) cSucc cZero        -- todo: elim this alternative
     mkLit _ n@LInt{} = litP (SBuiltin FfromInt `SAppV` sLit n)
     mkLit _ n = litP (sLit n)
 
+    ppa :: (Namespace -> Namespace) -> BodyParser ParPat
     ppa tick =
          brackets (mkListPat . tick <$> asks namespace <*> patlist)
      <|> parens   (parseViewPat <|> mkTupPat  . tick <$> asks namespace <*> patlist)
 
+    mkListPat :: Namespace -> [ParPat] -> ParPat
     mkListPat TypeNS [p] = cList p
     mkListPat ns ps      = foldr cCons cNil ps
 
-    --mkTupPat :: [Pat] -> Pat
+    mkTupPat :: Namespace -> [ParPat] -> ParPat
     mkTupPat TypeNS [PParens x] = mkTTup [x]
     mkTupPat ns     [PParens x] = mkTup [x]
     mkTupPat _      [x]         = PParens x
@@ -362,22 +428,29 @@ parsePatAtom =
     mkTTup = cHList . mkListPat ExpNS
     mkTup ps = foldr cHCons cHNil ps
 
+    parseViewPat :: BodyParser ParPat
     parseViewPat = ViewPatSimp <$> try_ "view pattern" (setR parseTermOp <* reservedOp "->") <*> setR parsePatAnn
 
+    mkPVar :: SIName -> ParPat
     mkPVar (SIName si "") = PWildcard si
     mkPVar s = PVarSimp s
 
+    litP :: SExp -> ParPat
     litP = flip ViewPatSimp cTrue . SAppV (SGlobal $ SIName_ mempty (Just $ Infix 4) "==")
 
+    patlist :: BodyParser [ParPat]
     patlist = commaSep $ setR parsePatAnn
 
+longPattern :: BodyParser ([SIName], ParPat)
 longPattern = setR parsePatAnn <&> (reverse . getPVars &&& id)
 
+telescopePat :: BodyParser ([SIName], [((Visibility,SExp),ParPat)])
 telescopePat = do
     (a, b) <- fmap (reverse . foldMap (getPVars . snd) &&& id) $ many $ uncurry f <$> hiddenTerm (setR parsePatAt) (setR parsePatAt)
     checkPattern a
     return (a, b)
   where
+    f :: Visibility -> ParPat -> ((Visibility,SExp),ParPat)
     f h (PParens p) = second PParens $ f h p
     f h (PatTypeSimp p t) = ((h, t), p)
     f h p = ((h, Wildcard SType), p)
@@ -388,7 +461,7 @@ checkPattern ns = tell $ pure $ Left $
     [] -> Nothing
     xs -> Just $ MultiplePatternVars xs
 
---postponedCheck :: _
+postponedCheck :: (a -> SIName) -> Either (a,a) b -> BodyParser b
 postponedCheck pr x = do
     tell [Left $ either (\(a, b) -> Just $ OperatorMismatch (pr a) (pr b)) (const Nothing) x]
     return $ either (const $ error "impossible @ Parser 725") id x
@@ -404,7 +477,8 @@ parseDef =
             (npsd, ts) <- telescope (Just SType)
             t <- deBruijnify npsd <$> parseType (Just SType)
             adf <- addForalls_ npsd
-            let mkConTy mk (nps', ts') =
+            let mkConTy :: Bool -> ([SIName], [(Visibility, SExp)]) -> (Maybe [SIName], SExp)
+                mkConTy mk (nps', ts') =
                     ( if mk then Just $ reverse nps' else Nothing
                     , deBruijnify npsd $ foldr (uncurry SPi) (foldl SAppV (SGlobal x) $ SGlobal <$> reverse npsd) ts'
                     )
@@ -453,9 +527,11 @@ parseDef =
     telescopeDataFields :: BodyParser ([SIName], [(Visibility, SExp)]) 
     telescopeDataFields = mkTelescope <$> commaSep ((,) Visible <$> ((,) <$> lowerCase <*> parseType Nothing))
 
+    mkData :: SIName -> [(Visibility, SExp)] -> SExp -> [(SIName, (Maybe [SIName], SExp))] -> BodyParser [PreStmt]
     mkData x ts t cs
         = (Stmt (Data x ts t (second snd <$> cs)):) . concat <$> traverse mkProj (nub $ concat [fs | (_, (Just fs, _)) <- cs])
       where
+        mkProj :: SIName -> BodyParser [PreStmt]
         mkProj fn = sequence
             [ do
                 cn' <- addConsInfo $ pure cn
@@ -474,20 +550,25 @@ parseRHS tok = do
     f <- option id $ mkLets <$ reserved "where" <*> parseDefs sLHS
     noGuards <$> trackSI (pure $ f rhs)
   where
+    guard :: BodyParser ([(ParPat, SExp)], SExp)
     guard = do
         (nps, ps) <- mkTelescope' <$> commaSep1 guardPiece <* reservedOp tok
         e <- trackSI $ setR parseTermLam
         return (ps, deBruijnify nps e)
 
+    guardPiece :: BodyParser ([SIName], (ParPat, SExp))
     guardPiece = getVars <$> option cTrue (try_ "pattern guard" $ setR parsePatOp <* reservedOp "<-") <*> setR parseTermOp
       where
+        getVars :: ParPat -> SExp -> ([SIName], (ParPat, SExp))
         getVars p e = (reverse $ getPVars p, (p, e))
 
+    mkGuards :: [([(ParPat, SExp)], SExp)] -> [Stmt] -> GuardTrees
     mkGuards gs wh = mkLets_ lLet wh $ mconcat [foldr (uncurry guardNode') (noGuards e) ge | (ge, e) <- gs]
 
+parseDefs :: (SIName -> SExp -> SExp) -> BodyParser [Stmt]
 parseDefs lhs = identation True parseDef >>= runCheck . compileStmt'_ lhs SRHS SRHS . concat
 
---funAltDef :: BodyParser _ -> BodyParser _ -> BodyParser _
+funAltDef :: Maybe (BodyParser SIName) -> BodyParser SIName -> BodyParser PreStmt
 funAltDef parseOpName parseName = do
     (n, (fee, tss)) <-
         case parseOpName of
@@ -496,7 +577,8 @@ funAltDef parseOpName parseName = do
             (e', a1) <- longPattern
             n <- opName
             (e'', a2) <- longPattern <* lookAhead (reservedOp "=" <|> reservedOp "|")
-            let fee = e'' <> e'
+            let fee :: [SIName]
+                fee = e'' <> e'
             checkPattern fee
             return (n, (fee, (,) (Visible, Wildcard SType) <$> [a1, deBruijnify e' a2]))
       <|> do try_ "lhs" $ (,) <$> parseName <*> telescopePat <* lookAhead (reservedOp "=" <|> reservedOp "|")
@@ -543,8 +625,10 @@ parseModule = do
         modn <- reserved "module" *> moduleName
         exps <- optional (parens $ commaSep parseExport) <* reserved "where"
         return (modn, exps)
-    let mkIDef _ n i h _ = (n, f i h)
+    let mkIDef :: Maybe SI -> SIName -> Maybe [SIName] -> Maybe [SIName] -> Maybe SIName -> (SIName, ImportItems)
+        mkIDef _ n i h _ = (n, f i h)
           where
+            f :: Maybe [SIName] -> Maybe [SIName] -> ImportItems
             f Nothing Nothing = ImportAllBut []
             f (Just h) Nothing = ImportAllBut h
             f Nothing (Just i) = ImportJust i
@@ -571,13 +655,16 @@ runDefParser :: (MonadFix m, MonadError LCParseError m) => DesugarInfo -> DefPar
 runDefParser ds_ dp = do
 
     (defs, dns, ds) <- mfix $ \ ~(_, _, ds) -> do
-        let x = dp (ds <> ds_)
+        let x :: Either ParseError ([Stmt], [PostponedCheck])
+            x = dp (ds <> ds_)
         (defs, dns) <- either (throwError . ParseError) return x
         return (defs, dns, mkDesugarInfo defs)
 
     mapM_ throwError [x | Left (Just x) <- dns]
 
-    let ism = Set.fromList [is | Right (Reachable is) <- dns]
+    let ism :: Set.Set Range
+        ism = Set.fromList [is | Right (Reachable is) <- dns]
+        f :: ParseCheck -> Maybe ParseWarning
         f (TrackedCode is) | is `Set.notMember` ism = Just $ Unreachable is
         f (Uncovered' si x) | not $ null $ filter (not . null . fst) x = Just $ Uncovered si x
         f _ = Nothing
