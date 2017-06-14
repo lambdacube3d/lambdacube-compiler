@@ -82,11 +82,13 @@ data DocAtom
     = SimpleAtom String
     | ComplexAtom String Int Doc DocAtom
 
+mapDocAtom :: (String -> Int -> Doc -> Doc) -> DocAtom -> DocAtom
 mapDocAtom f (SimpleAtom s) = SimpleAtom s
 mapDocAtom f (ComplexAtom s i d a) = ComplexAtom s i (f s i d) $ mapDocAtom f a
 
 instance IsString Doc where
     fromString = text
+
 
 text = DText
 pattern DText s = DAtom (SimpleAtom s)

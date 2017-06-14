@@ -2,7 +2,7 @@ goals:
   simple, clean API and dependency tree
 
 stage 1:
-ok - LambdaCube.Compiler.Utils
+typesig - LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.Pretty
 import LambdaCube.Compiler.DeBruijn
 

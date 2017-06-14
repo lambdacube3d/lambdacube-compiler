@@ -29,6 +29,7 @@ dropIndex i xs = take i xs ++ drop (i+1) xs
 iterateN :: Int -> (a -> a) -> a -> a
 iterateN n f e = iterate f e !! n
 
+foldlrev :: Foldable t => (a -> b -> a) -> a -> t b -> a
 foldlrev f = foldr (flip f)
 
 ------------------------------------------------------- Void data type
@@ -61,6 +62,7 @@ scc key children revChildren
     revPostOrderWalk :: Children k -> [k] -> (IS.IntSet, [k])
     revPostOrderWalk children = collect IS.empty [] . map Visit where
 
+        collect :: IS.IntSet -> [k] -> [Task k] -> (IS.IntSet, [k])
         collect s acc [] = (s, acc)
         collect s acc (Return h: t) = collect s (h: acc) t
         collect s acc (Visit h: t)
@@ -70,10 +72,12 @@ scc key children revChildren
     revMapWalk :: Children k -> IS.IntSet -> [k] -> [[k]]
     revMapWalk children = f []
      where
+        f :: [[k]] -> IS.IntSet -> [k] -> [[k]]
         f acc s [] = acc
         f acc s (h:t) = f (c: acc) s' t
             where (s', c) = collect s [] [h]
 
+        collect :: IS.IntSet -> [k] -> [k] -> (IS.IntSet, [k])
         collect s acc [] = (s, acc)
         collect s acc (h:t)
             | not (key h `IS.member` s) = collect s acc t
@@ -84,15 +88,18 @@ scc key children revChildren
 prettyShowUnlines :: Show a => a -> String
 prettyShowUnlines = goPP 0 . PP.ppShow
   where
+    goPP :: Int -> String -> String
     goPP _ [] = []
     goPP n ('"':xs) | isMultilineString xs = "\"\"\"\n" ++ indent ++ go xs where
-        indent = replicate n ' '
+        indent = replicate n ' ' :: String
+        go :: String -> String
         go ('\\':'n':xs) = "\n" ++ indent ++ go xs
         go ('\\':c:xs) = '\\':c:go xs
         go ('"':xs) = "\n" ++ indent ++ "\"\"\"" ++ goPP n xs
         go (x:xs) = x : go xs
     goPP n (x:xs) = x : goPP (if x == '\n' then 0 else n+1) xs
 
+    isMultilineString :: String -> Bool
     isMultilineString ('\\':'n':xs) = True
     isMultilineString ('\\':c:xs) = isMultilineString xs
     isMultilineString ('"':xs) = False
