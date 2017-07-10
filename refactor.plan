@@ -66,3 +66,6 @@ patterns:
   Core:             TType, NoRHS, Fun, CaseFun_, TyCaseFun_, App_, Con, TyCon, Lam, Pi, Let, SubstLet, CaseFun, TyCaseFun, Var, App, DFun, DFun_, UFun, DFunN,
                     DFunN_, ConN, TyConN, TTyCon0, :~>, TConstraint, Unit, TInt, TNat, TBool, TFloat, TString, TChar, TOrdering, TVec, Empty, TT, CUnit, CEmpty,
                     CstrT, CstrT', Coe, ParEval, T2, CW, CW_, CSplit,HLit, HInt, HFloat, HChar, HString, EBool, ENat, ReducedN, Reduced, FFix, NonNeut
+
+Other material:
+closure conversion tutorial: https://gist.github.com/jozefg/652f1d7407b7f0266ae9
