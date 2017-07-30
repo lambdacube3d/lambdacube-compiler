@@ -121,7 +121,7 @@ readFileIfExists fname = do
 instance MonadMask m => MonadMask (ExceptT e m) where
     mask f = ExceptT $ mask $ \u -> runExceptT $ f (mapExceptT u)
     uninterruptibleMask = error "not implemented: uninterruptibleMask for ExcpetT"
--}
+
 
 instance (Monoid w, P.MonadParsec e s m) => P.MonadParsec e s (RWST r w st m) where
     failure a b                 = lift . P.failure a b
@@ -136,3 +136,4 @@ instance (Monoid w, P.MonadParsec e s m) => P.MonadParsec e s (RWST r w st m) wh
     getParserState              = lift P.getParserState
     updateParserState f         = lift $ P.updateParserState f
 
+-}

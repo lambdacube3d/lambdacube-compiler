@@ -93,20 +93,20 @@ library
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
-    aeson >=0.9 && <0.12,
-    base >=4.7 && <4.10,
+    aeson >=1.1 && <1.2,
+    base >=4.9 && <5,
     semigroups,
     containers >=0.5 && <0.6,
-    directory >=1.2 && <1.3,
+    directory >=1.3 && <1.4,
     exceptions >= 0.8 && <0.9,
     filepath >=1.4 && <1.5,
     mtl >=2.2 && <2.3,
-    megaparsec >=5.1 && <5.2,
+    megaparsec >=5.3 && <5.4,
     ansi-wl-pprint >=0.6 && <0.7,
     pretty-show >= 1.6.9,
     text >= 1.2 && <1.3,
     lambdacube-ir == 0.3.*,
-    vector >= 0.11 && <0.12
+    vector >= 0.12 && <0.13
 
   hs-source-dirs:      src
   default-language:    Haskell2010
@@ -126,10 +126,10 @@ executable lc
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
-    base < 4.10,
+    base < 5,
     lambdacube-compiler,
     optparse-applicative >=0.12 && <0.14,
-    aeson >=0.9 && <0.12,
+    aeson >=1.1 && <1.2,
     bytestring == 0.10.*,
     filepath >=1.4 && <1.5
 
@@ -149,11 +149,11 @@ executable lambdacube-compiler-unit-tests
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
-    base < 4.10,
+    base < 5,
     semigroups,
     containers >=0.5 && <0.6,
     lambdacube-compiler,
-    megaparsec >=5.1 && <5.2,
+    megaparsec >=5.3 && <5.4,
     QuickCheck >= 2.8.2 && <2.10,
     tasty >= 0.11 && <0.12,
     tasty-quickcheck >=0.8 && <0.9
@@ -175,26 +175,26 @@ executable lambdacube-compiler-test-suite
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
-    aeson >=0.9 && <0.12,
+    aeson >=1.1 && <1.2,
     async >= 2.0 && <2.2,
-    base < 4.10,
+    base < 5,
     semigroups,
     containers >=0.5 && <0.6,
     deepseq >=1.4 && <1.5,
-    directory >=1.2 && <1.3,
+    directory >=1.3 && <1.4,
     exceptions >= 0.8 && <0.9,
     filepath >=1.4 && <1.5,
     lambdacube-compiler,
     mtl >=2.2 && <2.3,
     monad-control >= 1.0 && <1.1,
     optparse-applicative >=0.12 && <0.14,
-    megaparsec >=5.1 && <5.2,
+    megaparsec >=5.3 && <5.4,
     ansi-wl-pprint >=0.6 && <0.7,
     patience >= 0.1 && < 0.2,
     text >= 1.2 && <1.3,
     time >= 1.5 && <1.7,
     lambdacube-ir == 0.3.*,
-    vector >= 0.11 && <0.12
+    vector >= 0.12 && <0.13
 
 executable lambdacube-compiler-performance-report
   hs-source-dirs:   test
@@ -208,8 +208,8 @@ executable lambdacube-compiler-performance-report
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
-    base < 4.10,
-    directory >=1.2 && <1.3,
+    base < 5,
+    directory >=1.3 && <1.4,
     filepath >=1.4 && <1.5,
     containers >=0.5 && <0.6,
     optparse-applicative >=0.12 && <0.14
@@ -228,7 +228,7 @@ executable lambdacube-backend-test-server
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
-    base < 4.10,
+    base < 5,
     semigroups,
     containers >=0.5 && <0.6,
     text >= 1.2 && <1.3,
@@ -236,15 +236,15 @@ executable lambdacube-backend-test-server
     lambdacube-ir == 0.3.*,
     pretty-show >= 1.6.9,
     optparse-applicative >=0.12 && <0.14,
-    aeson >=0.9 && <0.12,
+    aeson >=1.1 && <1.2,
     bytestring == 0.10.*,
     filepath >=1.4 && <1.5,
-    directory >=1.2 && <1.3,
+    directory >=1.3 && <1.4,
     websockets >= 0.9.6.1,
     JuicyPixels >=3.2.7 && <3.3,
     vect >= 0.4.7,
     base64-bytestring >= 1.0.0.1,
-    vector >= 0.11 && <0.12,
+    vector >= 0.12 && <0.13,
     process >= 1.2
 
 executable lambdacube-compiler-coverage-test-suite
@@ -264,23 +264,23 @@ executable lambdacube-compiler-coverage-test-suite
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
-    aeson >=0.9 && <0.12,
+    aeson >=1.1 && <1.2,
     async >= 2.0 && <2.2,
-    base < 4.10,
+    base < 5,
     semigroups,
     containers >=0.5 && <0.6,
     deepseq >=1.4 && <1.5,
-    directory >=1.2 && <1.3,
+    directory >=1.3 && <1.4,
     exceptions >= 0.8 && <0.9,
     filepath >=1.4 && <1.5,
     lambdacube-ir == 0.3.*,
     mtl >=2.2 && <2.3,
     monad-control >= 1.0 && <1.1,
     optparse-applicative >=0.12 && <0.14,
-    megaparsec >=5.1 && <5.2,
+    megaparsec >=5.3 && <5.4,
     ansi-wl-pprint >=0.6 && <0.7,
     pretty-show >= 1.6.9,
     patience >= 0.1 && < 0.2,
     text >= 1.2 && <1.3,
     time >= 1.5 && <1.7,
-    vector >= 0.11 && <0.12
+    vector >= 0.12 && <0.13

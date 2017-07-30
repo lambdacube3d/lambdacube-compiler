@@ -1,9 +1,12 @@
-resolver: lts-6.25
+resolver: lts-9.0
 packages:
-- '../lambdacube-ir/lambdacube-ir.haskell'
 - '.'
+- location:
+    git: git@github.com:lambdacube3d/lambdacube-ir.git
+    commit: a0bf64b83dd218d1ea29823749dcfa8a6ee959a9
+  subdirs:
+    - lambdacube-ir.haskell
 extra-deps:
-- megaparsec-5.1.0
-- pretty-compact-1.0
+  - vect-0.4.7
 flags: {}
 extra-package-dbs: []
