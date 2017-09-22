@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE EmptyCase #-}
@@ -6,6 +7,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module LambdaCube.Compiler.Utils where
+
+import Data.Binary (Binary(..))
+import GHC.Generics (Generic)
 
 import qualified Data.IntSet as IS
 import qualified Data.Text as T
@@ -36,6 +40,10 @@ foldlrev f = foldr (flip f)
 
 data Void
 
+instance Binary Void where
+  get = error "Binary get"
+  put = error "Binary put"
+
 instance Eq Void where x == y = elimVoid x
 
 elimVoid :: Void -> a
@@ -45,6 +53,9 @@ elimVoid v = case v of
 
 -- supplementary data: data with no semantic relevance
 newtype SData a = SData a
+  deriving Generic
+
+instance Binary a => Binary (SData a)
 
 instance Eq (SData a) where _ == _ = True
 instance Ord (SData a) where _ `compare` _ = EQ

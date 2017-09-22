@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -12,6 +13,9 @@
 --{-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 module LambdaCube.Compiler.Core where
 
+import Data.Binary
+import GHC.Generics (Generic)
+
 import Data.Monoid
 import Data.Function
 import Data.List
@@ -25,14 +29,18 @@ import LambdaCube.Compiler.DesugaredSource
 -------------------------------------------------------------------------------- names with infos
 
 data ConName       = ConName       FName Int{-ordinal number, e.g. Zero:0, Succ:1-} Type
+  deriving Generic
 
 data TyConName     = TyConName     FName Int{-num of indices-} Type [(ConName, Type)]{-constructors-} CaseFunName
+  deriving Generic
 
 data FunName       = FunName       FName Int{-num of global vars-} FunDef Type
 
 data CaseFunName   = CaseFunName   FName Type Int{-num of parameters-}
+  deriving Generic
 
 data TyCaseFunName = TyCaseFunName FName Type
+  deriving Generic
 
 data FunDef
     = DeltaDef !Int{-arity-} (FreeVars -> [Exp]{-args in reversed order-} -> Exp)
@@ -67,7 +75,7 @@ instance PShow TyCaseFunName where pShow (TyCaseFunName n _) = text $ MatchName 
 -------------------------------------------------------------------------------- core expression representation
 
 data Freq = CompileTime | RunTime       -- TODO
-  deriving (Eq)
+  deriving (Eq, Generic)
 
 data Exp
     = ELit   Lit
@@ -80,6 +88,8 @@ data Exp
     | RHS    Exp{-always in hnf-}
     | Let_   FreeVars ExpType Exp
     | Up_    FreeVars [Int] Exp
+    | STOP
+    deriving Generic
 
 data Neutral
     = Var_        !Int{-De Bruijn index-}
@@ -88,13 +98,14 @@ data Neutral
     | TyCaseFun__ FreeVars TyCaseFunName [Exp] Neutral
     | Fun_        FreeVars FunName [Exp]{-given parameters, reversed-} Exp{-unfolded expression, in hnf-}
     | UpN_        FreeVars [Int] Neutral
+    deriving Generic
 
 -------------------------------------------------------------------------------- auxiliary functions and patterns
 
 type Type = Exp
 
 data ExpType = ET {expr :: Exp, ty :: Type}
-    deriving (Eq)
+    deriving (Eq, Generic)
 {-
 pattern ET a b <- ET_ a b
   where ET a b =  ET_ a (hnf b)
@@ -469,6 +480,7 @@ instance MkDoc Neutral where
     MT "finElim" [m, z, s, n, ConN "FZero" [i]] -> z `app_` i
 -}
 
+mkFunDef :: FName -> Type -> FunName
 mkFunDef a@(FTag FprimFix) t = fn
   where
     fn = FunName a 0 (DeltaDef 2 fx) t
@@ -681,3 +693,70 @@ instance NType Lit where
         LChar _   -> TChar
 
 
+closeTyConName (TyConName fname ints type_ cons caseFunName)
+ -- = TyConName fname ints (closeExp type_) [(closeConName n, closeExp t) | (n,t) <- cons] (closeCaseFunName caseFunName)
+  = TyConName fname ints STOP [(closeConName n, STOP) | (n,t) <- cons] (closeCaseFunName caseFunName)
+
+closeTyCaseFunName (TyCaseFunName fname type_)
+ -- = TyCaseFunName fname (closeExp type_)
+  = TyCaseFunName fname STOP
+
+closeConName (ConName fname ordinal type_)
+ -- = ConName fname ordinal (closeExp type_)
+  = ConName fname ordinal STOP
+
+closeCaseFunName (CaseFunName fname type_ int)
+ -- = CaseFunName fname (closeExp type_) int
+  = CaseFunName fname STOP int
+
+closeFunName (FunName fname int funDef type_)
+ -- = FunName fname int (closeFunDef funDef) (closeExp type_)
+  = FunName fname int (closeFunDef funDef) STOP
+
+closeFunDef = \case
+  ExpDef exp -> ExpDef STOP
+  --ExpDef exp -> ExpDef (closeExp exp)
+  x -> x
+
+closeExp :: Exp -> Exp
+closeExp = \case
+  Lam_   freeVars exp -> Lam_ freeVars $ closeExp exp
+  Con_   freeVars conName noErasedApplied argsReversed -> Con_ freeVars (closeConName conName) noErasedApplied (map closeExp argsReversed)
+  TyCon_ freeVars tyConName argsReversed -> TyCon_ freeVars (closeTyConName tyConName) (map closeExp argsReversed)
+  Pi_    freeVars visibility exp1 exp2 -> Pi_ freeVars visibility (closeExp exp1) (closeExp exp2)
+  Neut   neutral -> Neut $ closeNeutral neutral
+  RHS    whnf -> STOP
+  Let_   freeVars expType exp -> Let_ freeVars (closeExpType expType) (closeExp exp)
+  Up_    freeVars ints exp -> Up_ freeVars ints (closeExp exp)
+  e -> e
+
+closeNeutral :: Neutral -> Neutral
+closeNeutral = \case
+  App__       freeVars neutral exp -> App__ freeVars (closeNeutral neutral) (closeExp exp)
+  CaseFun__   freeVars caseFunName   exps neutral -> CaseFun__ freeVars (closeCaseFunName caseFunName) (map closeExp exps) (closeNeutral neutral)
+  TyCaseFun__ freeVars tyCaseFunName exps neutral -> TyCaseFun__ freeVars (closeTyCaseFunName tyCaseFunName) (map closeExp exps) (closeNeutral neutral)
+  Fun_        freeVars funName exps exp -> Fun_ freeVars (closeFunName funName) (map closeExp exps) (closeExp exp)
+  UpN_        freeVars ints neutral -> UpN_ freeVars ints (closeNeutral neutral)
+  n -> n
+
+closeExpType :: ExpType -> ExpType
+closeExpType (ET e t) = ET (closeExp e) (closeExp t)
+
+instance Binary ExpType
+instance Binary Exp
+instance Binary Neutral
+instance Binary Freq
+instance Binary ConName
+instance Binary CaseFunName
+instance Binary TyConName
+instance Binary TyCaseFunName
+
+instance Binary FunName where -- do FunName/FunDef instance together
+  put (FunName fName int funDef type_) = do
+    put fName
+    put type_
+
+  get = do
+    fName <- get
+    type_ <- get
+    pure $ mkFunDef fName type_

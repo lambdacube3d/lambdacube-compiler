@@ -89,7 +89,7 @@ type ModuleFetcher m = Maybe FilePath -> Either FilePath MName -> m (Either Doc 
 ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m x)
 ioFetch paths' imp n = do
     preludePath <- (</> "lc") <$> liftIO getDataDir
-    let paths = map (id &&& id) paths' ++ [(preludePath, "<<installed-prelude-path>>")]
+    let paths = map (id &&& id) paths' ++ [(preludePath, preludePath)]
         find ((x, (x', mn)): xs) = liftIO (readFileIfExists x) >>= maybe (find xs) (\src -> return $ Right (x', mn, liftIO src))
         find [] = return $ Left $ "can't find" <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
                                   <+> "in path" <+> hsep (text . snd <$> paths)
@@ -141,7 +141,7 @@ loadModule ex imp mname_ = do
         src <- srcm
         fid <- gets nextMId
         modify $ \(Modules nm im ni) -> Modules (Map.insert fname fid nm) im $ ni+1
-        let fi = FileInfo fid fname mname src
+        let fi = FileInfo fid fname mname
         res <- case parseLC fi of
           Left e -> return $ Left $ text $ show e
           Right e -> do
@@ -224,7 +224,7 @@ preCompile paths paths' backend mod = do
       where
         compile src = runMM fetch $ do
             let pname = "." </> "Prelude.lc"
-            modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (FileInfo ni pname "Prelude" $ fileContent fi, prelude) im) (ni+1)
+            modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (FileInfo ni pname "Prelude", prelude) im) (ni+1)
             (snd &&& fst) <$> compilePipeline' ex backend "Main"
           where
             fetch imp = \case

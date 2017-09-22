@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -12,6 +13,13 @@ module LambdaCube.Compiler.DesugaredSource
     ( module LambdaCube.Compiler.DesugaredSource
     , Fixity(..)
     )where
+
+import System.IO.Unsafe
+import Text.Printf
+import qualified Data.ByteString.Char8 as BS
+
+import Data.Binary
+import GHC.Generics (Generic)
 
 import Data.Monoid
 import Data.Maybe
@@ -51,7 +59,9 @@ pattern MatchName cs <- 'm':'a':'t':'c':'h':cs where MatchName cs = "match" ++ c
 
 -- source position without file name
 newtype SPos = SPos_ Int
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Generic)
+
+instance Binary SPos
 
 row :: SPos -> Int
 row (SPos_ i) = i `shiftR` 16
@@ -72,8 +82,16 @@ data FileInfo = FileInfo
     { fileId      :: !Int
     , filePath    :: FilePath
     , fileModule  :: String   -- module name
-    , fileContent :: String
     }
+    deriving Generic
+
+instance Binary FileInfo
+
+fileContent :: FileInfo -> String
+fileContent fi = unsafePerformIO $ do
+  let fname = filePath fi
+  BS.putStrLn $ BS.pack $ printf "load source %s" fname
+  readFile fname
 
 instance Eq FileInfo where (==) = (==) `on` fileId
 instance Ord FileInfo where compare = compare `on` fileId
@@ -90,7 +108,9 @@ data Range = Range
     , rangeStart :: !SPos
     , rangeStop  :: !SPos
     }
-    deriving (Eq, Ord)
+    deriving (Eq, Ord, Generic)
+
+instance Binary Range
 
 instance Show Range where show = ppShow
 instance PShow Range
@@ -112,6 +132,9 @@ joinRange (Range n b e) (Range n' b' e') = Range n (min b b') (max e e')
 data SI
     = NoSI (Set.Set String) -- no source info, attached debug info
     | RangeSI Range
+    deriving Generic
+
+instance Binary SI
 
 getRange :: SI -> Maybe Range
 getRange (RangeSI r) = Just r
@@ -159,6 +182,9 @@ class SetSourceInfo a where
 -------------------------------------------------------------------------------- name with source info
 
 data SIName = SIName__ { nameHash :: Int, nameSI :: SI, nameFixity :: Maybe Fixity, sName :: SName }
+    deriving Generic
+
+instance Binary SIName
 
 pattern SIName_ :: SI -> Maybe Fixity -> SName -> SIName
 pattern SIName_ si f n <- SIName__ _ si f n
@@ -186,6 +212,9 @@ instance SetSourceInfo SIName where
 -------------------------------------------------------------------------------- hashed names
 
 newtype FName = FName { fName :: SIName }
+    deriving Generic
+
+instance Binary FName
 
 instance Eq    FName where (==) = (==) `on` nameHash . fName
 instance Ord   FName where compare = compare `on` nameHash . fName
@@ -228,7 +257,9 @@ data FNameTag
 
     -- other
     | F_rhs | F_section
-    deriving (Eq, Ord, Show, Enum, Bounded)
+    deriving (Eq, Ord, Show, Enum, Bounded, Generic)
+
+instance Binary FNameTag
 
 tagName :: FNameTag -> String
 tagName FCons = ":"
@@ -267,7 +298,9 @@ data Lit
     | LChar   Char
     | LFloat  Double
     | LString String
-  deriving (Eq)
+  deriving (Eq, Generic)
+
+instance Binary Lit
 
 instance PShow Lit where
     pShow = \case
@@ -287,7 +320,9 @@ data SExp' a
     | SLet_   SI (SData SIName) (SExp' a) (SExp' a)    -- let x = e in f   -->  SLet e f{-x is Var 0-}
     | SLHS    SIName (SExp' a)
     | STyped  a
-  deriving (Eq)
+  deriving (Eq, Generic)
+
+instance Binary SExp
 
 sLHS :: SIName -> SExp' a -> SExp' a
 sLHS _ (SRHS x) = x
@@ -299,7 +334,9 @@ data Binder
     = BPi  Visibility
     | BLam Visibility
     | BMeta      -- a metavariable is like a floating hidden lambda
-  deriving (Eq)
+  deriving (Eq, Generic)
+
+instance Binary Binder
 
 instance PShow Binder where
     pShow = \case
@@ -308,7 +345,9 @@ instance PShow Binder where
         BMeta -> "BMeta"
 
 data Visibility = Hidden | Visible
-  deriving (Eq)
+  deriving (Eq, Generic)
+
+instance Binary Visibility
 
 instance PShow Visibility where
     pShow = \case
@@ -617,6 +656,9 @@ data Stmt
     = StmtLet SIName SExp
     | Data SIName [(Visibility, SExp)]{-parameters-} SExp{-type-} [(SIName, SExp)]{-constructor names and types-}
     | PrecDef SIName Fixity
+    deriving Generic
+
+instance Binary Stmt
 
 pattern StLet :: SIName -> Maybe (SExp' Void) -> SExp' Void -> Stmt
 pattern StLet n mt x <- StmtLet n (getSAnn -> (x, mt))

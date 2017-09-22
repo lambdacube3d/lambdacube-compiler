@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE LambdaCase #-}
@@ -12,6 +13,9 @@
 module LambdaCube.Compiler.Pretty
     ( module LambdaCube.Compiler.Pretty
     ) where
+
+import Data.Binary (Binary)
+import GHC.Generics (Generic)
 
 import Data.Maybe
 import Data.String
@@ -36,7 +40,9 @@ data Fixity
     = Infix  !Int
     | InfixL !Int
     | InfixR !Int
-    deriving (Eq)
+    deriving (Eq, Generic)
+
+instance Binary Fixity
 
 instance PShow Fixity where
     pShow = \case

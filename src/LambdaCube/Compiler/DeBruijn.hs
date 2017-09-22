@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -9,6 +10,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 module LambdaCube.Compiler.DeBruijn where
+
+import Data.Binary
+import GHC.Generics (Generic)
 
 import Data.Bits
 import Control.Arrow hiding ((<+>))
@@ -63,7 +67,9 @@ instance Rearrange Void where
 ------------------------------------------------------- set of free variables (implemented with bit vectors)
 
 newtype FreeVars = FreeVars Integer
-    deriving Eq
+    deriving (Eq, Generic)
+
+instance Binary FreeVars
 
 instance PShow FreeVars where
     pShow (FreeVars s) = "FreeVars" `DApp` pShow s

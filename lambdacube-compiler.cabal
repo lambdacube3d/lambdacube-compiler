@@ -93,6 +93,9 @@ library
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
+    binary,
+    bytestring,
+    time,
     aeson >=1.1 && <1.2,
     base >=4.9 && <5,
     semigroups,
