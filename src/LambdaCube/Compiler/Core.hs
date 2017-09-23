@@ -696,17 +696,7 @@ instance NType Lit where
         LString _ -> TString
         LChar _   -> TChar
 
-{-
-data ConName       = ConName       FName Int  Type
-data TyConName     = TyConName     FName Int  Type   [(ConName, Type)] CaseFunName
-data FunName       = FunName       FName Int  FunDef Type
-data CaseFunName   = CaseFunName   FName Type Int
-data TyCaseFunName = TyCaseFunName FName Type
-data FunDef
-    = DeltaDef !Int (FreeVars -> [Exp] -> Exp)
-    | NoDef
-    | ExpDef Exp
--}
+-------------------------------------------------------- exp serialization
 
 trace :: String -> a -> a
 trace _ = id

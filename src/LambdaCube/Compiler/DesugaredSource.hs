@@ -21,6 +21,7 @@ import qualified Data.ByteString.Char8 as BS
 import Data.Binary
 import GHC.Generics (Generic)
 
+--import Data.Text (Text)
 import Data.Monoid
 import Data.Maybe
 import Data.List
@@ -36,6 +37,7 @@ import LambdaCube.Compiler.Pretty --hiding (braces, parens)
 
 -------------------------------------------------------------------------------- simple name
 
+-- TODO: move to Text
 type SName = String
 
 pattern Ticked :: SName -> SName
