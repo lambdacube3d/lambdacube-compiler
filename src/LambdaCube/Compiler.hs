@@ -23,7 +23,11 @@ module LambdaCube.Compiler
     , plainShow
     , prettyShowUnlines
     ) where
+import qualified Data.ByteString.Char8 as BS
 
+import Data.Binary
+import Data.Time.Clock
+import Text.Printf
 import Data.List
 import Data.Maybe
 import Data.Function
@@ -37,19 +41,21 @@ import Control.Monad.Except
 import Control.Monad.Catch
 import Control.Arrow hiding ((<+>))
 import System.FilePath
+import System.Directory
+import System.IO.Unsafe
 --import Debug.Trace
 
 import LambdaCube.IR as IR
 import LambdaCube.Compiler.Pretty hiding ((</>))
 import LambdaCube.Compiler.DesugaredSource (Module_(..), Export(..), ImportItems (..), Stmt)
 import LambdaCube.Compiler.Parser (runDefParser, parseLC, DesugarInfo, Module)
-import LambdaCube.Compiler.InferMonad (GlobalEnv, initEnv)
+import LambdaCube.Compiler.InferMonad (GlobalEnv, initEnv, closeGlobalEnv)
 import LambdaCube.Compiler.Infer (inference)
 import LambdaCube.Compiler.CoreToIR
 
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DesugaredSource as Exported (FileInfo(..), Range(..), SPos(..), pattern SPos, SIName(..), pattern SIName, sName, SI(..))
-import LambdaCube.Compiler.Core as Exported (mkDoc, Exp, ExpType(..), pattern ET, outputType, boolType, trueExp, hnf)
+import LambdaCube.Compiler.Core as Exported (mkDoc, Exp, ExpType(..), pattern ET, outputType, boolType, trueExp, hnf, closeExp)
 import LambdaCube.Compiler.InferMonad as Exported (errorRange, listAllInfos, listAllInfos', listTypeInfos, listErrors, listWarnings, listTraceInfos, Infos, Info(..))
 --import LambdaCube.Compiler.Infer as Exported ()
 
@@ -89,7 +95,7 @@ type ModuleFetcher m = Maybe FilePath -> Either FilePath MName -> m (Either Doc 
 ioFetch :: MonadIO m => [FilePath] -> ModuleFetcher (MMT m x)
 ioFetch paths' imp n = do
     preludePath <- (</> "lc") <$> liftIO getDataDir
-    let paths = map (id &&& id) paths' ++ [(preludePath, preludePath)]
+    let paths = map (id &&& id) paths' ++ [(preludePath, {-"<<installed-prelude-path>>"-}preludePath)]
         find ((x, (x', mn)): xs) = liftIO (readFileIfExists x) >>= maybe (find xs) (\src -> return $ Right (x', mn, liftIO src))
         find [] = return $ Left $ "can't find" <+> either (("lc file" <+>) . text) (("module" <+>) . text) n
                                   <+> "in path" <+> hsep (text . snd <$> paths)
@@ -155,32 +161,97 @@ loadModule ex imp mname_ = do
                                     (\(ds, ge) -> Right (ds{-todo: filter-}, Map.filterWithKey (\k _ -> filterImports is k) ge))
                                     e)
                                 dsge
-
-            let (res, err) = case sequence ms of
-                  Left err -> (ex mempty, Left $ pShow err)
+            ---------------
+            let (res, err, g_env, defs) = case sequence ms of
+                  Left err -> (ex mempty, Left $ pShow err, mempty, mempty)
                   Right ms@(mconcat -> (ds, ge)) -> case runExcept $ runDefParser ds $ definitions e of
-                    Left err -> (ex mempty, Left $ pShow err)
-                    Right (defs, warnings, dsinfo) -> (,) (ex (map ParseWarning warnings ++ is, defs)) $ case res of
-                      Left err -> Left $ pShow err
-                      Right (mconcat -> newge) ->
-                        right mconcat $ forM (fromMaybe [ExportModule $ SIName mempty mname] $ moduleExports e) $ \case
-                            ExportId (sName -> d) -> case Map.lookup d newge of
-                                Just def -> Right (mempty{-TODO-}, Map.singleton d def)
-                                Nothing  -> Left $ text d <+> "is not defined"
-                            ExportModule (sName -> m) | m == mname -> Right (dsinfo, newge)
-                            ExportModule m -> case [ x | ((m', _), x) <- zip (moduleImports e) ms, m' == m] of
-                                [x] -> Right x
-                                []  -> Left $ "empty export list in module" <+> text fname -- m, map fst $ moduleImports e, mname)
-                                _   -> error "export list: internal error"
+                    Left err -> (ex mempty, Left $ pShow err, mempty, mempty)
+                    Right (defs, warnings, dsinfo) -> ((ex (map ParseWarning warnings ++ is, defs)), res_1, g_env_1, defs) -- defs g_env_1
                      where
-                        (res, is) = runWriter . flip runReaderT (extensions e, initEnv <> ge) . runExceptT $ inference defs
+                        defs_cached = unsafePerformIO $ do
+                          let filename = printf "%s.def_bin" $ takeFileName fname :: String
+                          doesFileExist filename >>= \case
+                            True  -> do
+                              BS.putStrLn $ BS.pack $ printf "load %s" filename
+                              decodeFile filename
+                            False -> do
+                              BS.putStrLn $ BS.pack $ printf "save %s" filename
+                              encodeFile filename defs
+                              pure defs
+                        (res, is) = runWriter . flip runReaderT (extensions e, initEnv <> ge) . runExceptT $ inference defs --_cached
 
-            return $ Right (e, res, err)
+                        (g_env_1, res_1) = case res of
+                              Left err -> (mempty, Left $ pShow err)
+                              Right (mconcat -> newge) -> --do
+                                --writeFile (printf "%s.exp" fname) $ show newge
+                                (newge, right mconcat $ forM (fromMaybe [ExportModule $ SIName mempty mname] $ moduleExports e) $ \case
+                                    ExportId (sName -> d) -> case Map.lookup d newge of
+                                        Just def -> Right (mempty{-TODO-}, Map.singleton d def)
+                                        Nothing  -> Left $ text d <+> "is not defined"
+                                    ExportModule (sName -> m) | m == mname -> Right (dsinfo, newge)
+                                    ExportModule m -> case [ x | ((m', _), x) <- zip (moduleImports e) ms, m' == m] of
+                                        [x] -> Right x
+                                        []  -> Left $ "empty export list in module" <+> text fname -- m, map fst $ moduleImports e, mname)
+                                        _   -> error "export list: internal error")
+            ---------------
+            let writeResult = do
+                  let filename = printf "%s.exp" $ takeFileName fname :: String
+                      filename_closed = printf "%s.exp.closed" $ takeFileName fname :: String
+                      filename_closed_tr = printf "%s.exp.closed.tr" $ takeFileName fname :: String
+                      filename_keys = printf "%s.exp.keys" $ takeFileName fname :: String
+                  --putStrLn $ printf "write result! %d %s" ({-Map.size-}length g_env) filename
+                  writeFile filename_keys $ unlines $ map show $ Map.keys g_env
+                  let (g_env_ok, g_env_closed, g_env_closed_tr) = unzip3
+                        [ ( printf "%s :: %s\n%s = %s\n\n" k ty_s k v_s :: String
+                          , printf "%s :: %s\n%s = %s\n\n" k c_ty_s k c_v_s :: String
+                          , printf "%s :: %s\n%s = %s\n\n" k tr_c_ty_s k tr_c_v_s :: String
+                          )
+                        | (k,(v, v_ty, v_si)) <- Map.toList g_env
+                        , let ty_s = show $ mkDoc (False,False) $ v_ty
+                        , let v_s = show $ mkDoc (False,True) $ v
+                        , let c_v_ty = closeExp v_ty
+                        , let c_v = closeExp v
+                        , let c_ty_s = show $ mkDoc (False,False) c_v_ty
+                        , let c_v_s = show $ mkDoc (False,True) $ c_v
+                        , let tr_c_ty_s = show $ mkDoc (False,False) $ tr_exp c_v_ty
+                        , let tr_c_v_s = show $ mkDoc (False,True) $ tr_exp c_v
+                        ]
+                      tr_exp :: Exp -> Exp
+                      tr_exp = decode . encode
+                  {-
+                  writeFile filename (concat $ g_env_ok :: String)
+                  writeFile filename_closed (concat $ g_env_closed :: String)
+                  writeFile filename_closed_tr (concat $ g_env_closed_tr :: String)
+                  -}
+                  BS.putStrLn $ BS.pack $ printf "write %s" (printf "%s.env_bin - START" $ takeFileName fname :: String)
+                  encodeFile (printf "%s.env_bin" $ takeFileName fname :: String) $ closeGlobalEnv g_env
+                  BS.putStrLn $ BS.pack $ printf "write %s" (printf "%s.env_bin - DONE" $ takeFileName fname :: String)
+                  
+                  -- TODO: guarded pShow save to file for g_env exps and closed g_env exps
+
+                writeParsedDefs = do
+                  BS.putStrLn $ BS.pack $ printf "defs count: %d" (length defs)
+                  let filename = printf "%s.defs" $ takeFileName fname :: String
+                  writeFile filename $ unlines $ map ((++ "\n"). show . pShow) defs
+                  encodeFile (printf "%s.def_bin" $ takeFileName fname :: String) defs
+                  {-
+                    Experiment:
+                      Stmt/SExp - can be serialized
+                      Exp - explodes ; must be the inference algorithm
+                  -}
+                debugAction = do
+                  printTimeDiff (fname ++ " Defs") writeParsedDefs
+                  printTimeDiff (fname ++ " Exp") writeResult
+                  --when (fname == "./SampleMaterial.lc") $
+                  --  fail "stop"
+            return $ unsafePerformIO (debugAction >> pure (Right (e, res, err)))
+            --return (Right (e, res, err))
         modify $ \(Modules nm im ni) -> Modules nm (IM.insert fid (fi, (src, res)) im) ni
         return $ Right (fi, (src, res))
   where
     filterImports (ImportAllBut ns) = not . (`elem` map sName ns)
     filterImports (ImportJust ns) = (`elem` map sName ns)
+
 
 -- used in runTests
 getDef :: MonadMask m => FilePath -> SName -> Maybe Exp -> MMT m (Infos, [Stmt]) ((Infos, [Stmt]), Either Doc (FileInfo, Either Doc ExpType))
@@ -224,7 +295,7 @@ preCompile paths paths' backend mod = do
       where
         compile src = runMM fetch $ do
             let pname = "." </> "Prelude.lc"
-            modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (FileInfo ni pname "Prelude", prelude) im) (ni+1)
+            modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (FileInfo ni pname "Prelude" , prelude) im) (ni+1)
             (snd &&& fst) <$> compilePipeline' ex backend "Main"
           where
             fetch imp = \case

@@ -8,6 +8,10 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module LambdaCube.Compiler.Utils where
 
+import Data.Time.Clock
+import Text.Printf
+import qualified Data.ByteString.Char8 as BS
+
 import Data.Binary (Binary(..))
 import GHC.Generics (Generic)
 
@@ -148,3 +152,27 @@ instance (Monoid w, P.MonadParsec e s m) => P.MonadParsec e s (RWST r w st m) wh
     updateParserState f         = lift $ P.updateParserState f
 
 -}
+
+showTime delta
+    | t > 1e-1  = printf "%.3fs" t
+    | t > 1e-3  = printf "%.1fms" (t/1e-3)
+    | otherwise = printf "%.0fus" (t/1e-6)
+  where
+    t = realToFrac delta :: Double
+
+timeDiff msg m = (\s x e -> (diffUTCTime e s, x))
+  <$> getCurrentTime
+  <*> ( do
+    BS.putStrLn $ BS.pack $ msg ++ " START"
+    x <- m
+    BS.putStrLn $ BS.pack $ msg ++ " END"
+    pure x
+  )
+  <*> getCurrentTime
+
+printTimeDiff message m = do
+  (t,r) <- timeDiff message m
+  let msg = message ++ " TIME: " ++ showTime t ++ "\n"
+  BS.putStrLn $ BS.pack msg
+  appendFile "timing.log" msg
+  return r

@@ -13,6 +13,8 @@
 --{-# OPTIONS_GHC -fno-warn-unused-binds #-}  -- TODO: remove
 module LambdaCube.Compiler.Core where
 
+import Text.Printf
+--import Debug.Trace
 import Data.Binary
 import GHC.Generics (Generic)
 
@@ -88,7 +90,7 @@ data Exp
     | RHS    Exp{-always in hnf-}
     | Let_   FreeVars ExpType Exp
     | Up_    FreeVars [Int] Exp
-    | STOP
+    | STOP   String
     deriving Generic
 
 data Neutral
@@ -195,21 +197,21 @@ tCon_ k s i t a     = Con (ConName (FTag s) i t) k a
 pattern TyConN s a <- TyCon (TyConName s _ _ _ _) a
 
 pattern TTyCon0 s  <- TyCon (TyConName (FTag s) _ _ _ _) []
-tTyCon0 s cs = TyCon (TyConName (FTag s) 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (error "TTyCon0-A") (error "TTyCon0-B") 0) []
+tTyCon0 s cs = TyCon (TyConName (FTag s) 0 TType (map ((,) (error "tTyCon0")) cs) $ CaseFunName (FTag s) (STOP "TTyCon0-B") 0) []
 
 pattern a :~> b = Pi Visible a b
 
 delta = ELit (LString "<<delta function>>") -- TODO: build an error call
 
-pattern TConstraint <- TTyCon0 F'Constraint where TConstraint = tTyCon0 F'Constraint $ error "cs 1"
+pattern TConstraint <- TTyCon0 F'Constraint where TConstraint = tTyCon0 F'Constraint []
 pattern Unit        <- TTyCon0 F'Unit      where Unit        = tTyCon0 F'Unit [Unit]
-pattern TInt        <- TTyCon0 F'Int       where TInt        = tTyCon0 F'Int $ error "cs 1"
-pattern TNat        <- TTyCon0 F'Nat       where TNat        = tTyCon0 F'Nat $ error "cs 3"
-pattern TBool       <- TTyCon0 F'Bool      where TBool       = tTyCon0 F'Bool $ error "cs 4"
-pattern TFloat      <- TTyCon0 F'Float     where TFloat      = tTyCon0 F'Float $ error "cs 5"
-pattern TString     <- TTyCon0 F'String    where TString     = tTyCon0 F'String $ error "cs 6"
-pattern TChar       <- TTyCon0 F'Char      where TChar       = tTyCon0 F'Char $ error "cs 7"
-pattern TOrdering   <- TTyCon0 F'Ordering  where TOrdering   = tTyCon0 F'Ordering $ error "cs 8"
+pattern TInt        <- TTyCon0 F'Int       where TInt        = tTyCon0 F'Int []
+pattern TNat        <- TTyCon0 F'Nat       where TNat        = tTyCon0 F'Nat []
+pattern TBool       <- TTyCon0 F'Bool      where TBool       = tTyCon0 F'Bool []
+pattern TFloat      <- TTyCon0 F'Float     where TFloat      = tTyCon0 F'Float []
+pattern TString     <- TTyCon0 F'String    where TString     = tTyCon0 F'String []
+pattern TChar       <- TTyCon0 F'Char      where TChar       = tTyCon0 F'Char []
+pattern TOrdering   <- TTyCon0 F'Ordering  where TOrdering   = tTyCon0 F'Ordering []
 pattern TVec a b    <- TyConN (FTag F'VecS) [a, b]
 
 pattern Empty s    <- TyCon (TyConName (FTag F'Empty) _ _ _ _) (HString{-hnf?-} s: _)
@@ -263,7 +265,7 @@ mkOrdering x = case x of
     GT -> tCon FGT 2 TOrdering []
 
 conTypeName :: ConName -> TyConName
-conTypeName (ConName _ _ t) = case snd $ getParams t of TyCon n _ -> n
+conTypeName (ConName _ _ t) = case snd $ getParams t of TyCon n _ -> n ; STOP m -> error $ "STOP " ++ m
 
 mkFun_ md (FunName _ _ (DeltaDef ar f) _) as _ | length as == ar = f md as
 mkFun_ md f@(FunName _ _ (ExpDef e) _) xs _ = Neut $ Fun_ md f xs $ hnf $ foldlrev app_ e xs
@@ -283,7 +285,7 @@ reduce _ = Nothing
 hnf (Reduced y) = hnf y  -- TODO: review hnf call here
 hnf a = a
 
-outputType = tTyCon0 F'Output $ error "cs 9"
+outputType = tTyCon0 F'Output []
 
 -- TODO: remove
 boolType = TBool
@@ -390,6 +392,7 @@ instance HasFreeVars Exp where
         TyCon_ c _ _ -> c
         Let_ c _ _ -> c
 
+        STOP{} -> mempty
         TType_ _ -> mempty
         ELit{} -> mempty
         Neut x -> getFreeVars x
@@ -438,6 +441,7 @@ instance MkDoc Exp where
         Neut x          -> mkDoc pr x
         Let a b         -> shLet_ (pShow a) (pShow b)
         RHS x           -> text "_rhs" `DApp` mkDoc pr x
+        STOP x          -> text $ "STOP " ++ x
 
 pattern FFix f <- Fun (FunName (FTag FprimFix) _ _ _) [f, _] _
 
@@ -692,40 +696,71 @@ instance NType Lit where
         LString _ -> TString
         LChar _   -> TChar
 
+{-
+data ConName       = ConName       FName Int  Type
+data TyConName     = TyConName     FName Int  Type   [(ConName, Type)] CaseFunName
+data FunName       = FunName       FName Int  FunDef Type
+data CaseFunName   = CaseFunName   FName Type Int
+data TyCaseFunName = TyCaseFunName FName Type
+data FunDef
+    = DeltaDef !Int (FreeVars -> [Exp] -> Exp)
+    | NoDef
+    | ExpDef Exp
+-}
 
-closeTyConName (TyConName fname ints type_ cons caseFunName)
- -- = TyConName fname ints (closeExp type_) [(closeConName n, closeExp t) | (n,t) <- cons] (closeCaseFunName caseFunName)
-  = TyConName fname ints STOP [(closeConName n, STOP) | (n,t) <- cons] (closeCaseFunName caseFunName)
+trace :: String -> a -> a
+trace _ = id
 
-closeTyCaseFunName (TyCaseFunName fname type_)
- -- = TyCaseFunName fname (closeExp type_)
-  = TyCaseFunName fname STOP
+closeType_ msg fuel _ = STOP $ msg ++ " " ++ show fuel
 
-closeConName (ConName fname ordinal type_)
- -- = ConName fname ordinal (closeExp type_)
-  = ConName fname ordinal STOP
+-- TODO: check MkDoc 
+closeTyConName fuel (TyConName fname ints type_ cons caseFunName)
+  = trace (printf "TyConName %s %d" (show fname) fuel) $ TyConName fname ints (closeType_ "TyConName" fuel type_) [{-(closeConName fuel n, closeType_ "TyConName con" fuel t) | (n,t) <- cons-}] (closeCaseFunName fuel caseFunName)
 
-closeCaseFunName (CaseFunName fname type_ int)
- -- = CaseFunName fname (closeExp type_) int
-  = CaseFunName fname STOP int
+closeTyCaseFunName fuel (TyCaseFunName fname type_)
+  = trace (printf "TyCaseFunName %s %d" (show fname) fuel) $ TyCaseFunName fname (closeType_ "TyCaseFunName" fuel type_)
 
-closeFunName (FunName fname int funDef type_)
- -- = FunName fname int (closeFunDef funDef) (closeExp type_)
-  = FunName fname int (closeFunDef funDef) STOP
+closeConName fuel (ConName fname ordinal type_)
+  = trace (printf "ConName %s %d" (show fname) fuel) $ ConName fname ordinal (closeType fuel type_) --(STOP "ConName")
+
+closeCaseFunName fuel (CaseFunName fname type_ int)
+  = trace (printf "CaseFunName %s %d" (show fname) fuel) $ CaseFunName fname (closeType_ "CaseFunName" fuel type_) int
+
+closeFunName fuel (FunName fname int funDef type_)
+  = trace (printf "FunName %s %d" (show fname) fuel) $ FunName fname int (closeFunDef funDef) (closeType_ "FunName" fuel type_)
 
 closeFunDef = \case
-  ExpDef exp -> ExpDef STOP
-  --ExpDef exp -> ExpDef (closeExp exp)
+  ExpDef exp -> ExpDef (closeExp exp)
   x -> x
+
+_maxFuel = 25 :: Int -- 6
+
+closeType :: Int -> Exp -> Exp
+--closeType fuel | fuel <= 0 = \_ -> STOP "out of fuel"
+closeType fuel = \case
+  Lam_   freeVars exp -> tr "Lam_" $ Lam_ freeVars (closeType_ "Lam_" _fuel exp)
+  Con_   freeVars conName noErasedApplied argsReversed -> tr "Con_" $ Con_ freeVars (closeConName _fuel conName) noErasedApplied []
+  TyCon_ freeVars tyConName argsReversed -> tr "TyCon_" $ TyCon_ freeVars (closeTyConName _fuel tyConName) []
+  Pi_    freeVars visibility exp1 exp2 -> tr "Pi_" $ Pi_ freeVars visibility (closeType_ "Pi_ 1" _fuel exp1) (closeType _fuel exp2)
+  Neut   neutral -> STOP "Neut"
+  RHS    exp -> tr "RHS" $ RHS (closeType_ "RHS" _fuel exp)
+  Let_   freeVars expType exp -> (STOP "Let_")
+  Up_    freeVars ints exp -> tr "Up_" $ Up_ freeVars ints (closeType_ "Up_" _fuel exp)
+  e -> e
+ where
+  _fuel = pred fuel
+  tr :: String -> a -> a
+  tr msg = trace (printf "%s %d" msg fuel)
+
 
 closeExp :: Exp -> Exp
 closeExp = \case
   Lam_   freeVars exp -> Lam_ freeVars $ closeExp exp
-  Con_   freeVars conName noErasedApplied argsReversed -> Con_ freeVars (closeConName conName) noErasedApplied (map closeExp argsReversed)
-  TyCon_ freeVars tyConName argsReversed -> TyCon_ freeVars (closeTyConName tyConName) (map closeExp argsReversed)
+  Con_   freeVars conName noErasedApplied argsReversed -> Con_ freeVars (closeConName _maxFuel conName) noErasedApplied (map closeExp argsReversed)
+  TyCon_ freeVars tyConName argsReversed -> TyCon_ freeVars (closeTyConName _maxFuel tyConName) (map closeExp argsReversed)
   Pi_    freeVars visibility exp1 exp2 -> Pi_ freeVars visibility (closeExp exp1) (closeExp exp2)
   Neut   neutral -> Neut $ closeNeutral neutral
-  RHS    whnf -> STOP
+  RHS    exp -> RHS $ closeExp exp
   Let_   freeVars expType exp -> Let_ freeVars (closeExpType expType) (closeExp exp)
   Up_    freeVars ints exp -> Up_ freeVars ints (closeExp exp)
   e -> e
@@ -733,14 +768,14 @@ closeExp = \case
 closeNeutral :: Neutral -> Neutral
 closeNeutral = \case
   App__       freeVars neutral exp -> App__ freeVars (closeNeutral neutral) (closeExp exp)
-  CaseFun__   freeVars caseFunName   exps neutral -> CaseFun__ freeVars (closeCaseFunName caseFunName) (map closeExp exps) (closeNeutral neutral)
-  TyCaseFun__ freeVars tyCaseFunName exps neutral -> TyCaseFun__ freeVars (closeTyCaseFunName tyCaseFunName) (map closeExp exps) (closeNeutral neutral)
-  Fun_        freeVars funName exps exp -> Fun_ freeVars (closeFunName funName) (map closeExp exps) (closeExp exp)
+  CaseFun__   freeVars caseFunName   exps neutral -> CaseFun__ freeVars (closeCaseFunName _maxFuel caseFunName) (map closeExp exps) (closeNeutral neutral)
+  TyCaseFun__ freeVars tyCaseFunName exps neutral -> TyCaseFun__ freeVars (closeTyCaseFunName _maxFuel tyCaseFunName) (map closeExp exps) (closeNeutral neutral)
+  Fun_        freeVars funName exps exp -> Fun_ freeVars (closeFunName _maxFuel funName) (map closeExp exps) (STOP "Fun_") --(closeExp exp)
   UpN_        freeVars ints neutral -> UpN_ freeVars ints (closeNeutral neutral)
   n -> n
 
 closeExpType :: ExpType -> ExpType
-closeExpType (ET e t) = ET (closeExp e) (closeExp t)
+closeExpType (ET e t) = ET (closeExp e) (closeType_ "ExpType Type" _maxFuel t)
 
 instance Binary ExpType
 instance Binary Exp
@@ -754,9 +789,18 @@ instance Binary TyCaseFunName
 instance Binary FunName where -- do FunName/FunDef instance together
   put (FunName fName int funDef type_) = do
     put fName
+    put int
     put type_
+    case funDef of
+      NoDef       -> put (0 :: Word8)
+      DeltaDef{}  -> put (1 :: Word8)
+      ExpDef exp  -> put (2 :: Word8) >> put exp
 
   get = do
     fName <- get
+    int <- get
     type_ <- get
-    pure $ mkFunDef fName type_
+    (get :: Get Word8) >>= \case
+      0 -> pure $ FunName fName int NoDef type_
+      1 -> pure $ mkFunDef fName type_
+      2 -> (\exp -> FunName fName int (ExpDef exp) type_) <$> get

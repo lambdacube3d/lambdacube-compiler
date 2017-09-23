@@ -214,5 +214,5 @@ dependentVars ie = cycle mempty
         a <-> b = (a --> b) <> (b --> a)
 
 
---closeGlobalEnv :: GlobalEnv -> GlobalEnv
-closeGlobalEnv = fmap (\(exp, type_, si) -> (closeExp exp {-, closeExp type_, si)-})) -- HINT: type should be finite
+closeGlobalEnv :: GlobalEnv -> GlobalEnv
+closeGlobalEnv = fmap (\(exp, type_, si) -> (closeExp exp , closeExp type_, si)) -- HINT: type should be finite
