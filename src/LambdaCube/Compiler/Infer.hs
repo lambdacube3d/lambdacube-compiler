@@ -48,6 +48,7 @@ varType err n_ env = f n_ env where
     f n (ELet2 _ (ET x t) es) = if n == 0 then (BLam Visible{-??-}, up 1 t) else second (up 1) $ f (n-1) es
     f n e = either (error $ "varType: " ++ err ++ "\n" ++ show n_ ++ "\n" ++ ppShow env) (f n) $ parent e
 
+mkELet :: SIName -> Exp -> Exp -> Env -> Exp
 mkELet n x xt env = mkFun fn (Var <$> reverse vs) x
   where
     fn = FunName (FName n) (length vs) (ExpDef $ foldr addLam x vs) (foldr addPi xt vs)
