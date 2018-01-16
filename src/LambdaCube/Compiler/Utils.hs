@@ -24,7 +24,6 @@ import Control.Monad.RWS
 import System.Directory
 import qualified Data.Text.IO as TIO
 import qualified Text.Megaparsec as P
-import qualified Text.Megaparsec.Prim as P
 
 ------------------------------------------------------- general functions
 

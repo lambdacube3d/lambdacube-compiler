@@ -38,6 +38,8 @@ import LambdaCube.Compiler.DesugaredSource
 import LambdaCube.Compiler.Patterns
 import LambdaCube.Compiler.Statements
 
+import Text.Megaparsec.Char
+
 -------------------------------------------------------------------------------- parser type
 
 type BodyParser = Parse DesugarInfo PostponedCheck
