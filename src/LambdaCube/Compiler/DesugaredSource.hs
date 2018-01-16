@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -148,10 +149,18 @@ instance Ord SI where _ `compare` _ = EQ
 
 instance Monoid SI where
     mempty = NoSI Set.empty
+#if !MIN_VERSION_base(4,11,0)
     mappend (RangeSI r1) (RangeSI r2) = RangeSI (joinRange r1 r2)
     mappend (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
     mappend r@RangeSI{} _ = r
     mappend _ r@RangeSI{} = r
+#else
+instance Semigroup SI where
+    (<>) (RangeSI r1) (RangeSI r2) = RangeSI (joinRange r1 r2)
+    (<>) (NoSI ds1) (NoSI ds2) = NoSI  (ds1 `Set.union` ds2)
+    (<>) r@RangeSI{} _ = r
+    (<>) _ r@RangeSI{} = r
+#endif
 
 instance PShow SI where
     pShow (NoSI ds) = hsep $ map text $ Set.toList ds

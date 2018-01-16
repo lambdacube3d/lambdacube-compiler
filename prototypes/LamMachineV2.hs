@@ -3,6 +3,7 @@
 -- LamMachine is a variant of the machine described in
 -- "Deriving a Lazy Abstract Machine" (1997) by Peter Sestoft 
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE PatternGuards #-}
@@ -192,7 +193,12 @@ newtype MDB = MDB {getMDB :: Int}
 
 instance Monoid MDB where
     mempty = MDB 0
+#if !MIN_VERSION_base(4,11,0)
     MDB n `mappend` MDB m = MDB $ n `max` m
+#else
+instance Semigroup MDB where
+    MDB n <> MDB m = MDB $ n `max` m
+#endif
 
 ------------------------------------- rearrange De Bruijn indices
 

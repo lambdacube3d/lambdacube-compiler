@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -124,7 +125,12 @@ data DesugarInfo = DesugarInfo
 
 instance Monoid DesugarInfo where
     mempty = DesugarInfo mempty mempty mempty
+#if !MIN_VERSION_base(4,11,0)
     DesugarInfo a b c `mappend` DesugarInfo a' b' c' = DesugarInfo (a <> a') (b <> b') (c <> c')
+#else
+instance Semigroup DesugarInfo where
+    DesugarInfo a b c <> DesugarInfo a' b' c' = DesugarInfo (a <> a') (b <> b') (c <> c')
+#endif
 
 mkDesugarInfo :: [Stmt] -> DesugarInfo
 mkDesugarInfo ss = DesugarInfo

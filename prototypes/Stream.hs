@@ -139,7 +139,12 @@ dbAnd a b = not <$> sOr (not <$> a) (not <$> b)
 
 instance Monoid (Stream Bool) where
     mempty = Repeat False
+#if !MIN_VERSION_base(4,11,0)
     mappend = sOr
+#else
+instance Semigroup (Stream Bool) where
+    (<>) = sOr
+#endif
 
 prop_StreamBool_monoid_left  (a :: Stream Bool)     = mempty <> a == a
 prop_StreamBool_monoid_right (a :: Stream Bool)     = a <> mempty == a
