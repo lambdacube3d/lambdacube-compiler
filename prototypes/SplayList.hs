@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -58,9 +59,16 @@ class (HasFV a, Measure a ~ Nat) => Measured a where
 
 instance Measured a => Monoid (SplayList a) where
     mempty  = Nil
+#if !MIN_VERSION_base(4,11,0)
     Nil `mappend` ys  = ys
     xs  `mappend` Nil = xs
     xs  `mappend` ys  = Append xs ys
+#else
+instance Semigroup (SplayList a) where
+    Nil <> ys  = ys
+    xs  <> Nil = xs
+    xs  <> ys  = Append xs ys
+#endif
 
 instance (Measured a, HasFV a) => HasFV (SplayList a) where
     fvLens = \case

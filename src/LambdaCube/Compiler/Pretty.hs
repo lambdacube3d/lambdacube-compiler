@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
@@ -101,7 +102,12 @@ pattern DText s = DAtom (SimpleAtom s)
 
 instance Monoid Doc where
     mempty = text ""
+#if !MIN_VERSION_base(4,11,0)
     mappend = dTwo mappend
+#else
+instance Semigroup Doc where
+    (<>)    = dTwo (<>)
+#endif
 
 instance Show Doc where
     show = ($ "") . P.displayS . P.renderPretty 0.4 200 . renderDoc

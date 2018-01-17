@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE PatternGuards #-}
@@ -74,7 +75,12 @@ instance Num Nat where
 
 instance Monoid Nat where
     mempty = 0
+#if !MIN_VERSION_base(4,11,0)
     Nat a `mappend` Nat b = Nat (a + b)
+#else
+instance Semigroup Nat where
+    Nat a <> Nat b = Nat (a + b)
+#endif
 
 instance PShow Nat where pShow (Nat i) = pShow i
 instance Show Nat where show = ppShow
@@ -157,6 +163,7 @@ fromStr = fromBools . map (=='1')
 instance Monoid FV where
     mempty = FE
 
+#if !MIN_VERSION_base(4,11,0)
     mappend x FE = x
     mappend FE x = x
     mappend (FV a b us) (FV a' b' us')
@@ -166,6 +173,18 @@ instance Monoid FV where
         | otherwise        = fv c (a' + b' - c) $ mappend (FV 0 ((a + b) - (a' + b')) us) us'
       where
         c = min a a'
+#else
+instance Semigroup FV where
+    (<>)    x FE = x
+    (<>) FE x = x
+    (<>) (FV a b us) (FV a' b' us')
+        | a + b <= a'      = fv a b             $ us <> (FV (a' - (a + b)) b'     us')
+        | a + b - a' <= b' = fv c (a + b - c)   $ us <> (FV 0 (b' - (a + b - a')) us')
+        | a' + b' <= a     = fv a' b'           $ (FV (a - (a' + b')) b       us) <> us'
+        | otherwise        = fv c (a' + b' - c) $ (FV 0 ((a + b) - (a' + b')) us) <> us'
+      where
+        c = min a a'
+#endif
 
 prop_monoid_FV = prop_Monoid (T :: T FV)
 prop_mappend_normal_FV (a :: FV) b = testNormalFV (a <> b)
@@ -335,7 +354,12 @@ instance Arbitrary SFV where
 instance Monoid SFV where
     mempty = SFV 0 mempty
 
+#if !MIN_VERSION_base(4,11,0)
     SFV m b `mappend` SFV n a = SFV (n + m) $ sDrop n b <> a
+#else
+instance Semigroup SFV where
+    SFV m b <> SFV n a = SFV (n + m) $ sDrop n b <> a
+#endif
 
 prop_monoid_SFV = prop_Monoid (T :: T SFV)
 {-

@@ -17,15 +17,17 @@ import Data.List
 import Data.List.NonEmpty (fromList)
 import Data.Char
 import qualified Data.Set as Set
+import Data.Void
 import Control.Monad.Except
 import Control.Monad.RWS
 import Control.Applicative
 import Control.Arrow
 
 import Text.Megaparsec hiding (State, ParseError)
+import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer hiding (lexeme, symbol)
 import qualified Text.Megaparsec as P
-import Text.Megaparsec as ParseUtils hiding (try, Message, State, ParseError)
-import Text.Megaparsec.Lexer hiding (lexeme, symbol, negate)
+import Text.Megaparsec as ParseUtils hiding (try, Message, State, ParseError, lexeme, symbol)
 
 import LambdaCube.Compiler.Pretty hiding (parens)
 import LambdaCube.Compiler.DesugaredSource
@@ -114,12 +116,12 @@ data ParseEnv r = ParseEnv
 type ParseState r = (ParseEnv r, P.State String)
 
 parseState :: FileInfo -> r -> ParseState r
-parseState fi di = (ParseEnv fi di ExpNS (SPos 0 0), either (error "impossible") id $ runParser (getParserState :: Parsec Dec String (P.State String)) (filePath fi) (fileContent fi))
+parseState fi di = (ParseEnv fi di ExpNS (SPos 0 0), either (error "impossible") id $ runParser (getParserState :: Parsec (ErrorFancy Void) String (P.State String)) (filePath fi) (fileContent fi))
 
 --type Parse r w = ReaderT (ParseEnv r) (WriterT [w] (StateT SPos (Parsec String)))
-type Parse r w = RWST (ParseEnv r) [w] SPos (Parsec Dec String)
+type Parse r w = RWST (ParseEnv r) [w] SPos (Parsec (ErrorFancy Void) String)
 
-newtype ParseError = ParseErr (P.ParseError (Token String) Dec)
+newtype ParseError = ParseErr (P.ParseError (Token String) (ErrorFancy Void))
 
 instance Show ParseError where
     show (ParseErr e) = parseErrorPretty e

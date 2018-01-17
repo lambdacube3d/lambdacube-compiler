@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -76,7 +77,12 @@ instance PShow FreeVars where
 
 instance Monoid FreeVars where
     mempty = FreeVars 0
+#if !MIN_VERSION_base(4,11,0)
     FreeVars a `mappend` FreeVars b = FreeVars $ a .|. b
+#else
+instance Semigroup FreeVars where
+    FreeVars a <> FreeVars b = FreeVars $ a .|. b
+#endif
 
 freeVar :: Int -> FreeVars
 freeVar i = FreeVars $ 1 `shiftL` i

@@ -3,6 +3,7 @@
 -- overview:
 -- https://rawgit.com/BP-HUG/presentations/master/2016_april/pattern-match-compilation/patternMatchComp.html
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -292,11 +293,20 @@ type GuardTrees = Lets GuardTree
 
 instance Monoid GuardTrees where
     mempty = In GTFailure
+#if !MIN_VERSION_base(4,11,0)
     LLet sn e x `mappend` y = LLet sn e $ x `mappend` rUp 1 0 y
     LTypeAnn t x `mappend` y = LTypeAnn t $ x `mappend` y
     In (GuardNode e n ps t ts) `mappend` y = In $ GuardNode e n ps t (ts `mappend` y)
     In GTFailure `mappend` y = y
     x@(In GTSuccess{}) `mappend` _ = x
+#else
+instance Semigroup GuardTrees where
+    LLet sn e x <> y = LLet sn e $ x <> rUp 1 0 y
+    LTypeAnn t x <> y = LTypeAnn t $ x <> y
+    In (GuardNode e n ps t ts) <> y = In $ GuardNode e n ps t (ts <> y)
+    In GTFailure <> y = y
+    x@(In GTSuccess{}) <> _ = x
+#endif
 
 noGuards :: SExp -> GuardTrees
 noGuards = In . GTSuccess
