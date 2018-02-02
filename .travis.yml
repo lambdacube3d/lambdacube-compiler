@@ -18,8 +18,8 @@ before_install:
 
 install:
   - stack update
-  - stack --no-terminal --install-ghc test --only-dependencies
-  - stack install
+  - stack --no-terminal --install-ghc test --only-dependencies -j1
+  - stack install -j1
 
 script:
   - pwd
