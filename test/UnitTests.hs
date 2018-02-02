@@ -2,7 +2,7 @@
 module Main where
 
 import Data.Monoid
-import Text.Megaparsec.Pos (Pos, unsafePos, SourcePos(..), sourceName, sourceLine, sourceColumn)
+--import Text.Megaparsec.Pos (Pos, unsafePos, SourcePos(..), sourceName, sourceLine, sourceColumn)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
@@ -35,7 +35,7 @@ instance Arbitrary SPos where
 
 -- TODO: review
 instance Arbitrary FileInfo where
-    arbitrary = FileInfo <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+    arbitrary = FileInfo <$> arbitrary <*> arbitrary <*> arbitrary
 
 -- Range
 instance Arbitrary Range where
