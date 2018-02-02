@@ -1,9 +1,9 @@
-resolver: lts-9.0
+resolver: lts-10.4
 packages:
 - '.'
 - location:
     git: https://github.com/lambdacube3d/lambdacube-ir.git
-    commit: a0bf64b83dd218d1ea29823749dcfa8a6ee959a9
+    commit: b8b4ec9fa985b2eb756ac1a5a65af483a0bd586b
   subdirs:
     - lambdacube-ir.haskell
   extra-dep: true

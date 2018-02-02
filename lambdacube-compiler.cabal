@@ -131,9 +131,9 @@ executable lc
   build-depends:
     base < 5,
     lambdacube-compiler,
-    optparse-applicative >=0.12 && <0.14,
-    aeson >=1.1 && <1.2,
-    bytestring == 0.10.*,
+    optparse-applicative >=0.12 && <0.15,
+    aeson >=1.1 && <1.3,
+    bytestring,
     filepath >=1.4 && <1.5
 
 ------------------------
@@ -157,9 +157,9 @@ executable lambdacube-compiler-unit-tests
     containers >=0.5 && <0.6,
     lambdacube-compiler,
     megaparsec >= 6,
-    QuickCheck >= 2.8.2 && <2.10,
+    QuickCheck >= 2.8.2 && <2.11,
     tasty >= 0.11 && <0.12,
-    tasty-quickcheck >=0.8 && <0.9
+    tasty-quickcheck >=0.8 && <0.10
 
 executable lambdacube-compiler-test-suite
   hs-source-dirs:   test
@@ -178,7 +178,7 @@ executable lambdacube-compiler-test-suite
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
-    aeson >=1.1 && <1.2,
+    aeson >=1.1 && <1.3,
     async >= 2.0 && <2.2,
     base < 5,
     semigroups,
@@ -190,12 +190,12 @@ executable lambdacube-compiler-test-suite
     lambdacube-compiler,
     mtl >=2.2 && <2.3,
     monad-control >= 1.0 && <1.1,
-    optparse-applicative >=0.12 && <0.14,
+    optparse-applicative >=0.12 && <0.15,
     megaparsec >= 6,
     ansi-wl-pprint >=0.6 && <0.7,
     patience >= 0.1 && < 0.2,
     text >= 1.2 && <1.3,
-    time >= 1.5 && <1.7,
+    time >= 1.5 && <1.9,
     lambdacube-ir == 0.3.*,
     vector >= 0.12 && <0.13
 
@@ -215,7 +215,7 @@ executable lambdacube-compiler-performance-report
     directory >=1.3 && <1.4,
     filepath >=1.4 && <1.5,
     containers >=0.5 && <0.6,
-    optparse-applicative >=0.12 && <0.14
+    optparse-applicative >=0.12 && <0.15
 
 executable lambdacube-backend-test-server
   hs-source-dirs:   backendtest
@@ -238,9 +238,9 @@ executable lambdacube-backend-test-server
     lambdacube-compiler,
     lambdacube-ir == 0.3.*,
     pretty-show >= 1.6.9,
-    optparse-applicative >=0.12 && <0.14,
-    aeson >=1.1 && <1.2,
-    bytestring == 0.10.*,
+    optparse-applicative >=0.12 && <0.15,
+    aeson >=1.1 && <1.3,
+    bytestring,
     filepath >=1.4 && <1.5,
     directory >=1.3 && <1.4,
     websockets >= 0.9.6.1,
@@ -267,9 +267,11 @@ executable lambdacube-compiler-coverage-test-suite
 
   -- CAUTION: When the build-depends change, please bump the git submodule in lambdacube-docker repository
   build-depends:
-    aeson >=1.1 && <1.2,
+    aeson >=1.1 && <1.3,
     async >= 2.0 && <2.2,
     base < 5,
+    bytestring,
+    binary,
     semigroups,
     containers >=0.5 && <0.6,
     deepseq >=1.4 && <1.5,
@@ -279,11 +281,11 @@ executable lambdacube-compiler-coverage-test-suite
     lambdacube-ir == 0.3.*,
     mtl >=2.2 && <2.3,
     monad-control >= 1.0 && <1.1,
-    optparse-applicative >=0.12 && <0.14,
+    optparse-applicative >=0.12 && <0.15,
     megaparsec >= 6,
     ansi-wl-pprint >=0.6 && <0.7,
     pretty-show >= 1.6.9,
     patience >= 0.1 && < 0.2,
     text >= 1.2 && <1.3,
-    time >= 1.5 && <1.7,
+    time >= 1.5 && <1.9,
     vector >= 0.12 && <0.13
