@@ -9,8 +9,6 @@ packages:
   extra-dep: true
 extra-deps:
 - vect-0.4.7
-- megaparsec-6.4.0
-- parser-combinators-0.4.0
 flags:
   lambdacube-compiler:
     alltest: true
