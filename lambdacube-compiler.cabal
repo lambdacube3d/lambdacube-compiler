@@ -156,7 +156,7 @@ executable lambdacube-compiler-unit-tests
     semigroups,
     containers >=0.5 && <0.6,
     lambdacube-compiler,
-    megaparsec >=5.3 && <5.4,
+    megaparsec >=6.4 && <7,
     QuickCheck >= 2.8.2 && <2.10,
     tasty >= 0.11 && <0.12,
     tasty-quickcheck >=0.8 && <0.9

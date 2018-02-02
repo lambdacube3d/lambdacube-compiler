@@ -23,11 +23,11 @@ import Control.Monad.RWS
 import Control.Applicative
 import Control.Arrow
 
-import Text.Megaparsec hiding (State, ParseError)
+import Text.Megaparsec hiding (State, ParseError, many, some)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer hiding (lexeme, symbol)
 import qualified Text.Megaparsec as P
-import Text.Megaparsec as ParseUtils hiding (try, Message, State, ParseError, lexeme, symbol)
+import Text.Megaparsec as ParseUtils hiding (try, Message, State, ParseError, lexeme, symbol, many, some)
 
 import LambdaCube.Compiler.Pretty hiding (parens)
 import LambdaCube.Compiler.DesugaredSource
