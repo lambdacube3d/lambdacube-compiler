@@ -35,5 +35,7 @@ install:
   - stack install
 
 script:
+  - pwd
+  - ls -l
   - travis/build.sh
   - travis/profile.sh
