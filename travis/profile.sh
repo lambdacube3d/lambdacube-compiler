@@ -1,5 +1,5 @@
 #!/bin/bash -e
 
-cd /root/source/lambdacube-compiler
+#cd /root/source/lambdacube-compiler
 ./run-test-suite.sh --profile
 head -n 50 lambdacube-compiler-test-suite.prof
