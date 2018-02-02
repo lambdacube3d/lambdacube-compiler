@@ -4,29 +4,27 @@ UNIT_TEST_PARAMS="--quickcheck-max-size 30 --quickcheck-tests 100"
 
 if [ "$1" == "--profile" ] ; then
   shift
-  cabal install --only-dependencies --enable-library-profiling --enable-executable-profiling
-  cabal configure --flags "profiling testsuite -cli" --enable-library-profiling --enable-executable-profiling
+  stack build --profile --flag lambdacube-compiler:testsuite --flag lambdacube-compiler:profiling --flag lambdacube-compiler:-cli
   set +e
   RESULT_UNITTESTS=0
-  cabal run lambdacube-compiler-test-suite -- -r -iperformance -i.ignore $@ +RTS -p
+  stack exec lambdacube-compiler-test-suite -- -r -iperformance -i.ignore $@ +RTS -p
   RESULT_TESTS=`echo $?`
 elif [ "$1" == "--coverage" ] ; then
   shift
   set +e
-  cabal install --only-dependencies
-  cabal configure --flags "coverage alltest"
-  cabal run lambdacube-compiler-unit-tests -- $UNIT_TEST_PARAMS
+  stack build --flag lambdacube-compiler:coverage --flag lambdacube-compiler:alltest
+  stack exec lambdacube-compiler-unit-tests -- $UNIT_TEST_PARAMS
   RESULT_UNITTESTS=`echo $?`
-  cabal run lambdacube-compiler-coverage-test-suite -- -iperformance -i.ignore -r $@
+  stack exec lambdacube-compiler-coverage-test-suite -- -iperformance -i.ignore -r $@
   RESULT_TESTS=`echo $?`
   ./create-test-report.sh
   rm lambdacube-compiler-coverage-test-suite.tix
 else
   set +e
-  cabal install --only-dependencies -j1
-  cabal run lambdacube-compiler-unit-tests -- $UNIT_TEST_PARAMS
+  stack build --flag lambdacube-compiler:alltest
+  stack exec lambdacube-compiler-unit-tests -- $UNIT_TEST_PARAMS
   RESULT_UNITTESTS=`echo $?`
-  cabal run lambdacube-compiler-test-suite -- -iperformance -i.ignore -r $@
+  stack exec lambdacube-compiler-test-suite -- -iperformance -i.ignore -r $@
   RESULT_TESTS=`echo $?`
 fi
 
