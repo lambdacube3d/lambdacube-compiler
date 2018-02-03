@@ -14,7 +14,10 @@ See: [Language Specification](http://lambdacube3d.com/lang-specification)
 stack setup
 stack build
 ```
-3. Run the lambdacube-compiler cli: `stack exec lc -- -h`
+3. Run the lambdacube-compiler cli.
+```
+stack exec lc -- -h
+```
 
 ## Tutorials and Examples
 
