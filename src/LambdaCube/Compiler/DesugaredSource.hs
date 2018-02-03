@@ -96,7 +96,7 @@ instance Binary FileInfo
 fileContent :: FileInfo -> String
 fileContent fi = unsafePerformIO $ do
   let fname = filePath fi
-  BS.putStrLn $ BS.pack $ printf "load source %s" fname
+  --BS.putStrLn $ BS.pack $ printf "load source %s" fname
   readFile fname
 
 instance Eq FileInfo where (==) = (==) `on` fileId
