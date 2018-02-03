@@ -133,6 +133,7 @@ x =*= y =
 forAll' :: (TestShow a, Testable prop)
         => Gen a -> (a -> prop) -> Property
 forAll' gen pf =
+  again $
   MkProperty $
   gen >>= \x ->
     unProperty (counterexample (testShow x) (pf x))
