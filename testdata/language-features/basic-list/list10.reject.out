@@ -1,5 +1,5 @@
 type error: can not unify
-  /home/csaba/haskell/lambdacube-compiler/.stack-work/install/x86_64-linux/lts-10.4/8.2.2/share/x86_64-linux-ghc-8.2.2/lambdacube-compiler-0.6.1.0/lc/Internals.lc:58:6:
+  <<installed-prelude-path>>/Internals.lc:58:6:
   data Int
        ^^^
 with
@@ -7,7 +7,7 @@ with
 in []
 ------------ trace
 !type error: can not unify
-  /home/csaba/haskell/lambdacube-compiler/.stack-work/install/x86_64-linux/lts-10.4/8.2.2/share/x86_64-linux-ghc-8.2.2/lambdacube-compiler-0.6.1.0/lc/Internals.lc:58:6:
+  <<installed-prelude-path>>/Internals.lc:58:6:
   data Int
        ^^^
 with

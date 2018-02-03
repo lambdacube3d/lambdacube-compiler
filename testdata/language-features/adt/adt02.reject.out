@@ -1,9 +1,9 @@
 type error: can not unify
-  /home/csaba/haskell/lambdacube-compiler/.stack-work/install/x86_64-linux/lts-10.4/8.2.2/share/x86_64-linux-ghc-8.2.2/lambdacube-compiler-0.6.1.0/lc/Internals.lc:63:6:
+  <<installed-prelude-path>>/Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
-  /home/csaba/haskell/lambdacube-compiler/.stack-work/install/x86_64-linux/lts-10.4/8.2.2/share/x86_64-linux-ghc-8.2.2/lambdacube-compiler-0.6.1.0/lc/Internals.lc:58:6:
+  <<installed-prelude-path>>/Internals.lc:58:6:
   data Int
        ^^^
 in proj
@@ -18,11 +18,11 @@ case'Data3
         -> forall (h :: Data3) -> a h
 match'Data3 :: forall (a :: Type -> Type) -> a Data3 -> forall b -> a b -> a b
 !type error: can not unify
-  /home/csaba/haskell/lambdacube-compiler/.stack-work/install/x86_64-linux/lts-10.4/8.2.2/share/x86_64-linux-ghc-8.2.2/lambdacube-compiler-0.6.1.0/lc/Internals.lc:63:6:
+  <<installed-prelude-path>>/Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
-  /home/csaba/haskell/lambdacube-compiler/.stack-work/install/x86_64-linux/lts-10.4/8.2.2/share/x86_64-linux-ghc-8.2.2/lambdacube-compiler-0.6.1.0/lc/Internals.lc:58:6:
+  <<installed-prelude-path>>/Internals.lc:58:6:
   data Int
        ^^^
 in proj
