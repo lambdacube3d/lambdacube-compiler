@@ -8,15 +8,23 @@ See: [Language Specification](http://lambdacube3d.com/lang-specification)
 
 ## Installation
 
-Use `make` or use `cabal install`.
+1. Install Haskell [Stack](http://www.haskellstack.org) by following it's simple [install manual](https://docs.haskellstack.org/en/stable/README/#how-to-install).
+2. Checkout the this repository then run the following commands.
+```
+stack setup
+stack build
+```
+3. Run the lambdacube-compiler cli: `stack exec lc -- -h`
+
+## Tutorials and Examples
+
+- [Getting started](http://lambdacube3d.com/getting-started)
+- [Workshop material](https://github.com/csabahruska/lambdacube-workshop)
 
 ## Hacking notes
 
-If you are hacking on the compiler, you may be have a faster repl with ghci. Use the following commands:
+If you are hacking on the compiler, run the test suite to check the changes:
 
-    make repl
-
-or:
-
-    cd test
-    ghci -i../src runTests.hs
+```
+stack exec lambdacube-compiler-test-suite
+```
