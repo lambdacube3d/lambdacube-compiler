@@ -21,6 +21,7 @@ import qualified Data.ByteString.Char8 as BS
 
 import Data.Binary
 import GHC.Generics (Generic)
+import qualified System.FilePath.Posix as FilePath
 
 --import Data.Text (Text)
 import Data.Monoid
@@ -35,6 +36,8 @@ import Control.Arrow hiding ((<+>))
 import LambdaCube.Compiler.Utils
 import LambdaCube.Compiler.DeBruijn
 import LambdaCube.Compiler.Pretty --hiding (braces, parens)
+
+import Paths_lambdacube_compiler (getDataDir)
 
 -------------------------------------------------------------------------------- simple name
 
@@ -99,7 +102,14 @@ fileContent fi = unsafePerformIO $ do
 instance Eq FileInfo where (==) = (==) `on` fileId
 instance Ord FileInfo where compare = compare `on` fileId
 
-instance PShow FileInfo where pShow = text . filePath --(++ ".lc") . fileModule
+instance PShow FileInfo where
+  pShow fi = let path = filePath fi
+             in text $ if isPrefixOf lcPreludePath path
+                        then "<<installed-prelude-path>>" ++ drop (length lcPreludePath) path
+                        else path
+
+lcPreludePath :: String
+lcPreludePath = unsafePerformIO $ (FilePath.</> "lc") <$> getDataDir
 
 showPos :: FileInfo -> SPos -> Doc
 showPos n p = pShow n <> ":" <> pShow p
