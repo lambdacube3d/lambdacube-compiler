@@ -1,5 +1,5 @@
 type error: can not unify
-  <<installed-prelude-path>>/Internals.lc:63:6:
+  /home/csaba/haskell/lambdacube-compiler/.stack-work/install/x86_64-linux/lts-10.4/8.2.2/share/x86_64-linux-ghc-8.2.2/lambdacube-compiler-0.6.1.0/lc/Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with
@@ -9,7 +9,7 @@ value | () = "wrong"
         ^^
 ------------ trace
 !type error: can not unify
-  <<installed-prelude-path>>/Internals.lc:63:6:
+  /home/csaba/haskell/lambdacube-compiler/.stack-work/install/x86_64-linux/lts-10.4/8.2.2/share/x86_64-linux-ghc-8.2.2/lambdacube-compiler-0.6.1.0/lc/Internals.lc:63:6:
   data Bool = False | True
        ^^^^
 with

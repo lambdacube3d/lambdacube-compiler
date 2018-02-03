@@ -1,5 +1,4 @@
 ./testdata/language-features/basic-values/redefine02.reject.lc:3:8:
-expecting expression
 redefined x:
 ./testdata/language-features/basic-values/redefine02.reject.lc:1:12:
 unit = let x = ()

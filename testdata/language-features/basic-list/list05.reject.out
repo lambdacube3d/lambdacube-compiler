@@ -1,4 +1,2 @@
 ./testdata/language-features/basic-list/list05.reject.lc:2:1:
-unexpected end of input
-expecting expression
 wrong indentation
