@@ -1,7 +1,7 @@
-can't find: hello2 in ./testdata/language-features/module/import02.reject.lc:4:5:
+can't find: hello2 in testdata/language-features/module/import02.reject.lc:4:5:
 x = hello2
     ^^^^^^
 ------------ trace
-!can't find: hello2 in ./testdata/language-features/module/import02.reject.lc:4:5:
+!can't find: hello2 in testdata/language-features/module/import02.reject.lc:4:5:
 x = hello2
     ^^^^^^

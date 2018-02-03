@@ -2,7 +2,7 @@ type error: can not unify
   String
 with
   ()
-in ./testdata/language-features/guard/guard02.reject.lc:2:12:
+in testdata/language-features/guard/guard02.reject.lc:2:12:
   | True = ()
            ^^
 ------------ trace
@@ -10,7 +10,7 @@ in ./testdata/language-features/guard/guard02.reject.lc:2:12:
   String
 with
   ()
-in ./testdata/language-features/guard/guard02.reject.lc:2:12:
+in testdata/language-features/guard/guard02.reject.lc:2:12:
   | True = ()
            ^^
 ------------ tooltips

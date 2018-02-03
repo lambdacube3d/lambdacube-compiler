@@ -40,7 +40,7 @@ main = _rhs True
 5:52-5:56
     Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/language-features/pattern/patternGuard.lc:4:13:
+Uncovered pattern(s) at testdata/language-features/pattern/patternGuard.lc:4:13:
 main = case True of
             ^^^^
 Missing case(s):

@@ -545,7 +545,7 @@ takeWhile
 53:18-53:22
     _b
 ------------ warnings
-Uncovered pattern(s) at ./testdata/primes.lc:50:8:
+Uncovered pattern(s) at testdata/primes.lc:50:8:
 (x: _) !! 0 = x
 (_ : xs) !! n = xs !! (n-1)
 Missing case(s):

@@ -1,3 +1,3 @@
-./testdata/language-features/basic-values/where02.reject.lc:4:5:
+testdata/language-features/basic-values/where02.reject.lc:4:5:
 unexpected '='
 expecting "->", "::", "=>", "let", "where", ''', '(', '@', '[', '_', '{', end of input, expression, literal, lowercase ident, swizzling, the rest of expression, or uppercase ident

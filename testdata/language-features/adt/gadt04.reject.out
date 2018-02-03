@@ -1,7 +1,7 @@
-already defined Value at ./testdata/language-features/adt/gadt04.reject.lc:6:3:
+already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
-and at ./testdata/language-features/adt/gadt04.reject.lc:3:3:
+and at testdata/language-features/adt/gadt04.reject.lc:3:3:
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ trace
@@ -16,10 +16,10 @@ match'M
     -> (forall b (c :: String) -> a (M b c)) -> forall d -> a d -> a d
 'M2 :: Type -> String -> Type
 Value :: forall a . a -> forall (b :: String) . M2 a b
-!already defined Value at ./testdata/language-features/adt/gadt04.reject.lc:6:3:
+!already defined Value at testdata/language-features/adt/gadt04.reject.lc:6:3:
   Value :: a -> forall m . M2 a m
   ^^^^^
-and at ./testdata/language-features/adt/gadt04.reject.lc:3:3:
+and at testdata/language-features/adt/gadt04.reject.lc:3:3:
   Value :: a -> forall m . M a m
   ^^^^^
 ------------ tooltips

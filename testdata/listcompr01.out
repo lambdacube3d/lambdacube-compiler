@@ -90,7 +90,7 @@ main = _rhs True
 6:25-6:29
     Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/listcompr01.lc:5:13:
+Uncovered pattern(s) at testdata/listcompr01.lc:5:13:
 main = case a of
             ^
 Missing case(s):

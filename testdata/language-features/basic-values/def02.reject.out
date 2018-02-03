@@ -1,8 +1,8 @@
 multiple pattern vars:
 x is defined at
-./testdata/language-features/basic-values/def02.reject.lc:1:6:
+testdata/language-features/basic-values/def02.reject.lc:1:6:
 fun1 x x = 'c'
      ^
-./testdata/language-features/basic-values/def02.reject.lc:1:8:
+testdata/language-features/basic-values/def02.reject.lc:1:8:
 fun1 x x = 'c'
        ^

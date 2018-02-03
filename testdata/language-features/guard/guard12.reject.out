@@ -2,7 +2,7 @@ type error: can not unify
   Char
 with
   ()
-in ./testdata/language-features/guard/guard12.reject.lc:1:13:
+in testdata/language-features/guard/guard12.reject.lc:1:13:
 fun x | x = () | otherwise = 'a'
             ^^
 ------------ trace
@@ -10,7 +10,7 @@ fun x | x = () | otherwise = 'a'
   Char
 with
   ()
-in ./testdata/language-features/guard/guard12.reject.lc:1:13:
+in testdata/language-features/guard/guard12.reject.lc:1:13:
 fun x | x = () | otherwise = 'a'
             ^^
 ------------ tooltips

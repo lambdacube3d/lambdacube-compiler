@@ -55,7 +55,7 @@ main = _rhs True
 3:29-3:33
     Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/fromto.lc:2:13:
+Uncovered pattern(s) at testdata/fromto.lc:2:13:
 main = case (fromTo 1.0 3.0) of
             ^^^^^^^^^^^^^^^^
 Missing case(s):

@@ -1,2 +1,2 @@
-./testdata/syntax01.reject.lc:3:1:
+testdata/syntax01.reject.lc:3:1:
 wrong indentation

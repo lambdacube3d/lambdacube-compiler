@@ -57,7 +57,7 @@ main = _rhs True
 6:19-6:23
     Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/concatmap01.lc:5:13:
+Uncovered pattern(s) at testdata/concatmap01.lc:5:13:
 main = case a of
             ^
 Missing case(s):

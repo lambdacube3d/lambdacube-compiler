@@ -8719,12 +8719,12 @@ zero
 573:25-573:26
     _b
 ------------ warnings
-Uncovered pattern(s) at ./testdata/Builtins.lc:201:1:
+Uncovered pattern(s) at testdata/Builtins.lc:201:1:
 head (x: _) = x
 ^^^^
 Missing case(s):
     head []
-Uncovered pattern(s) at ./testdata/Builtins.lc:340:1:
+Uncovered pattern(s) at testdata/Builtins.lc:340:1:
 swizzscalar (V2 x y) Sx = x
 swizzscalar (V2 x y) Sy = y
 swizzscalar (V3 x y z) Sx = x
@@ -8738,7 +8738,7 @@ Missing case(s):
     swizzscalar (V2 _ _) Sz
     swizzscalar (V2 _ _) Sw
     swizzscalar (V3 _ _ _) Sw
-Uncovered pattern(s) at ./testdata/Builtins.lc:357:1:
+Uncovered pattern(s) at testdata/Builtins.lc:357:1:
 swizzvector v w | definedVec v = mapVec (swizzscalar v) w
 ^^^^^^^^^^^
 Missing case(s):

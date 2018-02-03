@@ -188,7 +188,7 @@ repeatT = primFix _ \a -> _rhs (True : a)
 30:15-30:17
     _b
 ------------ warnings
-Uncovered pattern(s) at ./testdata/loopIssue.lc:26:8:
+Uncovered pattern(s) at testdata/loopIssue.lc:26:8:
 (x: _) !! 0 = x
 (_ : xs) !! n = xs !! (n-1)
 Missing case(s):

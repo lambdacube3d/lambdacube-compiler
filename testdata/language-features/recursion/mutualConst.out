@@ -182,7 +182,7 @@ y = _rhs (True : fst xy)
 12:30-12:34
     Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/language-features/recursion/mutualConst.lc:11:13:
+Uncovered pattern(s) at testdata/language-features/recursion/mutualConst.lc:11:13:
 main = case x of
             ^
 Missing case(s):

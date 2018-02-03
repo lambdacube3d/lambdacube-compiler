@@ -87,12 +87,12 @@ main
 8:17-8:18
     _b
 ------------ warnings
-Uncovered pattern(s) at ./testdata/language-features/as-pattern/as-pattern01.lc:1:1:
+Uncovered pattern(s) at testdata/language-features/as-pattern/as-pattern01.lc:1:1:
 f y@(x:xs) = x:y
 ^
 Missing case(s):
     f _ | [] <- _a
-Uncovered pattern(s) at ./testdata/language-features/as-pattern/as-pattern01.lc:3:1:
+Uncovered pattern(s) at testdata/language-features/as-pattern/as-pattern01.lc:3:1:
 g x@3 y = x + y
 ^
 Missing case(s):

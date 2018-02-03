@@ -1,2 +1,2 @@
-./testdata/empty.reject.lc:4:1:
+testdata/empty.reject.lc:4:1:
 wrong indentation

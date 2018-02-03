@@ -4,7 +4,7 @@ type error: can not unify
        ^^^^
 with
   String
-in ./testdata/language-features/basic-list/listcomp08.reject.lc:1:23:
+in testdata/language-features/basic-list/listcomp08.reject.lc:1:23:
 value = [x | x <- [], "not Bool"]
                       ^^^^^^^^^^
 ------------ trace
@@ -14,7 +14,7 @@ value = [x | x <- [], "not Bool"]
        ^^^^
 with
   String
-in ./testdata/language-features/basic-list/listcomp08.reject.lc:1:23:
+in testdata/language-features/basic-list/listcomp08.reject.lc:1:23:
 value = [x | x <- [], "not Bool"]
                       ^^^^^^^^^^
 ------------ tooltips

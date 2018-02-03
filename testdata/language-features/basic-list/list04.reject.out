@@ -1,2 +1,2 @@
-./testdata/language-features/basic-list/list04.reject.lc:2:1:
+testdata/language-features/basic-list/list04.reject.lc:2:1:
 wrong indentation

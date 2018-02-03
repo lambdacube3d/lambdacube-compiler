@@ -1,8 +1,8 @@
-can't find: frame' in ./testdata/scope01.reject.lc:3:8:
+can't find: frame' in testdata/scope01.reject.lc:3:8:
     in frame'
        ^^^^^^
 ------------ trace
-!can't find: frame' in ./testdata/scope01.reject.lc:3:8:
+!can't find: frame' in testdata/scope01.reject.lc:3:8:
     in frame'
        ^^^^^^
 ------------ tooltips

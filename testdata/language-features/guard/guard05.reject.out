@@ -4,7 +4,7 @@ type error: can not unify
        ^^^^
 with
   ()
-in ./testdata/language-features/guard/guard05.reject.lc:1:9:
+in testdata/language-features/guard/guard05.reject.lc:1:9:
 value | () = "wrong"
         ^^
 ------------ trace
@@ -14,7 +14,7 @@ value | () = "wrong"
        ^^^^
 with
   ()
-in ./testdata/language-features/guard/guard05.reject.lc:1:9:
+in testdata/language-features/guard/guard05.reject.lc:1:9:
 value | () = "wrong"
         ^^
 ------------ tooltips

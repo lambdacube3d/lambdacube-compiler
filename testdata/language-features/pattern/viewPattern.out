@@ -31,7 +31,7 @@ main = _rhs True
 7:21-7:25
     Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/language-features/pattern/viewPattern.lc:6:13:
+Uncovered pattern(s) at testdata/language-features/pattern/viewPattern.lc:6:13:
 main = case True of
             ^^^^
 Missing case(s):

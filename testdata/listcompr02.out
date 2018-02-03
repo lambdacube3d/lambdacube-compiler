@@ -182,7 +182,7 @@ main = _rhs True
 6:55-6:59
     Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/listcompr02.lc:5:13:
+Uncovered pattern(s) at testdata/listcompr02.lc:5:13:
 main = case a of
             ^
 Missing case(s):

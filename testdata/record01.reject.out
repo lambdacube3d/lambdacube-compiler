@@ -2,7 +2,7 @@ type error: can not unify
   FrameBuffer _b _a
 with
   Float
-in ./testdata/record01.reject.lc:26:15:
+in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA
               ^^^^^^
 ------------ trace
@@ -10,7 +10,7 @@ in ./testdata/record01.reject.lc:26:15:
   FrameBuffer _b _a
 with
   Float
-in ./testdata/record01.reject.lc:26:15:
+in testdata/record01.reject.lc:26:15:
  in ScreenOut record.fieldA
               ^^^^^^
 ------------ tooltips

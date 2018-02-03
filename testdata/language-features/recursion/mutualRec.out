@@ -127,7 +127,7 @@ y = _rhs (True : x)
 8:30-8:34
     Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/language-features/recursion/mutualRec.lc:7:13:
+Uncovered pattern(s) at testdata/language-features/recursion/mutualRec.lc:7:13:
 main = case x of
             ^
 Missing case(s):

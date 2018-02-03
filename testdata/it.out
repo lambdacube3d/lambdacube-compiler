@@ -87,13 +87,13 @@ main = _rhs True
 7:53-7:57
     Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/it.lc:7:25:
+Uncovered pattern(s) at testdata/it.lc:7:25:
     (_:_:_:i:_) -> case primCompareInt i 3 of EQ -> True
                         ^^^^^^^^^^^^^^^^^^
 Missing case(s):
      LT
      GT
-Uncovered pattern(s) at ./testdata/it.lc:6:13:
+Uncovered pattern(s) at testdata/it.lc:6:13:
 main = case from 0 of
             ^^^^^^
 Missing case(s):

@@ -141,7 +141,7 @@ main
 7:36-7:37
     _b
 ------------ warnings
-Uncovered pattern(s) at ./testdata/language-features/as-pattern/as-pattern02.lc:3:12:
+Uncovered pattern(s) at testdata/language-features/as-pattern/as-pattern02.lc:3:12:
 f e = case e of
            ^
 Missing case(s):

@@ -1,8 +1,8 @@
 multiple pattern vars:
 x is defined at
-./testdata/language-features/as-pattern/as-pattern02.reject.lc:2:3:
+testdata/language-features/as-pattern/as-pattern02.reject.lc:2:3:
 f x@[x:xs] = x:xs
   ^
-./testdata/language-features/as-pattern/as-pattern02.reject.lc:2:6:
+testdata/language-features/as-pattern/as-pattern02.reject.lc:2:6:
 f x@[x:xs] = x:xs
      ^

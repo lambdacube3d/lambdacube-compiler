@@ -194,14 +194,14 @@ h
 8:23-8:27
     Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/language-features/pattern/uncovered.lc:2:1:
+Uncovered pattern(s) at testdata/language-features/pattern/uncovered.lc:2:1:
 f _ True False = 0
 f False _ True = 1
 f True False _ = 2
 Missing case(s):
     f False False False
     f True True True
-Uncovered pattern(s) at ./testdata/language-features/pattern/uncovered.lc:6:1:
+Uncovered pattern(s) at testdata/language-features/pattern/uncovered.lc:6:1:
 g [True, False, True] = False
 ^
 Missing case(s):
@@ -212,7 +212,7 @@ Missing case(s):
     g (True : False : False : _)
     g (True : False : True : _ : _)
     g (True : True : _)
-Uncovered pattern(s) at ./testdata/language-features/pattern/uncovered.lc:8:1:
+Uncovered pattern(s) at testdata/language-features/pattern/uncovered.lc:8:1:
 h [[True], [False]] = True
 ^
 Missing case(s):

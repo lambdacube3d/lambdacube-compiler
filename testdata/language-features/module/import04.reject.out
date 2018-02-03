@@ -1,15 +1,15 @@
-already defined hello at ./testdata/language-features/module/import04.reject.lc:4:1:
+already defined hello at testdata/language-features/module/import04.reject.lc:4:1:
 hello = "hello"
 ^^^^^
-and at ./testdata/language-features/module/Hello01.lc:3:1:
+and at testdata/language-features/module/Hello01.lc:3:1:
 hello = "hello"
 ^^^^^
 ------------ trace
 hello :: String
-!already defined hello at ./testdata/language-features/module/import04.reject.lc:4:1:
+!already defined hello at testdata/language-features/module/import04.reject.lc:4:1:
 hello = "hello"
 ^^^^^
-and at ./testdata/language-features/module/Hello01.lc:3:1:
+and at testdata/language-features/module/Hello01.lc:3:1:
 hello = "hello"
 ^^^^^
 ------------ tooltips

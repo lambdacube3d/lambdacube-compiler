@@ -1,17 +1,17 @@
-already defined fun at ./testdata/language-features/basic-values/def07.reject.lc:4:1:
+already defined fun at testdata/language-features/basic-values/def07.reject.lc:4:1:
 fun _ = '_'
 ^^^
-and at ./testdata/language-features/basic-values/def07.reject.lc:1:1:
+and at testdata/language-features/basic-values/def07.reject.lc:1:1:
 fun 1 = '1'
 ^^^
 ------------ trace
 fun :: forall a . (Eq a, Num a, Eq a, Num a) => a -> Char
 fun2 :: forall a b . (Eq a, Num a) => a -> b -> Char
 fun :: forall a . a -> Char
-!already defined fun at ./testdata/language-features/basic-values/def07.reject.lc:4:1:
+!already defined fun at testdata/language-features/basic-values/def07.reject.lc:4:1:
 fun _ = '_'
 ^^^
-and at ./testdata/language-features/basic-values/def07.reject.lc:1:1:
+and at testdata/language-features/basic-values/def07.reject.lc:1:1:
 fun 1 = '1'
 ^^^
 ------------ tooltips
@@ -32,12 +32,12 @@ fun 1 = '1'
 4:9-4:12
     Char
 ------------ warnings
-Uncovered pattern(s) at ./testdata/language-features/basic-values/def07.reject.lc:1:1:
+Uncovered pattern(s) at testdata/language-features/basic-values/def07.reject.lc:1:1:
 fun 1 = '1'
 fun 2 = '2'
 Missing case(s):
     fun _ | False <- fromInt 1 == _a, False <- fromInt 2 == _a
-Uncovered pattern(s) at ./testdata/language-features/basic-values/def07.reject.lc:3:1:
+Uncovered pattern(s) at testdata/language-features/basic-values/def07.reject.lc:3:1:
 fun2 1 _ = '1'
 ^^^^
 Missing case(s):

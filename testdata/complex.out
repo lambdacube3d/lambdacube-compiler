@@ -1012,13 +1012,13 @@ toPolar
 145:28-145:31
     Float
 ------------ warnings
-Uncovered pattern(s) at ./testdata/complex.lc:114:1:
+Uncovered pattern(s) at testdata/complex.lc:114:1:
 add @'Normal @'Normal (Complex a b) (Complex c d) = Complex (a + c) (b + d)
 ^^^
 Missing case(s):
     add Normal Polar _ _
     add Polar _ _ _
-Uncovered pattern(s) at ./testdata/complex.lc:129:1:
+Uncovered pattern(s) at testdata/complex.lc:129:1:
 mul @'Normal @'Normal (Complex a b) (Complex c d) = Complex (a*c - b*d) (b*c + a*d)
 ^^^
 Missing case(s):

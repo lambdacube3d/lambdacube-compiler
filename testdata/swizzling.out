@@ -78,7 +78,7 @@ v3 = _rhs 1.0
 8:23-8:27
     Bool | Bool | Bool | Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/swizzling.lc:7:13:
+Uncovered pattern(s) at testdata/swizzling.lc:7:13:
 main = case v%xxy of
             ^^^^^
 Missing case(s):

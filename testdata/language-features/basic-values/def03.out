@@ -30,7 +30,7 @@ fun
 2:9-2:12
     Char | Char
 ------------ warnings
-Uncovered pattern(s) at ./testdata/language-features/basic-values/def03.lc:1:1:
+Uncovered pattern(s) at testdata/language-features/basic-values/def03.lc:1:1:
 fun 1 = '1'
 fun 2 = '2'
 Missing case(s):

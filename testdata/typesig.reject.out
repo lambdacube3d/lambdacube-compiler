@@ -1,4 +1,4 @@
-can't find: x in ./testdata/typesig.reject.lc:6:6:
+can't find: x in testdata/typesig.reject.lc:6:6:
 x :: x
      ^
 ------------ trace
@@ -6,7 +6,7 @@ x :: x
 X :: X
 case'X :: forall (a :: X -> Type) -> a 'X -> forall (b :: X) -> a b
 match'X :: forall (a :: Type -> Type) -> a X -> forall b -> a b -> a b
-!can't find: x in ./testdata/typesig.reject.lc:6:6:
+!can't find: x in testdata/typesig.reject.lc:6:6:
 x :: x
      ^
 ------------ tooltips

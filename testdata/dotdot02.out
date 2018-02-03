@@ -31,7 +31,7 @@ main = _rhs True
 3:16-3:20
     Bool
 ------------ warnings
-Uncovered pattern(s) at ./testdata/dotdot02.lc:2:13:
+Uncovered pattern(s) at testdata/dotdot02.lc:2:13:
 main = case [3.0..1.0] of
             ^^^^^^^^^^
 Missing case(s):
