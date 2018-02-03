@@ -5,6 +5,7 @@ language: generic
 cache:
   directories:
     - $HOME/.stack/
+    - $HOME/build/lambdacube3d/lambdacube-compiler
 
 addons:
   apt:
