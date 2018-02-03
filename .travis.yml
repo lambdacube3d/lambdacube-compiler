@@ -24,5 +24,4 @@ install:
 script:
   - pwd
   - ls -al
-  - travis/build.sh
   - travis/profile.sh
