@@ -18,7 +18,7 @@ before_install:
 
 install:
   - stack update
-  - stack --no-terminal --install-ghc test --only-dependencies -j2
+  - stack --no-terminal --install-ghc test --only-dependencies -j3
 
 script:
   - pwd

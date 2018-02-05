@@ -4,7 +4,7 @@ UNIT_TEST_PARAMS="--quickcheck-max-size 30 --quickcheck-tests 100"
 
 if [ "$1" == "--profile" ] ; then
   shift
-  stack build --profile --flag lambdacube-compiler:testsuite --flag lambdacube-compiler:profiling --flag lambdacube-compiler:-cli -j2
+  stack build --profile --flag lambdacube-compiler:testsuite --flag lambdacube-compiler:profiling --flag lambdacube-compiler:-cli -j3
   set +e
   RESULT_UNITTESTS=0
   stack exec lambdacube-compiler-test-suite -- -r -iperformance -i.ignore $@ +RTS -p
@@ -12,7 +12,7 @@ if [ "$1" == "--profile" ] ; then
 elif [ "$1" == "--coverage" ] ; then
   shift
   set +e
-  stack build --flag lambdacube-compiler:coverage --flag lambdacube-compiler:alltest -j2
+  stack build --flag lambdacube-compiler:coverage --flag lambdacube-compiler:alltest -j3
   stack exec lambdacube-compiler-unit-tests -- $UNIT_TEST_PARAMS
   RESULT_UNITTESTS=`echo $?`
   stack exec lambdacube-compiler-coverage-test-suite -- -iperformance -i.ignore -r $@
@@ -21,7 +21,7 @@ elif [ "$1" == "--coverage" ] ; then
   rm lambdacube-compiler-coverage-test-suite.tix
 else
   set +e
-  stack build --flag lambdacube-compiler:alltest -j2
+  stack build --flag lambdacube-compiler:alltest -j3
   stack exec lambdacube-compiler-unit-tests -- $UNIT_TEST_PARAMS
   RESULT_UNITTESTS=`echo $?`
   stack exec lambdacube-compiler-test-suite -- -iperformance -i.ignore -r $@
