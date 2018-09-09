@@ -157,9 +157,9 @@ loadModule ex imp mname_ = do
             ms <- forM (moduleImports e) $ \(m, is) -> loadModule ex (Just fname) (Right $ sName m) <&> \r -> case r of
                       Left err -> Left $ pShow m <+> "is not found"
                       Right (fb, (src, dsge)) ->
-                         either (Left . const (pShow m <+> "couldn't be parsed"))
+                         either (Left . (\errm-> pShow m <+> "couldn't be parsed:\n" <+> errm))
                                 (\(pm, x, e) -> either
-                                    (Left . const (pShow m <+> "couldn't be typechecked"))
+                                    (Left .  (\errm-> pShow m <+> "couldn't be typechecked:\n" <+> errm))
                                     (\(ds, ge) -> Right (ds{-todo: filter-}, Map.filterWithKey (\k _ -> filterImports is k) ge))
                                     e)
                                 dsge
