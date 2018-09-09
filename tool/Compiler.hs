@@ -60,13 +60,13 @@ parse srcName backend includePaths output = do
         Left err -> fail $ show err
         Right ppl -> maybe (putStrLn ppl) (`writeFile` ppl) output
 
-compile srcName backend includePaths output = do
+compile srcName backend fbCompType includePaths output = do
   let ext = takeExtension srcName
       baseName | ext == ".lc" = dropExtension srcName
                | otherwise = srcName
       withOutName n = maybe n id output
   do
-      pplRes <- compileMain includePaths backend srcName
+      pplRes <- compileMain includePaths backend fbCompType srcName
       case pplRes of
         Left err -> fail $ show err
         Right ppl -> B.writeFile (withOutName $ baseName <> ".json") $ encode ppl

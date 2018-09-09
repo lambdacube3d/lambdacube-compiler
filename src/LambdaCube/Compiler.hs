@@ -209,13 +209,13 @@ getDef_ ex m d ty = loadModule ex Nothing (Left m) <&> \case
           Nothing -> Left $ text d <+> "is not found"
         )
 
-compilePipeline' ex backend m
-    = second (either Left (fmap (compilePipeline backend) . snd)) <$> getDef_ ex m "main" (Just outputType)
+compilePipeline' ex backend fbCompType m
+    = second (either Left (fmap (compilePipeline backend fbCompType) . snd)) <$> getDef_ ex m "main" (Just outputType)
 
 -- | most commonly used interface for end users
-compileMain :: [FilePath] -> IR.Backend -> MName -> IO (Either Doc IR.Pipeline)
-compileMain path backend fname
-    = fmap snd $ runMM (ioFetch path) $ compilePipeline' (const ()) backend fname
+compileMain :: [FilePath] -> IR.Backend -> IR.InputType -> MName -> IO (Either Doc IR.Pipeline)
+compileMain path backend fbCompType fname
+    = fmap snd $ runMM (ioFetch path) $ compilePipeline' (const ()) backend fbCompType fname
 
 parseModule :: [FilePath] -> MName -> IO (Either Doc String)
 parseModule path fname = runMM (ioFetch path) $ loadModule snd Nothing (Left fname) <&> \case
@@ -224,8 +224,8 @@ parseModule path fname = runMM (ioFetch path) $ loadModule snd Nothing (Left fna
     Right (fname, (src, Right (pm, infos, _))) -> Right $ pPrintStmts infos
 
 -- used by the compiler-service of the online editor
-preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> IR.Backend -> FilePath -> IO (String -> m (Either Doc IR.Pipeline, (Infos, String)))
-preCompile paths paths' backend mod = do
+preCompile :: (MonadMask m, MonadIO m) => [FilePath] -> [FilePath] -> IR.Backend -> IR.InputType -> FilePath -> IO (String -> m (Either Doc IR.Pipeline, (Infos, String)))
+preCompile paths paths' backend fbCompType mod = do
   res <- runMM (ioFetch paths) $ loadModule ex Nothing $ Left mod
   case res of
     Left err -> error $ "Prelude could not compiled:" ++ show err
@@ -234,7 +234,7 @@ preCompile paths paths' backend mod = do
         compile src = runMM fetch $ do
             let pname = "." </> "Prelude.lc"
             modify $ \(Modules nm im ni) -> Modules (Map.insert pname ni nm) (IM.insert ni (FileInfo ni pname "Prelude" , prelude) im) (ni+1)
-            (snd &&& fst) <$> compilePipeline' ex backend "Main"
+            (snd &&& fst) <$> compilePipeline' ex backend fbCompType "Main"
           where
             fetch imp = \case
                 Left "Prelude" -> return $ Right ("./Prelude.lc", "Prelude", undefined)
