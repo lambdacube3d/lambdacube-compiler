@@ -7,6 +7,7 @@ import System.FilePath
 import Data.Version
 import Paths_lambdacube_compiler (version)
 
+import qualified LambdaCube.IR as IR
 import LambdaCube.Compiler
 
 addInfo i p = info (helper <*> p) i
@@ -28,6 +29,7 @@ main = join $ execParser $ addInfo i $ versionOption <*> subparser (
     compile' = (compile
           <$> argument str (metavar "SOURCE_FILE")
           <*> flag OpenGL33 WebGL1 (long "webgl" <> help "generate WebGL 1.0 pipeline" )
+          <*> pure IR.V4F
           <*> pure ["."]
           <*> optional (strOption (long "output" <> short 'o' <> metavar "FILENAME" <> help "output file name"))
         )
