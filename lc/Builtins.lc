@@ -76,6 +76,12 @@ instance Component (VecS Float 3) where
 instance Component (VecS Float 4) where
   zero = V4 0.0 0.0 0.0 0.0
   one = V4 1.0 1.0 1.0 1.0
+instance Component (VecS Int 3) where
+  zero = V3 0 0 0
+  one = V3 1 1 1
+instance Component (VecS Int 4) where
+  zero = V4 0 0 0 0
+  one = V4 1 1 1 1
 instance Component Bool where
   zero = False
   one = True
