@@ -134,6 +134,7 @@ executable lc
     lambdacube-compiler,
     optparse-applicative >=0.12,
     aeson,
+    aeson-pretty,
     bytestring,
     filepath >=1.4
 

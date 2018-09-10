@@ -485,7 +485,8 @@ data Interpolated t where
 
 rasterizePrimitive
     :: ( map Interpolated b ~ interpolation
-       , a ~ Vec 4 Float: b )
+       , a ~ Vec 4 i: b
+       , Num i)
     => HList interpolation                -- tuple of Smooth & Flat
     -> RasterContext (HList a) x
     -> Primitive (HList a) x

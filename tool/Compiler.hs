@@ -2,6 +2,7 @@ import Data.Monoid
 import Control.Monad
 import Options.Applicative
 import Data.Aeson
+import qualified Data.Aeson.Encode.Pretty          as AE
 import qualified Data.ByteString.Lazy as B
 import System.FilePath
 import Data.Version
@@ -29,7 +30,7 @@ main = join $ execParser $ addInfo i $ versionOption <*> subparser (
     compile' = (compile
           <$> argument str (metavar "SOURCE_FILE")
           <*> flag OpenGL33 WebGL1 (long "webgl" <> help "generate WebGL 1.0 pipeline" )
-          <*> pure IR.V4F
+          <*> flag IR.V4F IR.V4I (long "int-colorbuf" <> help "use an integer color buffer")
           <*> pure ["."]
           <*> optional (strOption (long "output" <> short 'o' <> metavar "FILENAME" <> help "output file name"))
         )
@@ -68,9 +69,11 @@ compile srcName backend fbCompType includePaths output = do
                | otherwise = srcName
       withOutName n = maybe n id output
   do
+      putStrLn $ "backend:           " <> show backend
+      putStrLn $ "color buffer type: " <> show fbCompType
       pplRes <- compileMain includePaths backend fbCompType srcName
       case pplRes of
         Left err -> fail $ show err
-        Right ppl -> B.writeFile (withOutName $ baseName <> ".json") $ encode ppl
+        Right ppl -> B.writeFile (withOutName $ baseName <> ".json") $ AE.encodePretty ppl
 --          True -> writeFile (withOutName $ baseName <> ".ppl") $ prettyShowUnlines ppl
 
