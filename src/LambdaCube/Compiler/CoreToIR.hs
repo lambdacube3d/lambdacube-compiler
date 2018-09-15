@@ -21,6 +21,7 @@ import Data.List
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Vector as Vector
+import GHC.Stack
 import Control.Arrow hiding ((<+>))
 import Control.Monad.Writer
 import Control.Monad.State
@@ -77,6 +78,11 @@ addLEq l x = modL l $ \sv -> maybe (let i = length sv in i `seq` (i, Map.insert 
 
 ---------------------------------------------------------
 
+addTarget
+  :: Backend
+  -> ExpTV
+  -> [IR.TargetItem]
+  -> CG ([IR.Command], [IR.Command])
 addTarget backend a tl = do
     rt <- addL targetLens $ IR.RenderTarget $ Vector.fromList tl
     second (IR.SetRenderTarget rt:) <$> getCommands backend a
@@ -201,6 +207,7 @@ type SamplerBinding = (IR.UniformName,IR.ImageRef)
 frameBufferType (A2 "FrameBuffer" _ ty) = ty
 frameBufferType x = error $ "illegal target type: " ++ ppShow x
 
+getSemantics :: ExpTV -> [IR.ImageSemantic]
 getSemantics = compSemantics . frameBufferType . tyOf
 
 getFragFilter (A2 "map" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
@@ -428,6 +435,7 @@ compFetchPrimitive x = case x of
   A0 "TriangleAdjacency" -> IR.TrianglesAdjacency
   x -> error $ "compFetchPrimitive " ++ ppShow x
 
+compValue :: HasCallStack => ExpTV -> IR.Value
 compValue x = case x of
   EFloat a -> IR.VFloat $ realToFrac a
   EInt a -> IR.VInt $ fromIntegral a
@@ -495,6 +503,14 @@ compPV x = case x of
 
 --------------------------------------------------------------- GLSL generation
 
+genGLSLs
+  :: Backend
+  -> Maybe ExpTV
+  -> ExpTV
+  -> (Maybe ExpTV, ExpTV)
+  -> (Maybe ExpTV, ExpTV)
+  -> Maybe ExpTV
+  -> ([[Char]], Uniforms, Doc, Doc)
 genGLSLs backend
     rp                  -- program point size
     (ETuple ints)       -- interpolations
