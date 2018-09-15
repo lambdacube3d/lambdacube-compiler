@@ -76,6 +76,24 @@ instance Component (VecS Float 3) where
 instance Component (VecS Float 4) where
   zero = V4 0.0 0.0 0.0 0.0
   one = V4 1.0 1.0 1.0 1.0
+instance Component (VecS Int 2) where
+  zero = V2 0 0
+  one = V2 255 255
+instance Component (VecS Int 3) where
+  zero = V3 0 0 0
+  one = V3 255 255 255
+instance Component (VecS Int 4) where
+  zero = V4 0 0 0 0
+  one = V4 255 255 255 255
+instance Component (VecS Word 2) where
+  zero = V2 0 0
+  one = V2 255 255
+instance Component (VecS Word 3) where
+  zero = V3 0 0 0
+  one = V3 255 255 255
+instance Component (VecS Word 4) where
+  zero = V4 0 0 0 0
+  one = V4 255 255 255 255
 instance Component Bool where
   zero = False
   one = True
@@ -462,7 +480,7 @@ data Blending :: Type -> Type where
   BlendLogicOp        :: (Integral t) => LogicOperation -> Blending t
   Blend               :: (BlendEquation, BlendEquation)
                          -> ((BlendingFactor, BlendingFactor), (BlendingFactor, BlendingFactor))
-                         -> Vec 4 Float ->                 Blending Float
+                         -> Vec 4 t ->                     Blending t
 
 data StencilTests
 data StencilOps
@@ -479,7 +497,8 @@ data Interpolated t where
 
 rasterizePrimitive
     :: ( map Interpolated b ~ interpolation
-       , a ~ Vec 4 Float: b )
+       , a ~ Vec 4 i: b
+       , Num i)
     => HList interpolation                -- tuple of Smooth & Flat
     -> RasterContext (HList a) x
     -> Primitive (HList a) x
@@ -535,7 +554,7 @@ accumulate ctx fshader fstr fb = Accumulate ctx (mapFragments fshader fstr) fb
 
 -- texture support
 PrjImage            :: FrameBuffer 1 '[a] -> Image 1 a
-PrjImageColor       :: FrameBuffer 1 '[ 'Depth, 'Color (Vec 4 Float)] -> Image 1 (Color (Vec 4 Float))
+PrjImageColor       :: FrameBuffer 1 '[ 'Depth, 'Color (Vec 4 a)] -> Image 1 (Color (Vec 4 a))
 
 data Output where
   ScreenOut           :: FrameBuffer a b -> Output

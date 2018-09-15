@@ -244,7 +244,7 @@ doTest Config{..} (i, fn) = do
         Right (fname, ge, Left (pShow -> e))
                                  -> Right ("typechecked module", simpleShow $ vcat $ e: showGE fname ge)
         Right (fname, ge, Right (ET e te))
-            | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ clearPipelineInfo $ compilePipeline OpenGL33 (ET e te))
+            | te == outputType   -> Right ("compiled pipeline", prettyShowUnlines $ clearPipelineInfo $ compilePipeline OpenGL33 IR.V4F (ET e te))
             | e == trueExp       -> Right ("reducted main", de)
             | te == boolType     -> Left (tab "!Failed" $ "main should be True but it is \n" ++ simpleShow res, Failed)
             | otherwise          -> Right ("reduced main :: " ++ simpleShow (mkDoc (True, False) te), de)

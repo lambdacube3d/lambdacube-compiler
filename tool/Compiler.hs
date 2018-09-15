@@ -2,11 +2,13 @@ import Data.Monoid
 import Control.Monad
 import Options.Applicative
 import Data.Aeson
+import qualified Data.Aeson.Encode.Pretty          as AE
 import qualified Data.ByteString.Lazy as B
 import System.FilePath
 import Data.Version
 import Paths_lambdacube_compiler (version)
 
+import qualified LambdaCube.IR as IR
 import LambdaCube.Compiler
 
 addInfo i p = info (helper <*> p) i
@@ -28,6 +30,7 @@ main = join $ execParser $ addInfo i $ versionOption <*> subparser (
     compile' = (compile
           <$> argument str (metavar "SOURCE_FILE")
           <*> flag OpenGL33 WebGL1 (long "webgl" <> help "generate WebGL 1.0 pipeline" )
+          <*> flag IR.V4F IR.V4I (long "int-colorbuf" <> help "use an integer color buffer")
           <*> pure ["."]
           <*> optional (strOption (long "output" <> short 'o' <> metavar "FILENAME" <> help "output file name"))
         )
@@ -60,15 +63,17 @@ parse srcName backend includePaths output = do
         Left err -> fail $ show err
         Right ppl -> maybe (putStrLn ppl) (`writeFile` ppl) output
 
-compile srcName backend includePaths output = do
+compile srcName backend fbCompType includePaths output = do
   let ext = takeExtension srcName
       baseName | ext == ".lc" = dropExtension srcName
                | otherwise = srcName
       withOutName n = maybe n id output
   do
-      pplRes <- compileMain includePaths backend srcName
+      putStrLn $ "backend:           " <> show backend
+      putStrLn $ "color buffer type: " <> show fbCompType
+      pplRes <- compileMain includePaths backend fbCompType srcName
       case pplRes of
         Left err -> fail $ show err
-        Right ppl -> B.writeFile (withOutName $ baseName <> ".json") $ encode ppl
+        Right ppl -> B.writeFile (withOutName $ baseName <> ".json") $ AE.encodePretty ppl
 --          True -> writeFile (withOutName $ baseName <> ".ppl") $ prettyShowUnlines ppl
 

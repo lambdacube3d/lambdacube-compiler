@@ -52,7 +52,7 @@ data PipelineInfo
   , pipeline :: Pipeline
   }
 
-  deriving (Show, Eq, Ord)
+  deriving (Show)
 
 data RenderJob
   = RenderJob
@@ -63,7 +63,7 @@ data RenderJob
   , pipelines :: Vector PipelineInfo
   }
 
-  deriving (Show, Eq, Ord)
+  deriving (Show)
 
 data FrameResult
   = FrameResult
