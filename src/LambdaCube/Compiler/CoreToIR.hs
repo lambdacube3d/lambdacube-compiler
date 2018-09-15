@@ -434,6 +434,9 @@ compValue x = case x of
   A2 "V2" (EFloat a) (EFloat b) -> IR.VV2F $ IR.V2 (realToFrac a) (realToFrac b)
   A3 "V3" (EFloat a) (EFloat b) (EFloat c) -> IR.VV3F $ IR.V3 (realToFrac a) (realToFrac b) (realToFrac c)
   A4 "V4" (EFloat a) (EFloat b) (EFloat c) (EFloat d) -> IR.VV4F $ IR.V4 (realToFrac a) (realToFrac b) (realToFrac c) (realToFrac d)
+  A2 "V2" (EInt   a) (EInt   b)                       -> IR.VV2I $ fromIntegral <$> IR.V2 a b
+  A3 "V3" (EInt   a) (EInt   b) (EInt   c)            -> IR.VV3I $ fromIntegral <$> IR.V3 a b c
+  A4 "V4" (EInt   a) (EInt   b) (EInt   c) (EInt   d) -> IR.VV4I $ fromIntegral <$> IR.V4 a b c d
   A2 "V2" (EBool a) (EBool b) -> IR.VV2B $ IR.V2 a b
   A3 "V3" (EBool a) (EBool b) (EBool c) -> IR.VV3B $ IR.V3 a b c
   A4 "V4" (EBool a) (EBool b) (EBool c) (EBool d) -> IR.VV4B $ IR.V4 a b c d
