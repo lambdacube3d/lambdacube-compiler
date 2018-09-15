@@ -1,6 +1,7 @@
 # lambdacube-compiler
 
 [![Build Status](https://travis-ci.org/lambdacube3d/lambdacube-compiler.svg?branch=master)](https://travis-ci.org/lambdacube3d/lambdacube-compiler)
+[![Gitter chat](https://badges.gitter.im/lambdacube3d/lambdacube3d.png)](https://gitter.im/LambdaCube-3D/Lobby)
 
 Compiler for LambdaCube 3D, a Haskell-like purely functional domain specific language for programming the GPU (graphics processing unit).
 
