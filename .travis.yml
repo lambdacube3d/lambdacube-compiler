@@ -18,10 +18,10 @@ before_install:
 
 install:
   - stack update
-  - stack --no-terminal --install-ghc test --only-dependencies -j3
+  - travis_wait 120 stack --no-terminal --install-ghc test --only-dependencies -j3
 
 script:
   - pwd
   - ls -al
-  - travis/build.sh
-  - travis/profile.sh
+  - travis_wait 120 travis/build.sh
+  - travis_wait 120 travis/profile.sh
