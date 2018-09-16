@@ -1,0 +1,34 @@
+name:                lambdacube-compiler
+version:             0.0.1.0
+license:             BSD3
+license-file:        LICENSE
+author:              Csaba Hruska
+maintainer:          csaba.hruska@gmail.com
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable sample
+  main-is:          sample.hs
+  default-language: Haskell2010
+  build-depends:
+    base,
+    containers,
+    mtl,
+    bytestring,
+    trifecta,
+    ansi-wl-pprint,
+    lambdacube-core,
+    indentation-trifecta,
+    parsers,
+    pretty-show,
+    unordered-containers,
+    vector,
+    vect,
+    stb-image,
+    bytestring-trie,
+    lambdacube-gl,
+    binary,
+    OpenGLRaw,
+    GLFW-b
+
+

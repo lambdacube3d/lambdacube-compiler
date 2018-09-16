@@ -1,0 +1,22 @@
+resolver: lts-11.22
+
+allow-newer: true
+
+packages:
+  - .
+
+extra-deps:
+  - lambdacube-core-0.2.0
+  - indentation-trifecta-0.0.2
+  - vect-0.4.7
+  - stb-image-0.2.1
+  - bitmap-0.0.2
+  - lambdacube-gl-0.2.2
+  - lambdacube-edsl-0.2.0
+  - OpenGLRaw-1.5.0.1
+  - GLFW-b-1.4.6
+
+
+
+
+

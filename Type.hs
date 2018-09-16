@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE PatternSynonyms, FlexibleContexts #-}
 module Type where
 
 import Data.Monoid
