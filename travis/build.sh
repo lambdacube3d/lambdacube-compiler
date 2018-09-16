@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 #cd /root/source/lambdacube-compiler
 #cabal check

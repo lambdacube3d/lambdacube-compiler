@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 UNIT_TEST_PARAMS="--quickcheck-max-size 30 --quickcheck-tests 100"
 
