@@ -24,4 +24,4 @@ script:
   - pwd
   - ls -al
   - travis_wait 120 travis/build.sh
-  - travis_wait 120 travis/profile.sh
+#  - travis_wait 120 travis/profile.sh
