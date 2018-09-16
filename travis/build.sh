@@ -5,7 +5,7 @@
 
 ./run-test-suite.sh --coverage
 
-stack sdist
+#stack sdist
 
 # TODO
 #SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz && (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
