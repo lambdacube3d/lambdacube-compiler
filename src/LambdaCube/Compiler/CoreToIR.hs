@@ -22,6 +22,7 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Vector as Vector
 import GHC.Stack
+import GHC.Word
 import Control.Arrow hiding ((<+>))
 import Control.Monad.Writer
 import Control.Monad.State
@@ -58,7 +59,12 @@ compilePipeline backend exp = IR.Pipeline
     ((subCmds,cmds), (streams, programs, targets, slots, textures))
         = flip runState ((0, mempty), mempty, (0, mempty), mempty, (0, mempty)) $ case toExp exp of
             A1 "ScreenOut" a -> addTarget backend a [IR.TargetItem s $ Just $ IR.Framebuffer s | s <- getSemantics a]
-            x -> error $ "ScreenOut expected inststead of " ++ ppShow x
+            A2 "TextureOut" rtexDimE rtexE -> do
+              let rtexDim  = case compValue rtexDimE of
+                               IR.VV2I v -> fromIntegral <$> v
+                               x -> error "Render texture dimensions should be a pair of non-negative integrals."
+              getTextureRenderTargetCommands backend rtexDim rtexE
+            x -> error $ "ScreenOut or TextureOut expected inststead of " ++ ppShow x
 
 type CG = State (List IR.StreamData, Map IR.Program Int, List IR.RenderTarget, Map String (Int, IR.Slot), List IR.TextureDescriptor)
 
@@ -174,6 +180,7 @@ getCommands backend e = case e of
             let (a, tf) = case img of
                     A1 "PrjImageColor" a -> (,) a $ \[_, x] -> x
                     A1 "PrjImage" a      -> (,) a $ \[x] -> x
+                    x -> error $ "Unexpected image: " <> ppShow x
             tl <- forM (getSemantics a) $ \semantic -> do
                 texture <- addL textureLens IR.TextureDescriptor
                     { IR.textureType      = IR.Texture2D (if semantic == IR.Color then IR.FloatT IR.RGBA else IR.FloatT IR.Red) 1
@@ -199,6 +206,31 @@ getCommands backend e = case e of
             let (IR.TargetItem IR.Color (Just tx)) = tf tl
             return ([(n, tx)], subCmds ++ cmds)
         _ -> return mempty
+
+getTextureRenderTargetCommands :: IR.Backend -> IR.V2 Word32 -> ExpTV -> CG ([IR.Command],[IR.Command])
+getTextureRenderTargetCommands backend dim body = do
+  targetItems <- forM (getSemantics body) $ \semantic -> do
+    texture <- addL textureLens IR.TextureDescriptor
+        { IR.textureType      = IR.Texture2D (if semantic == IR.Color then IR.FloatT IR.RGBA else IR.FloatT IR.Red) 1
+        , IR.textureSize      = IR.VV2U dim
+        , IR.textureSemantic  = semantic
+        , IR.textureSampler   = IR.SamplerDescriptor
+            { IR.samplerWrapS       = IR.Repeat
+            , IR.samplerWrapT       = Just IR.Repeat
+            , IR.samplerWrapR       = Nothing
+            , IR.samplerMinFilter   = IR.Nearest
+            , IR.samplerMagFilter   = IR.Nearest
+            , IR.samplerBorderColor = IR.VV4F (IR.V4 0 0 0 1)
+            , IR.samplerMinLod      = Nothing
+            , IR.samplerMaxLod      = Nothing
+            , IR.samplerLodBias     = 0
+            , IR.samplerCompareFunc = Nothing
+            }
+        , IR.textureBaseLevel = 0
+        , IR.textureMaxLevel  = 0
+        }
+    return $ IR.TargetItem semantic $ Just $ IR.TextureImage texture 0 Nothing
+  addTarget backend body targetItems
 
 type SamplerBinding = (IR.UniformName,IR.ImageRef)
 
