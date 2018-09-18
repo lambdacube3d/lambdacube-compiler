@@ -95,7 +95,7 @@ addTarget backend a tl = do
     rt <- addL targetLens $ IR.RenderTarget $ Vector.fromList tl
     second (IR.SetRenderTarget rt:) <$> getCommands backend a
 
-getCommands :: Backend -> ExpTV{-FrameBuffer-} -> CG ([IR.Command],[IR.Command])
+getCommands :: HasCallStack => Backend -> ExpTV{-FrameBuffer-} -> CG ([IR.Command],[IR.Command])
 getCommands backend e = case e of
 
     A1 "FrameBuffer" (ETuple a) -> return ([], [IR.ClearRenderTarget $ Vector.fromList $ map compFrameBuffer a])
@@ -112,11 +112,20 @@ getCommands backend e = case e of
 
             pUniforms' = snd <$> Map.filter ((\case UTexture2D{} -> False; _ -> True) . fst) pUniforms
 
+            imageSemantics   = getSemantics  e
+            imageTypes       = getImageInputTypes e
+            outImageType
+              = case imageTypes of
+                  []  -> error "Component-free pipelines are not supported."
+                  [x] -> x
+                  xs  -> flip fromMaybe (lookup IR.Color $ zip imageSemantics xs) $
+                         error "Multiple outputs, but no Color buffer?"
+
             prg = IR.Program
                 { IR.programUniforms    = pUniforms'
                 , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
                 , IR.programInTextures  = snd <$> Map.filter ((\case UUniform{} -> False; _ -> True) . fst) pUniforms
-                , IR.programOutput      = pure $ IR.Parameter "f0" IR.V4F -- TODO
+                , IR.programOutput      = pure $ IR.Parameter "f0" outImageType
                 , IR.vertexShader       = show vertSrc
                 , IR.geometryShader     = mempty -- TODO
                 , IR.fragmentShader     = show fragSrc
