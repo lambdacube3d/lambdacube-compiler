@@ -38,6 +38,8 @@ import LambdaCube.Compiler.Core (Subst(..), down, nType)
 import qualified LambdaCube.Compiler.Core as I
 import LambdaCube.Compiler.Infer (neutType', makeCaseFunPars')
 
+import Debug.Trace
+
 import Data.Version
 import Paths_lambdacube_compiler (version)
 
@@ -209,9 +211,15 @@ getCommands backend e = case e of
 
 getTextureRenderTargetCommands :: IR.Backend -> IR.V2 Word32 -> ExpTV -> CG ([IR.Command],[IR.Command])
 getTextureRenderTargetCommands backend dim body = do
-  targetItems <- forM (getSemantics body) $ \semantic -> do
+  let semantics  = getSemantics body
+      imageTypes = getImageTextureTypes body
+  targetItems <- forM (zip semantics imageTypes)
+                       $ \(semantic, imageType) -> do
     texture <- addL textureLens IR.TextureDescriptor
-        { IR.textureType      = IR.Texture2D (if semantic == IR.Color then IR.FloatT IR.RGBA else IR.FloatT IR.Red) 1
+        { IR.textureType      = IR.Texture2D (if semantic == IR.Color
+                                              then imageType IR.RGBA
+                                              else IR.FloatT IR.Red)
+                                             1
         , IR.textureSize      = IR.VV2U dim
         , IR.textureSemantic  = semantic
         , IR.textureSampler   = IR.SamplerDescriptor
@@ -239,8 +247,17 @@ type SamplerBinding = (IR.UniformName,IR.ImageRef)
 frameBufferType (A2 "FrameBuffer" _ ty) = ty
 frameBufferType x = error $ "illegal target type: " ++ ppShow x
 
+getFramebufferType :: ExpTV -> [ExpTV]
+getFramebufferType = compList . frameBufferType . tyOf
+
 getSemantics :: ExpTV -> [IR.ImageSemantic]
-getSemantics = compSemantics . frameBufferType . tyOf
+getSemantics = map compSemantic . getFramebufferType
+
+getImageTextureTypes :: ExpTV -> [IR.ColorArity -> IR.TextureDataType]
+getImageTextureTypes = map (imageInputTypeTextureType . compImageInputType) . getFramebufferType
+
+getImageInputTypes :: ExpTV -> [IR.InputType]
+getImageInputTypes = map compImageInputType . getFramebufferType
 
 getFragFilter (A2 "map" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)
@@ -265,8 +282,6 @@ compFrameBuffer = \case
   A1 "ColorImage" a -> IR.ClearImage IR.Color $ compValue a
   x -> error $ "compFrameBuffer " ++ ppShow x
 
-compSemantics = map compSemantic . compList
-
 compList (A2 ":" a x) = a : compList x
 compList (A0 "Nil") = []
 compList x = error $ "compList: " ++ ppShow x
@@ -282,11 +297,38 @@ compEdgeMode = \case
   A0 "ClampToEdge"    -> IR.ClampToEdge
   x -> error $ "compEdgeMode: " ++ ppShow x
 
-compSemantic = \case
+compSemantic x = case x of
   A0 "Depth"     -> IR.Depth
   A0 "Stencil"   -> IR.Stencil
   A1 "Color" _   -> IR.Color
   x -> error $ "compSemantic: " ++ ppShow x
+
+imageInputTypeTextureType :: HasCallStack => IR.InputType -> (IR.ColorArity -> IR.TextureDataType)
+imageInputTypeTextureType IR.Float = IR.FloatT
+imageInputTypeTextureType IR.Int   = IR.IntT
+imageInputTypeTextureType IR.V2I   = IR.IntT
+imageInputTypeTextureType IR.V3I   = IR.IntT
+imageInputTypeTextureType IR.V4I   = IR.IntT
+imageInputTypeTextureType IR.V2F   = IR.FloatT
+imageInputTypeTextureType IR.V3F   = IR.FloatT
+imageInputTypeTextureType IR.V4F   = IR.FloatT
+imageInputTypeTextureType x = error $ "Unsupported input type: " <> show x
+
+-- mirrors Builtins.lc:imageType
+compImageInputType :: HasCallStack => ExpTV -> IR.InputType
+compImageInputType = \case
+  A0 "Depth"     -> IR.Float
+  A0 "Stencil"   -> IR.Int
+  A1 "Color" c   -> case c of
+    (A2 "VecS" x y) -> flip fromMaybe (compInputType_ c) $
+                       error $ "Unexpected (compInputType) color image element type: " <> ppShow c
+      -- -> case x of
+      --      A0 "Float" -> (IR.Float, y)
+      --      A0 "Int"   -> (IR.Int, y)
+      --      A0 "Word"  -> (IR.Int, y)
+      --      _ -> error $ "Unexpected color image component type: " <> ppShow x
+    _ -> error $ "Unexpected color image element type: " <> ppShow c
+  x -> error $ "compImageType: " ++ ppShow x
 
 compAC (ETuple x) = IR.AccumulationContext Nothing $ map compFrag x
 
@@ -398,6 +440,7 @@ showGLSLType msg = \case
 
 supType = isJust . compInputType_
 
+compInputType_ :: ExpTV -> Maybe IR.InputType
 compInputType_ x = case x of
   TFloat          -> Just IR.Float
   TVec 2 TFloat   -> Just IR.V2F
