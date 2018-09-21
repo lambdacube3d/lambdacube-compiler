@@ -1291,6 +1291,8 @@ PrjImageColor
 
 data Output :: Type where
     ScreenOut :: forall (a :: _) (b :: _) . FrameBuffer a b -> Output
+    TextureOut
+      :: forall (c :: _) (d :: _) . Vec (fromInt 2) Int -> FrameBuffer c d -> Output
 
 renderFrame = _lhs renderFrame (_rhs ScreenOut)
 
@@ -1658,7 +1660,8 @@ accumulationContext = _lhs accumulationContext \(a :: _) -> _rhs a
 'Maybe = <<type constructor with 0 indices; constructors: Nothing, Just>>
 
 'Output :: Type
-'Output = <<type constructor with 0 indices; constructors: ScreenOut>>
+'Output
+  = <<type constructor with 0 indices; constructors: ScreenOut, TextureOut>>
 
 'PointSize :: Type -> Type
 'PointSize
@@ -2489,6 +2492,10 @@ Texture2D = <<1st constructor of 'Texture>>
 Texture2DSlot :: String -> Texture
 Texture2DSlot = <<0th constructor of 'Texture>>
 
+TextureOut
+  :: forall (a :: Nat) (b :: [ImageKind]) . Vec 2 Int -> FrameBuffer a b -> Output
+TextureOut = <<1st constructor of 'Output>>
+
 Triangle :: PrimitiveType
 Triangle = <<0th constructor of 'PrimitiveType>>
 
@@ -2726,8 +2733,10 @@ case'Output
   :: forall (a :: Output -> Type)
     -> (forall (b :: Nat) (c :: [ImageKind])
         . forall (d :: FrameBuffer b c) -> a ('ScreenOut b c d))
-      -> forall (e :: Output) -> a e
-case'Output = \a b c -> <<case function of a type with 0 parameters>>
+      -> (forall (e :: Nat) (f :: [ImageKind])
+          . forall (g :: Vec 2 Int) (h :: FrameBuffer e f) -> a ('TextureOut e f g h))
+        -> forall (i :: Output) -> a i
+case'Output = \a b c d -> <<case function of a type with 0 parameters>>
 
 case'PointSize
   :: forall a
@@ -8584,8 +8593,8 @@ zero
     Type
 540:6-540:12
     Type | Type | Type | Type
-540:6-541:12
-    Type
+540:6-542:13
+    Type | Type
 541:3-541:12
     forall (a :: Nat) (b :: [ImageKind])
       . FrameBuffer a b -> Output | Output | Type | Type | Type | Type
@@ -8603,120 +8612,150 @@ zero
     _b
 541:45-541:51
     Type | Type
-543:1-543:12
-    forall (a :: Nat) (b :: [ImageKind]) . FrameBuffer a b -> Output
-543:15-543:24
-    forall (a :: Nat) (b :: [ImageKind]) . FrameBuffer a b -> Output
-549:6-549:13
-    Type | Type | Type | Type
-549:6-553:12
-    Type | Type
-550:3-550:16
-    String -> Texture | Texture | Type | Type
-550:20-550:26
+542:3-542:13
+    forall (a :: Nat) (b :: [ImageKind])
+      . Vec 2 Int
+        -> FrameBuffer a b -> Output | Output | Type | Type | Type | Type | Type
+542:26-542:29
+    Nat -> Type -> Type
+542:26-542:31
+    Type -> Type
+542:26-542:35
     Type
-551:20-551:27
+542:26-542:64
     Type | Type
-553:3-553:12
+542:30-542:31
+    _b
+542:32-542:35
+    Type
+542:39-542:50
+    Nat -> [ImageKind] -> Type
+542:39-542:52
+    [ImageKind] -> Type
+542:39-542:54
+    Type
+542:39-542:64
+    Type
+542:51-542:52
+    _e
+542:53-542:54
+    _c
+542:58-542:64
+    Type | Type
+544:1-544:12
+    forall (a :: Nat) (b :: [ImageKind]) . FrameBuffer a b -> Output
+544:15-544:24
+    forall (a :: Nat) (b :: [ImageKind]) . FrameBuffer a b -> Output
+550:6-550:13
+    Type | Type | Type | Type
+550:6-554:12
+    Type | Type
+551:3-551:16
+    String -> Texture | Texture | Type | Type
+551:20-551:26
+    Type
+552:20-552:27
+    Type | Type
+554:3-554:12
     Vec 2 Int
       -> Image 1 ('Color (Vec 4 Float)) -> Texture | Texture | Type | Type | Type
-553:20-553:23
+554:20-554:23
     Nat -> Type -> Type
-553:20-553:25
-    Type -> Type
-553:20-553:29
-    Type
-553:24-553:25
-    _b
-553:26-553:29
-    Type
 554:20-554:25
+    Type -> Type
+554:20-554:29
+    Type
+554:24-554:25
+    _b
+554:26-554:29
+    Type
+555:20-555:25
     Nat -> ImageKind -> Type
-554:20-554:27
-    ImageKind -> Type
-554:20-554:49
-    Type
-554:20-555:27
-    Type
-554:26-554:27
-    _b
-554:29-554:34
-    Type -> ImageKind
-554:29-554:48
-    ImageKind
-554:36-554:39
-    Nat -> Type -> Type
-554:36-554:41
-    Type -> Type
-554:36-554:47
-    Type
-554:40-554:41
-    _b
-554:42-554:47
-    Type
 555:20-555:27
+    ImageKind -> Type
+555:20-555:49
+    Type
+555:20-556:27
+    Type
+555:26-555:27
+    _b
+555:29-555:34
+    Type -> ImageKind
+555:29-555:48
+    ImageKind
+555:36-555:39
+    Nat -> Type -> Type
+555:36-555:41
+    Type -> Type
+555:36-555:47
+    Type
+555:40-555:41
+    _b
+555:42-555:47
+    Type
+556:20-556:27
     Type | Type
-557:6-557:12
+558:6-558:12
     Type | Type | Type | Type | Type | Type
-557:6-559:17
+558:6-560:17
     Type | Type
-558:5-558:16
+559:5-559:16
     Filter
-559:5-559:17
+560:5-560:17
     Filter
-561:6-561:14
+562:6-562:14
     Type | Type | Type | Type | Type | Type | Type
-561:6-564:16
+562:6-565:16
     Type | Type | Type
-562:5-562:11
+563:5-563:11
     EdgeMode
-563:5-563:19
+564:5-564:19
     EdgeMode
-564:5-564:16
+565:5-565:16
     EdgeMode
-566:6-566:13
+567:6-567:13
     Type | Type | Type | Type | Type | Type
-566:6-566:23
+567:6-567:23
     Type
-566:6-566:47
+567:6-567:47
     Type | Type
-566:16-566:23
+567:16-567:23
     Filter -> EdgeMode -> Texture -> Sampler | Sampler | Type | Type | Type | Type
-566:24-566:30
+567:24-567:30
     Type
-566:31-566:39
+567:31-567:39
     Type
-566:40-566:47
+567:40-567:47
     Type
-569:1-569:10
+570:1-570:10
     Sampler -> Vec 2 Float -> Vec 4 Float
-569:14-569:21
+570:14-570:21
     Type
-569:25-569:28
+570:25-570:28
     Nat -> Type -> Type
-569:25-569:30
+570:25-570:30
     Type -> Type
-569:25-569:36
+570:25-570:36
     Type
-569:25-569:51
+570:25-570:51
     Type
-569:29-569:30
+570:29-570:30
     _b
-569:31-569:36
+570:31-570:36
     Type
-569:40-569:43
+570:40-570:43
     Nat -> Type -> Type
-569:40-569:45
+570:40-570:45
     Type -> Type
-569:40-569:51
+570:40-570:51
     Type | Type
-569:44-569:45
+570:44-570:45
     _b
-569:46-569:51
+570:46-570:51
     Type
-573:1-573:20
+574:1-574:20
     forall a . a -> a
-573:25-573:26
+574:25-574:26
     _b
 ------------ warnings
 Uncovered pattern(s) at testdata/Builtins.lc:201:1:
