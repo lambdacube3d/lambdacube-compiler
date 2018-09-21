@@ -104,7 +104,7 @@ getCommands backend e = case e of
 
       A3 "foldr" (A0 "++") (A0 "Nil") (A2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input_))) -> mdo
 
-        let 
+        let
             (vertexInput, pUniforms, vertSrc, fragSrc) = case backend of
               -- disabled DX11 codegen, due to it's incomplete
               --IR.DirectX11 -> genHLSLs backend (compRC' rctx) ints vert frag ffilter
@@ -306,22 +306,23 @@ compEdgeMode = \case
   A0 "ClampToEdge"    -> IR.ClampToEdge
   x -> error $ "compEdgeMode: " ++ ppShow x
 
-compSemantic x = case x of
+compSemantic = \case
   A0 "Depth"     -> IR.Depth
   A0 "Stencil"   -> IR.Stencil
   A1 "Color" _   -> IR.Color
   x -> error $ "compSemantic: " ++ ppShow x
 
 imageInputTypeTextureType :: HasCallStack => IR.InputType -> (IR.ColorArity -> IR.TextureDataType)
-imageInputTypeTextureType IR.Float = IR.FloatT
-imageInputTypeTextureType IR.Int   = IR.IntT
-imageInputTypeTextureType IR.V2I   = IR.IntT
-imageInputTypeTextureType IR.V3I   = IR.IntT
-imageInputTypeTextureType IR.V4I   = IR.IntT
-imageInputTypeTextureType IR.V2F   = IR.FloatT
-imageInputTypeTextureType IR.V3F   = IR.FloatT
-imageInputTypeTextureType IR.V4F   = IR.FloatT
-imageInputTypeTextureType x = error $ "Unsupported input type: " <> show x
+imageInputTypeTextureType = \case
+  IR.Float -> IR.FloatT
+  IR.Int   -> IR.IntT
+  IR.V2I   -> IR.IntT
+  IR.V3I   -> IR.IntT
+  IR.V4I   -> IR.IntT
+  IR.V2F   -> IR.FloatT
+  IR.V3F   -> IR.FloatT
+  IR.V4F   -> IR.FloatT
+  x -> error $ "Unsupported input type: " <> show x
 
 -- mirrors Builtins.lc:imageType
 compImageInputType :: HasCallStack => ExpTV -> IR.InputType
