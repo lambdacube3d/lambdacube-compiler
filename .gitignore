@@ -1,9 +1,12 @@
 *~
 dist
+dist-newstyle
 *.hi
 *.o
 lambdacube-compiler-test-suite.prof
 lambdacube-compiler-test-suite.tix
 *cabal-sandbox*
 *cabal.sandbox*
+.ghc.environment.*
+.dir-locals.el
 .stack-work
