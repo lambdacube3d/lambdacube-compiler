@@ -539,6 +539,7 @@ PrjImageColor       :: FrameBuffer 1 '[ 'Depth, 'Color (Vec 4 Float)] -> Image 1
 
 data Output where
   ScreenOut           :: FrameBuffer a b -> Output
+  TextureOut          :: Vec 2 Int -> FrameBuffer a b -> Output
 
 renderFrame = ScreenOut
 

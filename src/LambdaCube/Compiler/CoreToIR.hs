@@ -21,6 +21,8 @@ import Data.List
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Vector as Vector
+import GHC.Stack
+import GHC.Word
 import Control.Arrow hiding ((<+>))
 import Control.Monad.Writer
 import Control.Monad.State
@@ -35,6 +37,8 @@ import LambdaCube.Compiler.DesugaredSource hiding (getTTuple)
 import LambdaCube.Compiler.Core (Subst(..), down, nType)
 import qualified LambdaCube.Compiler.Core as I
 import LambdaCube.Compiler.Infer (neutType', makeCaseFunPars')
+
+import Debug.Trace
 
 import Data.Version
 import Paths_lambdacube_compiler (version)
@@ -57,7 +61,12 @@ compilePipeline backend exp = IR.Pipeline
     ((subCmds,cmds), (streams, programs, targets, slots, textures))
         = flip runState ((0, mempty), mempty, (0, mempty), mempty, (0, mempty)) $ case toExp exp of
             A1 "ScreenOut" a -> addTarget backend a [IR.TargetItem s $ Just $ IR.Framebuffer s | s <- getSemantics a]
-            x -> error $ "ScreenOut expected inststead of " ++ ppShow x
+            A2 "TextureOut" rtexDimE rtexE -> do
+              let rtexDim  = case compValue rtexDimE of
+                               IR.VV2I v -> fromIntegral <$> v
+                               x -> error "Render texture dimensions should be a pair of non-negative integrals."
+              getTextureRenderTargetCommands backend rtexDim rtexE
+            x -> error $ "ScreenOut or TextureOut expected inststead of " ++ ppShow x
 
 type CG = State (List IR.StreamData, Map IR.Program Int, List IR.RenderTarget, Map String (Int, IR.Slot), List IR.TextureDescriptor)
 
@@ -77,11 +86,16 @@ addLEq l x = modL l $ \sv -> maybe (let i = length sv in i `seq` (i, Map.insert 
 
 ---------------------------------------------------------
 
+addTarget
+  :: Backend
+  -> ExpTV
+  -> [IR.TargetItem]
+  -> CG ([IR.Command], [IR.Command])
 addTarget backend a tl = do
     rt <- addL targetLens $ IR.RenderTarget $ Vector.fromList tl
     second (IR.SetRenderTarget rt:) <$> getCommands backend a
 
-getCommands :: Backend -> ExpTV{-FrameBuffer-} -> CG ([IR.Command],[IR.Command])
+getCommands :: HasCallStack => Backend -> ExpTV{-FrameBuffer-} -> CG ([IR.Command],[IR.Command])
 getCommands backend e = case e of
 
     A1 "FrameBuffer" (ETuple a) -> return ([], [IR.ClearRenderTarget $ Vector.fromList $ map compFrameBuffer a])
@@ -90,7 +104,7 @@ getCommands backend e = case e of
 
       A3 "foldr" (A0 "++") (A0 "Nil") (A2 "map" (EtaPrim3 "rasterizePrimitive" ints rctx) (getVertexShader -> (vert, input_))) -> mdo
 
-        let 
+        let
             (vertexInput, pUniforms, vertSrc, fragSrc) = case backend of
               -- disabled DX11 codegen, due to it's incomplete
               --IR.DirectX11 -> genHLSLs backend (compRC' rctx) ints vert frag ffilter
@@ -98,11 +112,20 @@ getCommands backend e = case e of
 
             pUniforms' = snd <$> Map.filter ((\case UTexture2D{} -> False; _ -> True) . fst) pUniforms
 
+            imageSemantics   = getSemantics  e
+            imageTypes       = getImageInputTypes e
+            outImageType
+              = case imageTypes of
+                  []  -> error "Component-free pipelines are not supported."
+                  [x] -> x
+                  xs  -> flip fromMaybe (lookup IR.Color $ zip imageSemantics xs) $
+                         error "Multiple outputs, but no Color buffer?"
+
             prg = IR.Program
                 { IR.programUniforms    = pUniforms'
                 , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
                 , IR.programInTextures  = snd <$> Map.filter ((\case UUniform{} -> False; _ -> True) . fst) pUniforms
-                , IR.programOutput      = pure $ IR.Parameter "f0" IR.V4F -- TODO
+                , IR.programOutput      = pure $ IR.Parameter "f0" outImageType
                 , IR.vertexShader       = show vertSrc
                 , IR.geometryShader     = mempty -- TODO
                 , IR.fragmentShader     = show fragSrc
@@ -168,6 +191,7 @@ getCommands backend e = case e of
             let (a, tf) = case img of
                     A1 "PrjImageColor" a -> (,) a $ \[_, x] -> x
                     A1 "PrjImage" a      -> (,) a $ \[x] -> x
+                    x -> error $ "Unexpected image: " <> ppShow x
             tl <- forM (getSemantics a) $ \semantic -> do
                 texture <- addL textureLens IR.TextureDescriptor
                     { IR.textureType      = IR.Texture2D (if semantic == IR.Color then IR.FloatT IR.RGBA else IR.FloatT IR.Red) 1
@@ -194,6 +218,37 @@ getCommands backend e = case e of
             return ([(n, tx)], subCmds ++ cmds)
         _ -> return mempty
 
+getTextureRenderTargetCommands :: IR.Backend -> IR.V2 Word32 -> ExpTV -> CG ([IR.Command],[IR.Command])
+getTextureRenderTargetCommands backend dim body = do
+  let semantics  = getSemantics body
+      imageTypes = getImageTextureTypes body
+  targetItems <- forM (zip semantics imageTypes)
+                       $ \(semantic, imageType) -> do
+    texture <- addL textureLens IR.TextureDescriptor
+        { IR.textureType      = IR.Texture2D (if semantic == IR.Color
+                                              then imageType IR.RGBA
+                                              else IR.FloatT IR.Red)
+                                             1
+        , IR.textureSize      = IR.VV2U dim
+        , IR.textureSemantic  = semantic
+        , IR.textureSampler   = IR.SamplerDescriptor
+            { IR.samplerWrapS       = IR.Repeat
+            , IR.samplerWrapT       = Just IR.Repeat
+            , IR.samplerWrapR       = Nothing
+            , IR.samplerMinFilter   = IR.Nearest
+            , IR.samplerMagFilter   = IR.Nearest
+            , IR.samplerBorderColor = IR.VV4F (IR.V4 0 0 0 1)
+            , IR.samplerMinLod      = Nothing
+            , IR.samplerMaxLod      = Nothing
+            , IR.samplerLodBias     = 0
+            , IR.samplerCompareFunc = Nothing
+            }
+        , IR.textureBaseLevel = 0
+        , IR.textureMaxLevel  = 0
+        }
+    return $ IR.TargetItem semantic $ Just $ IR.TextureImage texture 0 Nothing
+  addTarget backend body targetItems
+
 type SamplerBinding = (IR.UniformName,IR.ImageRef)
 
 ----------------------------------------------------------------
@@ -201,7 +256,17 @@ type SamplerBinding = (IR.UniformName,IR.ImageRef)
 frameBufferType (A2 "FrameBuffer" _ ty) = ty
 frameBufferType x = error $ "illegal target type: " ++ ppShow x
 
-getSemantics = compSemantics . frameBufferType . tyOf
+getFramebufferType :: ExpTV -> [ExpTV]
+getFramebufferType = compList . frameBufferType . tyOf
+
+getSemantics :: ExpTV -> [IR.ImageSemantic]
+getSemantics = map compSemantic . getFramebufferType
+
+getImageTextureTypes :: ExpTV -> [IR.ColorArity -> IR.TextureDataType]
+getImageTextureTypes = map (imageInputTypeTextureType . compImageInputType) . getFramebufferType
+
+getImageInputTypes :: ExpTV -> [IR.InputType]
+getImageInputTypes = map compImageInputType . getFramebufferType
 
 getFragFilter (A2 "map" (EtaPrim2 "filterFragment" p) x) = (Just p, x)
 getFragFilter x = (Nothing, x)
@@ -226,8 +291,6 @@ compFrameBuffer = \case
   A1 "ColorImage" a -> IR.ClearImage IR.Color $ compValue a
   x -> error $ "compFrameBuffer " ++ ppShow x
 
-compSemantics = map compSemantic . compList
-
 compList (A2 ":" a x) = a : compList x
 compList (A0 "Nil") = []
 compList x = error $ "compList: " ++ ppShow x
@@ -248,6 +311,34 @@ compSemantic = \case
   A0 "Stencil"   -> IR.Stencil
   A1 "Color" _   -> IR.Color
   x -> error $ "compSemantic: " ++ ppShow x
+
+imageInputTypeTextureType :: HasCallStack => IR.InputType -> (IR.ColorArity -> IR.TextureDataType)
+imageInputTypeTextureType = \case
+  IR.Float -> IR.FloatT
+  IR.Int   -> IR.IntT
+  IR.V2I   -> IR.IntT
+  IR.V3I   -> IR.IntT
+  IR.V4I   -> IR.IntT
+  IR.V2F   -> IR.FloatT
+  IR.V3F   -> IR.FloatT
+  IR.V4F   -> IR.FloatT
+  x -> error $ "Unsupported input type: " <> show x
+
+-- mirrors Builtins.lc:imageType
+compImageInputType :: HasCallStack => ExpTV -> IR.InputType
+compImageInputType = \case
+  A0 "Depth"     -> IR.Float
+  A0 "Stencil"   -> IR.Int
+  A1 "Color" c   -> case c of
+    (A2 "VecS" x y) -> flip fromMaybe (compInputType_ c) $
+                       error $ "Unexpected (compInputType) color image element type: " <> ppShow c
+      -- -> case x of
+      --      A0 "Float" -> (IR.Float, y)
+      --      A0 "Int"   -> (IR.Int, y)
+      --      A0 "Word"  -> (IR.Int, y)
+      --      _ -> error $ "Unexpected color image component type: " <> ppShow x
+    _ -> error $ "Unexpected color image element type: " <> ppShow c
+  x -> error $ "compImageType: " ++ ppShow x
 
 compAC (ETuple x) = IR.AccumulationContext Nothing $ map compFrag x
 
@@ -359,6 +450,7 @@ showGLSLType msg = \case
 
 supType = isJust . compInputType_
 
+compInputType_ :: ExpTV -> Maybe IR.InputType
 compInputType_ x = case x of
   TFloat          -> Just IR.Float
   TVec 2 TFloat   -> Just IR.V2F
@@ -428,12 +520,16 @@ compFetchPrimitive x = case x of
   A0 "TriangleAdjacency" -> IR.TrianglesAdjacency
   x -> error $ "compFetchPrimitive " ++ ppShow x
 
+compValue :: HasCallStack => ExpTV -> IR.Value
 compValue x = case x of
   EFloat a -> IR.VFloat $ realToFrac a
   EInt a -> IR.VInt $ fromIntegral a
   A2 "V2" (EFloat a) (EFloat b) -> IR.VV2F $ IR.V2 (realToFrac a) (realToFrac b)
   A3 "V3" (EFloat a) (EFloat b) (EFloat c) -> IR.VV3F $ IR.V3 (realToFrac a) (realToFrac b) (realToFrac c)
   A4 "V4" (EFloat a) (EFloat b) (EFloat c) (EFloat d) -> IR.VV4F $ IR.V4 (realToFrac a) (realToFrac b) (realToFrac c) (realToFrac d)
+  A2 "V2" (EInt   a) (EInt   b)                       -> IR.VV2I $ fromIntegral <$> IR.V2 a b
+  A3 "V3" (EInt   a) (EInt   b) (EInt   c)            -> IR.VV3I $ fromIntegral <$> IR.V3 a b c
+  A4 "V4" (EInt   a) (EInt   b) (EInt   c) (EInt   d) -> IR.VV4I $ fromIntegral <$> IR.V4 a b c d
   A2 "V2" (EBool a) (EBool b) -> IR.VV2B $ IR.V2 a b
   A3 "V3" (EBool a) (EBool b) (EBool c) -> IR.VV3B $ IR.V3 a b c
   A4 "V4" (EBool a) (EBool b) (EBool c) (EBool d) -> IR.VV4B $ IR.V4 a b c d
@@ -492,6 +588,14 @@ compPV x = case x of
 
 --------------------------------------------------------------- GLSL generation
 
+genGLSLs
+  :: Backend
+  -> Maybe ExpTV
+  -> ExpTV
+  -> (Maybe ExpTV, ExpTV)
+  -> (Maybe ExpTV, ExpTV)
+  -> Maybe ExpTV
+  -> ([[Char]], Uniforms, Doc, Doc)
 genGLSLs backend
     rp                  -- program point size
     (ETuple ints)       -- interpolations

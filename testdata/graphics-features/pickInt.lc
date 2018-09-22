@@ -1,0 +1,25 @@
+-- Tests:
+--  1. Pipeline targeting a render texture (TextureOut), instead of a Screenout.
+--  2. Integer color components for the output
+
+type FB = FrameBuffer 1 '[ 'Color (Vec 4 Int)]
+
+scene :: String -> FB -> FB
+scene name prevFB =
+  Accumulate    ((ColorOp NoBlending (one :: Vec 4 Bool)))
+  (mapFragments (\(uv, rgba) -> ((rgba)))
+   $ rasterizePrimitives (TriangleCtx CullFront PolygonFill NoOffset LastVertex) (Flat, Flat)
+   $ mapPrimitives
+    (\(pos, color, id)->
+      ( (Uniform "viewProj" :: Mat 4 4 Float) *. (V4 pos%x pos%y 0 1)
+      , V2 0.0 0.0
+      , V4 0 0 0 id))
+    $ fetch name ( Attribute "position"   :: Vec 3 Float
+                 , Attribute "color"      :: Vec 4 Float
+                 , Attribute "id"         :: Int))
+  prevFB
+
+main :: Output
+main = TextureOut (V2 800 600) $
+       scene "objects" $
+       FrameBuffer ((colorImage1 (V4 0 0 0 0)))
