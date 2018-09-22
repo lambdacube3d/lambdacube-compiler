@@ -1,6 +1,7 @@
 import Data.Monoid
 import Control.Monad
 import Options.Applicative
+import Data.Either
 import Data.Aeson
 import qualified Data.ByteString.Lazy as B
 import System.FilePath
@@ -20,10 +21,17 @@ main = join $ execParser $ addInfo i $ versionOption <*> subparser (
           <*> pure ["."]
           <*> optional (strOption (long "output" <> short 'o' <> metavar "FILENAME" <> help "output file name"))
     )
+ <> command "dump" (addInfo (progDesc "dumps LambdaCube3D core") $ dump
+          <$> argument str (metavar "SOURCE_FILE")
+          <*> flag OpenGL33 WebGL1 (long "webgl" <> help "generate WebGL 1.0 pipeline" )
+          <*> pure ["."]
+          <*> optional (strOption (long "output" <> short 'o' <> metavar "FILENAME" <> help "output file name"))
+    )
  <> command "pretty" (addInfo (progDesc "pretty prints JSON IR") $ prettyPrint
       <$> argument str (metavar "SOURCE_FILE")
       <*> optional (strOption (long "output" <> short 'o' <> metavar "FILENAME" <> help "output file name"))
-    )) <|> compile'
+    )
+ ) <|> compile'
   where
     compile' = (compile
           <$> argument str (metavar "SOURCE_FILE")
@@ -59,6 +67,12 @@ parse srcName backend includePaths output = do
     case pplRes of
         Left err -> fail $ show err
         Right ppl -> maybe (putStrLn ppl) (`writeFile` ppl) output
+
+dump srcName backend includePaths output = do
+    res <- runMM (ioFetch includePaths) $ getDef srcName "main" (Just outputType)
+    let Right e   = snd $ fromRight (error "compile error: can not dump the core, try regular compile to get the error message") $ snd res
+        coreDump  = show $ mkDoc (False,True) e
+    maybe (putStrLn coreDump) (`writeFile` coreDump) output
 
 compile srcName backend includePaths output = do
   let ext = takeExtension srcName
