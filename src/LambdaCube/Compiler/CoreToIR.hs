@@ -39,6 +39,7 @@ import qualified LambdaCube.Compiler.Core as I
 import LambdaCube.Compiler.Infer (neutType', makeCaseFunPars')
 
 import Debug.Trace
+import Text.Printf
 
 import Data.Version
 import Paths_lambdacube_compiler (version)
@@ -112,20 +113,17 @@ getCommands backend e = case e of
 
             pUniforms' = snd <$> Map.filter ((\case UTexture2D{} -> False; _ -> True) . fst) pUniforms
 
-            imageSemantics   = getSemantics  e
-            imageTypes       = getImageInputTypes e
-            outImageType
-              = case imageTypes of
-                  []  -> error "Component-free pipelines are not supported."
-                  [x] -> x
-                  xs  -> flip fromMaybe (lookup IR.Color $ zip imageSemantics xs) $
-                         error "Multiple outputs, but no Color buffer?"
+            imageSemantics  = getSemantics  e
+            imageTypes      = getImageInputTypes e
+            outputValues    = case imageTypes of
+              []  -> error "Component-free pipelines are not supported."
+              xs  -> take 1 [IR.Parameter "f0" ty | (IR.Color, ty) <- zip imageSemantics xs] -- TODO: support multiple output
 
             prg = IR.Program
                 { IR.programUniforms    = pUniforms'
                 , IR.programStreams     = Map.fromList $ zip vertexInput $ map (uncurry IR.Parameter) input
                 , IR.programInTextures  = snd <$> Map.filter ((\case UUniform{} -> False; _ -> True) . fst) pUniforms
-                , IR.programOutput      = pure $ IR.Parameter "f0" outImageType
+                , IR.programOutput      = Vector.fromList outputValues
                 , IR.vertexShader       = show vertSrc
                 , IR.geometryShader     = mempty -- TODO
                 , IR.fragmentShader     = show fragSrc

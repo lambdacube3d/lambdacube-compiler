@@ -18,7 +18,7 @@ Pipeline
               fromList
                 [ ( "vi1" , Parameter { name = "position4" , ty = V4F } ) ]
           , programInTextures = fromList []
-          , programOutput = [ Parameter { name = "f0" , ty = V4F } ]
+          , programOutput = []
           , vertexShader =
               """
               #version 330 core
