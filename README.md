@@ -5,6 +5,8 @@
 
 Compiler for LambdaCube 3D, a Haskell-like purely functional domain specific language for programming the GPU (graphics processing unit).
 
+To get an overview of the project watch the showcase [presentation video](https://www.youtube.com/watch?v=IjtjSqkEhDY).
+
 See: [Language Specification](http://lambdacube3d.com/lang-specification)
 
 ## Installation
