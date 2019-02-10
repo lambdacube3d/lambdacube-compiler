@@ -24,6 +24,7 @@ stack exec lc -- -h
 
 ## Tutorials and Examples
 
+- [Overview/Showcase](https://www.youtube.com/watch?v=IjtjSqkEhDY)
 - [Getting started](http://lambdacube3d.com/getting-started)
 - [Workshop material](https://github.com/csabahruska/lambdacube-workshop)
 
