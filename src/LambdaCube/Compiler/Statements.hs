@@ -112,12 +112,12 @@ compileStmt lhs compilegt ds = \case
         alts -> compileStmt lhs compileGuardTrees' [TypeAnn n t] alts
     fs@(FunAlt n vs _: _) -> case groupBy ((==) `on` fst) [(length vs, n) | FunAlt n vs _ <- fs] of
         [gs@((num, _): _)]
-          | num == 0 && length gs > 1 -> fail $ "redefined " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd <$> gs)
+          | num == 0 && length gs > 1 -> error $ "redefined " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd <$> gs)
           | n `elem` [n' | TypeFamily n' _ <- ds] -> return []
           | otherwise -> do
             cf <- compilegt (SIName_ (mconcat [sourceInfo n | FunAlt n _ _ <- fs]) (nameFixity n) $ sName n) vs [gt | FunAlt _ _ gt <- fs]
             return [StLet n (listToMaybe [t | TypeAnn n' t <- ds, n' == n]{-TODO: fail if more-}) $ lhs n cf]
-        fs -> fail $ "different number of arguments of " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd . head <$> fs)
+        fs -> error $ "different number of arguments of " ++ sName n ++ ":\n" ++ show (vcat $ pShow . sourceInfo . snd . head <$> fs)
     [Stmt x] -> return [x]
   where
     noTA x = ((Visible, Wildcard SType), x)
