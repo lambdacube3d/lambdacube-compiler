@@ -14,7 +14,7 @@ module LambdaCube.Compiler.Lexer
     ) where
 
 import Data.List
-import Data.List.NonEmpty (fromList)
+import Data.List.NonEmpty (NonEmpty, fromList)
 import Data.Char
 import qualified Data.Set as Set
 import Data.Void
@@ -34,6 +34,7 @@ import LambdaCube.Compiler.DesugaredSource
 
 -------------------------------------------------------------------------------- utils
 
+
 -- try with error handling
 -- see http://blog.ezyang.com/2014/05/parsec-try-a-or-b-considered-harmful/comment-page-1/#comment-6602
 try_ :: String -> Parse r w a -> Parse r w a
@@ -43,7 +44,7 @@ toSPos :: SourcePos -> SPos
 toSPos p = SPos (fromIntegral $ unPos $ sourceLine p) (fromIntegral $ unPos $ sourceColumn p)
 
 getSPos :: Parse r w SPos
-getSPos = toSPos <$> getPosition
+getSPos = toSPos <$> getSourcePos
 
 -------------------------------------------------------------------------------- literals
 
@@ -113,21 +114,26 @@ data ParseEnv r = ParseEnv
     , indentationLevel :: SPos
     }
 
-type ParseState r = (ParseEnv r, P.State String)
+type ParseState r = (ParseEnv r, P.State String (ErrorFancy Void))
 
 parseState :: FileInfo -> r -> ParseState r
-parseState fi di = (ParseEnv fi di ExpNS (SPos 0 0), either (error "impossible") id $ runParser (getParserState :: Parsec (ErrorFancy Void) String (P.State String)) (filePath fi) (fileContent fi))
+parseState fi di = (ParseEnv fi di ExpNS (SPos 0 0), either (error "impossible") id $ runParser (getParserState :: Parsec (ErrorFancy Void) String (P.State String (ErrorFancy Void))) (filePath fi) (fileContent fi))
 
 --type Parse r w = ReaderT (ParseEnv r) (WriterT [w] (StateT SPos (Parsec String)))
 type Parse r w = RWST (ParseEnv r) [w] SPos (Parsec (ErrorFancy Void) String)
 
-newtype ParseError = ParseErr (P.ParseError (Token String) (ErrorFancy Void))
+newtype ParseError = ParseErr (P.ParseError String (ErrorFancy Void))
+
+instance (ShowErrorComponent v, Show v) => 
+  ShowErrorComponent (ErrorFancy v) where
+  showErrorComponent (ErrorCustom e) = showErrorComponent e
+  showErrorComponent x = show x
 
 instance Show ParseError where
     show (ParseErr e) = parseErrorPretty e
 
-runParse :: Parse r w a -> ParseState r -> Either ParseError (a, [w])
-runParse p (env, st) = left ParseErr . snd . flip runParser' st $ evalRWST p env (error "spos")
+runParse :: Parse r w a -> ParseState r -> Either (NonEmpty ParseError) (a, [w])
+runParse p (env, st) = left (fmap ParseErr . bundleErrors) . snd . flip runParser' st $ evalRWST p env (error "spos")
 
 getParseState :: Parse r w (ParseState r)
 getParseState = (,) <$> ask <*> getParserState
