@@ -10,3 +10,4 @@ lambdacube-compiler-test-suite.tix
 .ghc.environment.*
 .dir-locals.el
 .stack-work
+cabal.project

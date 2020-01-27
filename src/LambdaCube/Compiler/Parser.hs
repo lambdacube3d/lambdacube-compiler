@@ -20,6 +20,7 @@ module LambdaCube.Compiler.Parser
 import Data.Monoid
 import Data.Maybe
 import Data.List
+import Data.List.NonEmpty (NonEmpty, fromList)
 import Data.Char
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -53,7 +54,7 @@ data LCParseError
     = MultiplePatternVars [[SIName]]
     | OperatorMismatch SIName SIName
     | UndefinedConstructor SIName
-    | ParseError ParseError
+    | ParseError (NonEmpty ParseError)
 
 data ParseWarning
     = Unreachable Range
@@ -621,7 +622,7 @@ parseExtensions
 
 type Module = Module_ DefParser
 
-type DefParser = DesugarInfo -> Either ParseError ([Stmt], [PostponedCheck])
+type DefParser = DesugarInfo -> Either (NonEmpty ParseError) ([Stmt], [PostponedCheck])
 
 type HeaderParser = Parse () ()
 
@@ -655,7 +656,7 @@ parseModule = do
         , definitions   = \ge -> runParse (parseDefs SLHS <* eof) (env { desugarInfo = ge }, st)
         }
 
-parseLC :: FileInfo -> Either ParseError Module
+parseLC :: FileInfo -> Either (NonEmpty ParseError) Module
 parseLC fi
     = fmap fst $ runParse parseModule $ parseState fi ()
 
@@ -663,7 +664,7 @@ runDefParser :: (MonadFix m, MonadError LCParseError m) => DesugarInfo -> DefPar
 runDefParser ds_ dp = do
 
     (defs, dns, ds) <- mfix $ \ ~(_, _, ds) -> do
-        let x :: Either ParseError ([Stmt], [PostponedCheck])
+        let x :: Either (NonEmpty ParseError) ([Stmt], [PostponedCheck])
             x = dp (ds <> ds_)
         (defs, dns) <- either (throwError . ParseError) return x
         return (defs, dns, mkDesugarInfo defs)
