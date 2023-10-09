@@ -318,7 +318,7 @@ calcPrec
 calcPrec app getFixity = compileOps []
   where
     compileOps [] e [] = return e
-    compileOps acc@ ~((op', e'): acc') e es@ ~((op, e''): es')
+    compileOps acc@(~((op', e'): acc')) e es@(~((op, e''): es'))
         | c == LT || c == EQ && isInfixL f && isInfixL f' = compileOps acc' (app op' e' e) es
         | c == GT || c == EQ && isInfixR f && isInfixR f' = compileOps ((op, e): acc) e'' es'
         | otherwise = throwError (op', op)  -- operator mismatch
